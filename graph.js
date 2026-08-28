@@ -10,14 +10,17 @@ const Graph = (() => {
   let _focusActive  = false;
   let _focusNodeId  = null;
   const FOCUS_DELAY = 750;
+  let _lastMousePos = { x:0, y:0 };
+  let _mouseMoving  = false;
+  let _moveCheckTimer = null;
 
   const edgeMode = { active:false, edgeType:null, sourceId:null };
 
   /* ── Palette (espelha CSS vars) ────────────────── */
   const C = {
-    node:   { problema:'#c4706c', solucao:'#6c9ea8', agrupador:'#8a9c7a' },
-    edge:   { dependencia:'#c48c6c', resolve:'#6ca88a', relaciona:'#8a8caa' },
-    accent: '#c49a6c',
+    node:   { problema:'#d95c55', solucao:'#4a8da0', agrupador:'#76965d' },
+    edge:   { dependencia:'#d97d55', resolve:'#4aa078', relaciona:'#7676a0' },
+    accent: '#d99a55',
     border: '#2e2f2a',
     bg:     { surface:'#181916', elevated:'#21221e' },
     text:   { primary:'#ede9e2', secondary:'#8a8880', muted:'#4a4a45' },
@@ -41,7 +44,7 @@ const Graph = (() => {
         selector: 'node',
         style: {
           'shape':            'round-rectangle',
-          'width':            'label', 'height':'label', 'padding':'13px',
+          'width':            'label', 'height':'label', 'padding':'16px 20px',
           'background-color': C.bg.elevated,
           'border-width':     1.5, 'border-color': C.border,
           'color':            C.text.primary,
@@ -49,8 +52,8 @@ const Graph = (() => {
           'font-size':        '12px', 'font-weight': '400',
           'label':            'data(label)',
           'text-valign':      'center', 'text-halign':'center',
-          'text-wrap':        'wrap', 'text-max-width':'148px',
-          'min-width':        '88px', 'min-height':'38px',
+          'text-wrap':        'wrap', 'text-max-width':'130px',
+          'min-width':        '100px', 'min-height':'46px',
           'transition-property': 'background-color,border-color,border-width,opacity',
           'transition-duration': '140ms',
         },
@@ -221,7 +224,7 @@ const Graph = (() => {
     };
   }
   function buildLabel(n){
-    const title = n.title.length > 24 ? n.title.slice(0,22)+'…' : n.title;
+    const title = n.title;
     if(!Store.getShowNodeMeta()) return title;
     const pi = {alta:'↑',media:'·',baixa:'↓'}[n.priority] ?? '';
     return `${pi} ${title}`;
@@ -256,6 +259,18 @@ const Graph = (() => {
   /* ═══════════════════════════════════════════════
      FOCUS MODE
   ════════════════════════════════════════════════ */
+
+  document.addEventListener('mousemove', e => {
+    const dx = e.clientX - _lastMousePos.x;
+    const dy = e.clientY - _lastMousePos.y;
+    if(Math.hypot(dx,dy) > 2){
+      _mouseMoving = true;
+      clearTimeout(_moveCheckTimer);
+      _moveCheckTimer = setTimeout(() => { _mouseMoving = false; }, 120);
+    }
+    _lastMousePos = { x:e.clientX, y:e.clientY };
+  }, { passive:true });
+
   function _activateFocus(nodeId, inbound){
     _clearFocusClasses();
     _focusActive = true;
@@ -298,7 +313,7 @@ const Graph = (() => {
       const id = evt.target.id();
       clearTimeout(_focusTimer);
       _focusTimer = setTimeout(() => {
-        // Lê shift no momento da ativação
+        if(_mouseMoving || evt.target.grabbed()) return;
         const inbound = window._shiftHeld === true;
         _activateFocus(id, inbound);
       }, FOCUS_DELAY);

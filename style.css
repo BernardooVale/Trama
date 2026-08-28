@@ -17,26 +17,26 @@
   --text-secondary: #8a8880;
   --text-muted:     #4a4a45;
 
-  /* Accent: cobre/âmbar — único tom quente */
-  --accent:         #c49a6c;
-  --accent-dim:     #9a7550;
-  --accent-glow:    rgba(196,154,108,0.14);
-  --accent-glow-lg: rgba(196,154,108,0.08);
+  /* Accent: cobre/âmbar */
+  --accent:         #d99a55;
+  --accent-dim:     #a67340;
+  --accent-glow:    rgba(217,154,85,0.18);
+  --accent-glow-lg: rgba(217,154,85,0.10);
 
   /* Vértices — tons dessaturados distintos */
-  --node-problema:  #c4706c;   /* terracota */
-  --node-solucao:   #6c9ea8;   /* azul-cinza */
-  --node-agrupador: #8a9c7a;   /* verde-musgo */
+  --node-problema:  #d95c55;   /* terracota mais vivo */
+  --node-solucao:   #4a8da0;   /* azul-cinza mais vivo */
+  --node-agrupador: #76965d;   /* verde-musgo mais vivo */
 
   /* Arestas */
-  --edge-dependencia: #c48c6c;  /* âmbar escuro */
-  --edge-resolve:     #6ca88a;  /* sage */
-  --edge-relaciona:   #8a8caa;  /* lavanda fria */
+  --edge-dependencia: #d97d55;  /* âmbar escuro */
+  --edge-resolve:     #4aa078;  /* sage */
+  --edge-relaciona:   #7676a0;  /* lavanda fria */
 
   /* Prioridade */
-  --priority-alta:  #c4706c;
-  --priority-media: #c49a6c;
-  --priority-baixa: #6c9ea8;
+  --priority-alta:  #d95c55;
+  --priority-media: #d99a55;
+  --priority-baixa: #4a8da0;
 
   --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:20px; --sp-6:24px;
   --r-sm:5px; --r-md:8px; --r-lg:12px; --r-xl:18px;
