@@ -376,6 +376,20 @@ const Graph = (() => {
       Store.updateNodePosition(evt.target.id(), p.x, p.y);
     });
 
+    /* ── Context Menu (Right Click) ─────────────── */
+    cy.on('cxttap', 'node', evt => {
+      document.dispatchEvent(new CustomEvent('graph:contextNode', {
+        detail: { id: evt.target.id(), x: evt.originalEvent.clientX, y: evt.originalEvent.clientY }
+      }));
+    });
+
+    cy.on('cxttap', evt => {
+      if(evt.target !== cy) return;
+      document.dispatchEvent(new CustomEvent('graph:contextCore', {
+        detail: { gx: evt.position.x, gy: evt.position.y, cx: evt.originalEvent.clientX, cy: evt.originalEvent.clientY }
+      }));
+    });
+
     /* ── Pan: só com clique+arrasta ────────────── */
     // Estratégia: pan sempre habilitado no Cytoscape,
     // mas bloqueamos o mousedown no container até o threshold
@@ -637,8 +651,17 @@ const Graph = (() => {
 
   function getInstance(){ return cy }
 
+  function addNodeAtPos(type, x, y){
+    return Store.addNode({ type, x, y });
+  }
+
+  function startEdgeModeFromContext(type, sourceId){
+    startEdgeMode(type);
+    _handleEdgeModeClick(sourceId);
+  }
+
   return {
-    init, addNodeAtCenter, applyFilter,
-    focusNode, syncTheme, cancelEdgeMode, getInstance,
+    init, addNodeAtCenter, addNodeAtPos, applyFilter,
+    focusNode, syncTheme, cancelEdgeMode, getInstance, startEdgeModeFromContext
   };
 })();

@@ -149,19 +149,81 @@ const App = (() => {
   }
 
   /* ═══════════════════════════════════════════════
-     ADD NODE
+     CONTEXT MENU
   ════════════════════════════════════════════════ */
-  function bindAddNodeButtons(){
-    document.querySelectorAll('.btn-tool[data-type]').forEach(btn=>{
-      btn.addEventListener('click',()=>{
-        const node=Graph.addNodeAtCenter(btn.dataset.type);
-        Store.selectNode(node.id);
-        openSidebar(node.id);
-        requestAnimationFrame(()=>{ DOM['sb-title'].focus(); DOM['sb-title'].select(); });
-        toast(`Vértice criado — edite o título`);
+  const ContextMenu = (() => {
+    const el = document.getElementById('context-menu');
+    let targetId = null;
+    let targetPos = null;
+
+    function hide(){ el.hidden = true; targetId = null; targetPos = null; }
+
+    function position(x, y){
+      el.hidden = false;
+      // Prevent overflow
+      const rect = el.getBoundingClientRect();
+      const left = (x + rect.width > window.innerWidth) ? window.innerWidth - rect.width - 10 : x;
+      const top  = (y + rect.height > window.innerHeight) ? window.innerHeight - rect.height - 10 : y;
+      el.style.left = `${left}px`;
+      el.style.top  = `${top}px`;
+    }
+
+    function showNodeMenu(id, cx, cy){
+      targetId = id;
+      el.innerHTML = `
+        <div class="cm-item" style="font-size:10px;text-transform:uppercase;color:var(--text-muted);pointer-events:none">Nova Aresta</div>
+        <button class="cm-item" data-action="edge" data-edge="dependencia">Dependência</button>
+        <button class="cm-item" data-action="edge" data-edge="resolve">Resolve</button>
+        <button class="cm-item" data-action="edge" data-edge="relaciona">Relaciona</button>
+        <div class="cm-divider"></div>
+        <button class="cm-item" data-action="delete" style="color:var(--node-problema)">Excluir Vértice</button>
+      `;
+      position(cx, cy);
+    }
+
+    function showCoreMenu(gx, gy, cx, cy){
+      targetPos = { x: gx, y: gy };
+      el.innerHTML = `
+        <div class="cm-item" style="font-size:10px;text-transform:uppercase;color:var(--text-muted);pointer-events:none">Novo Vértice</div>
+        <button class="cm-item" data-action="add" data-type="problema"><span class="dot dot-problema"></span>Problema</button>
+        <button class="cm-item" data-action="add" data-type="solucao"><span class="dot dot-solucao"></span>Solução</button>
+        <button class="cm-item" data-action="add" data-type="agrupador"><span class="dot dot-agrupador"></span>Agrupador</button>
+      `;
+      position(cx, cy);
+    }
+
+    function bind(){
+      el.addEventListener('click', e => {
+        const btn = e.target.closest('.cm-item');
+        if(!btn || btn.dataset.action === undefined) return;
+        
+        const action = btn.dataset.action;
+        if(action === 'add'){
+          const node = Graph.addNodeAtPos(btn.dataset.type, targetPos.x, targetPos.y);
+          Store.selectNode(node.id);
+          openSidebar(node.id);
+          setTimeout(() => DOM['sb-title'].focus(), 50);
+        } 
+        else if(action === 'edge'){
+          Graph.startEdgeModeFromContext(btn.dataset.edge, targetId);
+        }
+        else if(action === 'delete'){
+          Store.deleteNode(targetId);
+        }
+        hide();
       });
-    });
-  }
+
+      document.addEventListener('click', e => {
+        if(!e.target.closest('#context-menu')) hide();
+      });
+      document.addEventListener('contextmenu', e => {
+        if(!e.target.closest('#cy')) hide();
+        e.preventDefault();
+      });
+    }
+
+    return { showNodeMenu, showCoreMenu, bind };
+  })();
 
   /* ═══════════════════════════════════════════════
      SEARCH UNIFICADO (nome + #etiqueta)
@@ -441,6 +503,9 @@ const App = (() => {
       cy.$(':selected').unselect();
       cy.getElementById(edge.id).select();
     });
+
+    document.addEventListener('graph:contextNode', e => ContextMenu.showNodeMenu(e.detail.id, e.detail.x, e.detail.y));
+    document.addEventListener('graph:contextCore', e => ContextMenu.showCoreMenu(e.detail.gx, e.detail.gy, e.detail.cx, e.detail.cy));
   }
 
   /* ═══════════════════════════════════════════════
@@ -497,7 +562,7 @@ const App = (() => {
     Graph.init();
     bindGraphEvents();
     bindSidebarInputs();
-    bindAddNodeButtons();
+    ContextMenu.bind();
     bindDropdowns();
     Search.bind();
     bindIO();

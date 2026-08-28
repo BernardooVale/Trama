@@ -127,29 +127,6 @@
     <div class="canvas-wrap" id="canvas-wrap">
       <div id="cy"></div>
 
-      <!-- Toolbar -->
-      <div class="canvas-toolbar">
-        <div class="toolbar-section">
-          <p class="toolbar-label">Vértice</p>
-          <button class="btn-tool" data-type="problema">
-            <span class="dot dot-problema"></span>Problema
-          </button>
-          <button class="btn-tool" data-type="solucao">
-            <span class="dot dot-solucao"></span>Solução
-          </button>
-          <button class="btn-tool" data-type="agrupador">
-            <span class="dot dot-agrupador"></span>Agrupador
-          </button>
-        </div>
-        <div class="toolbar-divider"></div>
-        <div class="toolbar-section">
-          <p class="toolbar-label">Aresta</p>
-          <button class="btn-tool edge-tool" data-edge="dependencia">Dependência</button>
-          <button class="btn-tool edge-tool" data-edge="resolve">Resolve</button>
-          <button class="btn-tool edge-tool" data-edge="relaciona">Relaciona</button>
-        </div>
-      </div>
-
       <!-- Edge mode banner -->
       <div class="edge-mode-banner" id="edge-mode-banner" hidden>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15">
@@ -221,6 +198,7 @@
   </main>
 
   <div class="toast" id="toast"></div>
+  <div id="context-menu" class="context-menu" hidden></div>
 
   <script src="store.js"></script>
   <script src="graph.js"></script>
