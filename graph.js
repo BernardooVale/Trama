@@ -148,7 +148,7 @@ const Graph = (() => {
       },
       {
         selector: 'edge.focus-highlight[edgeType="relaciona"]',
-        style: { 'opacity':1,'width':2.5,'line-color':C.edge.relaciona,'target-arrow-color':C.edge.relaciona,'source-arrow-color':C.edge.relaciona },
+        style: { 'opacity':1,'width':2.5,'line-color':C.edge.relaciona,'target-arrow-color':C.edge.relaciona },
       },
       {
         selector: 'edge.focus-dim',
@@ -193,8 +193,8 @@ const Graph = (() => {
       {
         selector: 'edge[edgeType="relaciona"]',
         style: {
-          'line-color':C.edge.relaciona,'target-arrow-color':C.edge.relaciona,
-          'source-arrow-shape':'triangle','source-arrow-color':C.edge.relaciona,
+          'line-color':C.edge.relaciona,
+          'target-arrow-color':C.edge.relaciona,
           'color':C.edge.relaciona,
         },
       },
@@ -604,7 +604,7 @@ const Graph = (() => {
         `Clique no vértice de <strong>destino</strong>`;
       return;
     }
-    const directed = (edgeMode.edgeType !== 'relaciona');
+    const directed = true;
     try{ Store.addEdge({source:edgeMode.sourceId, target:id, edgeType:edgeMode.edgeType, directed}) }
     catch(err){ document.dispatchEvent(new CustomEvent('graph:error',{detail:err.message})) }
     finally{ cancelEdgeMode() }
