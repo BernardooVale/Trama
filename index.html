@@ -4,24 +4,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Trama — Organizador Visual</title>
-
-  <!-- Cytoscape.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js"></script>
-
-  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-  <!-- ═══════════════════════════════════════════
-       HEADER
-  ════════════════════════════════════════════ -->
   <header class="app-header">
-
     <div class="header-brand">
       <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <circle cx="12" cy="5"  r="2.5"/>
@@ -31,78 +22,84 @@
         <line x1="12" y1="7.5" x2="19" y2="16.5"/>
         <line x1="7.5" y1="19" x2="16.5" y2="19"/>
       </svg>
-      <span class="brand-name">Trama </span>
+      <span class="brand-name">Trama</span>
     </div>
 
-    <!-- Search -->
-    <div class="search-wrap">
+    <!-- Search unificado -->
+    <div class="search-wrap" id="search-wrap">
       <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
       </svg>
-      <input
-        id="search-input"
-        class="search-input"
-        type="text"
-        placeholder="Buscar por título, tag ou status…"
-        autocomplete="off"
-      />
-      <button class="search-clear" id="search-clear" title="Limpar busca">✕</button>
+      <div class="search-chips" id="search-chips"></div>
+      <input id="search-input" class="search-input" type="text"
+        placeholder="Buscar vértice ou #etiqueta…" autocomplete="off" />
+      <button class="search-clear" id="search-clear" title="Limpar">✕</button>
+      <div class="search-dropdown" id="search-dropdown" hidden></div>
     </div>
 
-    <!-- Filter pills -->
+    <!-- Filtros dropdown -->
     <div class="filter-bar">
-      <span class="filter-label">Filtrar:</span>
 
-      <div class="pill-group" id="filter-type">
-        <button class="pill active" data-filter="type" data-value="all">Todos</button>
-        <button class="pill" data-filter="type" data-value="problema">Problema</button>
-        <button class="pill" data-filter="type" data-value="solucao">Solução</button>
-        <button class="pill" data-filter="type" data-value="agrupador">Agrupador</button>
+      <!-- Tipo -->
+      <div class="dropdown" id="dd-type">
+        <button class="dropdown-trigger" id="dd-type-trigger">
+          <span id="dd-type-label">Tipo: Todos</span>
+          <svg class="dd-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </button>
+        <div class="dropdown-menu" id="dd-type-menu">
+          <button class="dd-item active" data-value="all">Todos</button>
+          <button class="dd-item" data-value="problema">
+            <span class="dd-dot dd-dot--problema"></span>Problema
+          </button>
+          <button class="dd-item" data-value="solucao">
+            <span class="dd-dot dd-dot--solucao"></span>Solução
+          </button>
+          <button class="dd-item" data-value="agrupador">
+            <span class="dd-dot dd-dot--agrupador"></span>Agrupador
+          </button>
+        </div>
       </div>
 
-      <div class="pill-divider"></div>
-
-      <div class="pill-group" id="filter-status">
-        <button class="pill" data-filter="status" data-value="pendente">Pendente</button>
-        <button class="pill" data-filter="status" data-value="andamento">Andamento</button>
-        <button class="pill" data-filter="status" data-value="concluido">Concluído</button>
+      <!-- Prioridade -->
+      <div class="dropdown" id="dd-priority">
+        <button class="dropdown-trigger" id="dd-priority-trigger">
+          <span id="dd-priority-label">Prioridade: Todas</span>
+          <svg class="dd-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </button>
+        <div class="dropdown-menu" id="dd-priority-menu">
+          <button class="dd-item active" data-value="all">Todas</button>
+          <button class="dd-item" data-value="alta">🔴 Alta</button>
+          <button class="dd-item" data-value="media">🟡 Média</button>
+          <button class="dd-item" data-value="baixa">🟢 Baixa</button>
+        </div>
       </div>
+
     </div>
 
-    <div class="pill-divider"></div>
-
-    <div class="filter-tags-wrap">
-    <svg class="filter-tags-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
-        <line x1="7" y1="7" x2="7.01" y2="7"/>
-    </svg>
-    <div class="filter-tags-list" id="filter-tags-list"></div>
-    <input
-        id="filter-tags-input"
-        class="filter-tags-input"
-        type="text"
-        placeholder="Filtrar por tag…"
-        autocomplete="off"
-    />
-    </div>
-
-    <!-- Header actions -->
     <div class="header-actions">
-      <button class="btn-icon" id="btn-layout" title="Layout automático (Force-directed)">
+      <button class="btn-icon btn-icon--toggle" id="btn-toggle-meta" title="Mostrar/ocultar metadados nos vértices">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+          <circle cx="12" cy="12" r="3"/>
+        </svg>
+      </button>
+      <button class="btn-icon" id="btn-layout" title="Layout automático (L)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
         </svg>
       </button>
-
-      <button class="btn-icon" id="btn-export" title="Exportar JSON">
+      <button class="btn-icon" id="btn-export" title="Exportar JSON (Ctrl+E)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
           <polyline points="7 10 12 15 17 10"/>
           <line x1="12" y1="15" x2="12" y2="3"/>
         </svg>
       </button>
-
-      <label class="btn-icon" id="btn-import-label" title="Importar JSON">
+      <label class="btn-icon" title="Importar JSON">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
           <polyline points="17 8 12 3 7 8"/>
@@ -110,15 +107,7 @@
         </svg>
         <input type="file" id="btn-import" accept=".json" hidden />
       </label>
-
-        <button class="btn-icon btn-icon--toggle" id="btn-toggle-meta" title="Mostrar/ocultar status e prioridade nos nós">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                <circle cx="12" cy="12" r="3"/>
-            </svg>
-        </button>
-
-      <button class="btn-icon" id="btn-theme" title="Alternar tema">
+      <button class="btn-icon" id="btn-theme" title="Alternar tema (T)">
         <svg id="icon-theme" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="12" cy="12" r="5"/>
           <line x1="12" y1="1"  x2="12" y2="3"/>
@@ -134,105 +123,78 @@
     </div>
   </header>
 
-  <!-- ═══════════════════════════════════════════
-       MAIN LAYOUT
-  ════════════════════════════════════════════ -->
   <main class="app-main">
-
-    <!-- Canvas wrapper -->
     <div class="canvas-wrap" id="canvas-wrap">
       <div id="cy"></div>
 
-      <!-- Floating toolbar: add nodes / edges -->
+      <!-- Toolbar -->
       <div class="canvas-toolbar">
-
-        <div class="toolbar-group">
-          <span class="toolbar-label">Adicionar nó</span>
-          <button class="btn-tool" id="add-problema"  data-type="problema">
-            <span class="dot dot-problema"></span> Problema
+        <div class="toolbar-section">
+          <p class="toolbar-label">Vértice</p>
+          <button class="btn-tool" data-type="problema">
+            <span class="dot dot-problema"></span>Problema
           </button>
-          <button class="btn-tool" id="add-solucao"   data-type="solucao">
-            <span class="dot dot-solucao"></span> Solução
+          <button class="btn-tool" data-type="solucao">
+            <span class="dot dot-solucao"></span>Solução
           </button>
-          <button class="btn-tool" id="add-agrupador" data-type="agrupador">
-            <span class="dot dot-agrupador"></span> Agrupador
+          <button class="btn-tool" data-type="agrupador">
+            <span class="dot dot-agrupador"></span>Agrupador
           </button>
         </div>
-
         <div class="toolbar-divider"></div>
-
-        <div class="toolbar-group">
-          <span class="toolbar-label">Adicionar aresta</span>
-          <button class="btn-tool edge-tool" id="add-edge-dependencia"  data-edge="dependencia">Dependência</button>
-          <button class="btn-tool edge-tool" id="add-edge-resolve"      data-edge="resolve">Resolve</button>
-          <button class="btn-tool edge-tool" id="add-edge-relaciona"    data-edge="relaciona">Relaciona</button>
+        <div class="toolbar-section">
+          <p class="toolbar-label">Aresta</p>
+          <button class="btn-tool edge-tool" data-edge="dependencia">Dependência</button>
+          <button class="btn-tool edge-tool" data-edge="resolve">Resolve</button>
+          <button class="btn-tool edge-tool" data-edge="relaciona">Relaciona</button>
         </div>
       </div>
 
       <!-- Edge mode banner -->
       <div class="edge-mode-banner" id="edge-mode-banner" hidden>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15">
           <path d="M5 12h14M12 5l7 7-7 7"/>
         </svg>
-        <span id="edge-mode-label">Clique no nó de <strong>origem</strong></span>
+        <span id="edge-mode-label">Clique no vértice de <strong>origem</strong></span>
         <button id="cancel-edge">Cancelar</button>
       </div>
 
-      <!-- Zoom controls -->
+      <!-- Zoom -->
       <div class="zoom-controls">
         <button class="btn-zoom" id="zoom-in"  title="Zoom in">+</button>
-        <button class="btn-zoom" id="zoom-fit" title="Fit ao canvas">⊡</button>
+        <button class="btn-zoom" id="zoom-fit" title="Fit">⊡</button>
         <button class="btn-zoom" id="zoom-out" title="Zoom out">−</button>
+      </div>
+
+      <!-- Focus mode hint -->
+      <div class="focus-hint" id="focus-hint" hidden>
+        <kbd>Shift</kbd> inverte foco &nbsp;·&nbsp; mova o mouse para sair
       </div>
     </div>
 
-    <!-- ═══════════════════════════════════════
-         SIDEBAR
-    ════════════════════════════════════════ -->
+    <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
-
       <div class="sidebar-header">
-        <h2 class="sidebar-title" id="sidebar-title">Propriedades</h2>
-        <button class="sidebar-close" id="sidebar-close" title="Fechar painel">✕</button>
+        <h2 class="sidebar-title">Propriedades</h2>
+        <button class="sidebar-close" id="sidebar-close">✕</button>
       </div>
-
       <div class="sidebar-body">
 
-        <!-- Type badge -->
         <div class="field-row">
           <label class="field-label">Tipo</label>
           <span class="type-badge" id="sb-type-badge">—</span>
         </div>
 
-        <!-- Title -->
         <div class="field-row">
           <label class="field-label" for="sb-title">Título</label>
-          <input class="field-input" id="sb-title" type="text" placeholder="Nome do nó…" />
+          <input class="field-input" id="sb-title" type="text" placeholder="Nome do vértice…" />
         </div>
 
-        <!-- Description -->
         <div class="field-row">
           <label class="field-label" for="sb-desc">Descrição</label>
-          <textarea class="field-textarea" id="sb-desc" rows="4" placeholder="Descreva o problema, solução ou contexto…"></textarea>
+          <textarea class="field-textarea" id="sb-desc" rows="4" placeholder="Contexto, detalhes…"></textarea>
         </div>
 
-        <!-- Status -->
-        <div class="field-row">
-          <label class="field-label">Status</label>
-          <div class="status-selector" id="sb-status-selector">
-            <button class="status-btn" data-status="pendente">
-              <span class="status-dot status-dot--pendente"></span>Pendente
-            </button>
-            <button class="status-btn" data-status="andamento">
-              <span class="status-dot status-dot--andamento"></span>Andamento
-            </button>
-            <button class="status-btn" data-status="concluido">
-              <span class="status-dot status-dot--concluido"></span>Concluído
-            </button>
-          </div>
-        </div>
-
-        <!-- Priority -->
         <div class="field-row">
           <label class="field-label">Prioridade</label>
           <div class="priority-selector" id="sb-priority-selector">
@@ -242,26 +204,22 @@
           </div>
         </div>
 
-        <!-- Tags -->
         <div class="field-row">
-          <label class="field-label" for="sb-tags">Tags</label>
+          <label class="field-label" for="sb-tags">Etiquetas</label>
           <div class="tags-wrap" id="tags-wrap">
             <div class="tags-list" id="tags-list"></div>
-            <input class="tags-input" id="sb-tags" type="text" placeholder="Adicionar tag… (Enter)" />
+            <input class="tags-input" id="sb-tags" type="text" placeholder="Adicionar etiqueta… (Enter)" />
           </div>
         </div>
 
-        <!-- Meta info -->
         <div class="field-row field-row--meta">
           <span class="meta-info" id="sb-meta">ID: —</span>
         </div>
 
-      </div><!-- /sidebar-body -->
+      </div>
     </aside>
-
   </main>
 
-  <!-- Toast notification -->
   <div class="toast" id="toast"></div>
 
   <script src="store.js"></script>

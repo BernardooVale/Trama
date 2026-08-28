@@ -1,701 +1,524 @@
-/* ═══════════════════════════════════════════════════
-   main.js — Orquestrador: sidebar, filtros, I/O, tema
-════════════════════════════════════════════════════ */
-
 const App = (() => {
-
-  /* ═══════════════════════════════════════════════
-     ELEMENTOS DOM (cache único)
-  ════════════════════════════════════════════════ */
   const DOM = {};
 
-  function cacheDOM() {
-    const ids = [
-      'sidebar', 'sidebar-title', 'sidebar-close',
-      'sb-type-badge', 'sb-title', 'sb-desc', 'sb-meta',
-      'sb-status-selector', 'sb-priority-selector',
-      'tags-list', 'sb-tags',
-      'search-input', 'search-clear',
-      'btn-export', 'btn-import',
-      'btn-theme', 'icon-theme',
-      'toast',
-      'canvas-wrap',
-    ];
-    ids.forEach(id => {
-      DOM[id] = document.getElementById(id);
-    });
+  function cacheDOM(){
+    [
+      'sidebar','sidebar-close','sidebar-title',
+      'sb-type-badge','sb-title','sb-desc','sb-meta',
+      'sb-priority-selector','tags-list','sb-tags',
+      'search-input','search-clear','search-chips','search-dropdown',
+      'btn-export','btn-import','btn-theme','icon-theme','btn-toggle-meta',
+      'toast','canvas-wrap','focus-hint',
+    ].forEach(id=>{ DOM[id]=document.getElementById(id) });
   }
 
   /* ═══════════════════════════════════════════════
      TOAST
   ════════════════════════════════════════════════ */
-  let _toastTimer = null;
-
-  function toast(msg, duration = 2800) {
-    const el = DOM['toast'];
-    el.textContent = msg;
-    el.classList.add('show');
+  let _toastTimer=null;
+  function toast(msg,dur=2600){
+    const el=DOM['toast'];
+    el.textContent=msg; el.classList.add('show');
     clearTimeout(_toastTimer);
-    _toastTimer = setTimeout(() => el.classList.remove('show'), duration);
+    _toastTimer=setTimeout(()=>el.classList.remove('show'),dur);
   }
 
   /* ═══════════════════════════════════════════════
-     TEMA
+     THEME
   ════════════════════════════════════════════════ */
-  function initTheme() {
-    const saved = localStorage.getItem('graphmind_theme') ?? 'dark';
+  function initTheme(){
+    const saved=localStorage.getItem('trama_theme')?? 'dark';
     setTheme(saved);
   }
 
-  function setTheme(theme) {
-    document.documentElement.dataset.theme = theme;
-    localStorage.setItem('graphmind_theme', theme);
+  function setTheme(theme){
+    document.documentElement.dataset.theme=theme;
+    localStorage.setItem('trama_theme',theme);
     Graph.syncTheme();
-
-    // Troca ícone sol ↔ lua
-    const icon = DOM['icon-theme'];
-    if (theme === 'dark') {
-      icon.innerHTML = `
-        <circle cx="12" cy="12" r="5"/>
-        <line x1="12" y1="1"  x2="12" y2="3"/>
-        <line x1="12" y1="21" x2="12" y2="23"/>
-        <line x1="4.22" y1="4.22"  x2="5.64" y2="5.64"/>
-        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-        <line x1="1"  y1="12" x2="3"  y2="12"/>
-        <line x1="21" y1="12" x2="23" y2="12"/>
-        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>`;
-    } else {
-      icon.innerHTML = `
-        <path d="M21 12.79A9 9 0 1 1 11.21 3
-          7 7 0 0 0 21 12.79z"/>`;
-    }
+    const icon=DOM['icon-theme'];
+    icon.innerHTML = theme==='dark'
+      ? `<circle cx="12" cy="12" r="5"/>
+         <line x1="12" y1="1"  x2="12" y2="3"/>
+         <line x1="12" y1="21" x2="12" y2="23"/>
+         <line x1="4.22" y1="4.22"  x2="5.64" y2="5.64"/>
+         <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+         <line x1="1"  y1="12" x2="3"  y2="12"/>
+         <line x1="21" y1="12" x2="23" y2="12"/>
+         <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+         <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>`
+      : `<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>`;
   }
 
-  function toggleTheme() {
-    const current = document.documentElement.dataset.theme;
-    setTheme(current === 'dark' ? 'light' : 'dark');
+  function toggleTheme(){
+    setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');
   }
 
   /* ═══════════════════════════════════════════════
-     SIDEBAR — abrir / fechar
+     SIDEBAR
   ════════════════════════════════════════════════ */
-  function openSidebar(nodeId) {
-    const node = Store.getNode(nodeId);
-    if (!node) return;
-
+  function openSidebar(nodeId){
+    const node=Store.getNode(nodeId);
+    if(!node) return;
     populateSidebar(node);
     DOM['sidebar'].classList.add('open');
   }
 
-  function closeSidebar() {
+  function closeSidebar(){
     DOM['sidebar'].classList.remove('open');
-    Store.clearSelection();
   }
 
-  /* ═══════════════════════════════════════════════
-     SIDEBAR — popular campos
-  ════════════════════════════════════════════════ */
-  function populateSidebar(node) {
-    // Título do painel
-    DOM['sidebar-title'].textContent = 'Propriedades';
-
-    // Type badge
-    const badge = DOM['sb-type-badge'];
-    badge.textContent = node.type;
-    badge.dataset.type = node.type;
-
-    // Título
-    DOM['sb-title'].value = node.title;
-
-    // Descrição
-    DOM['sb-desc'].value = node.description;
-
-    // Status
-    DOM['sb-status-selector']
-      .querySelectorAll('.status-btn')
-      .forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.status === node.status);
-      });
-
-    // Prioridade
-    DOM['sb-priority-selector']
-      .querySelectorAll('.priority-btn')
-      .forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.priority === node.priority);
-      });
-
-    // Tags
+  function populateSidebar(node){
+    const badge=DOM['sb-type-badge'];
+    badge.textContent=node.type; badge.dataset.type=node.type;
+    DOM['sb-title'].value=node.title;
+    DOM['sb-desc'].value=node.description;
+    DOM['sb-priority-selector'].querySelectorAll('.priority-btn')
+      .forEach(b=>b.classList.toggle('active',b.dataset.priority===node.priority));
     renderTags(node.tags);
-
-    // Meta
-    const date = new Date(node.createdAt).toLocaleDateString('pt-BR');
-    DOM['sb-meta'].textContent = `ID: ${node.id} · Criado em ${date}`;
+    const d=new Date(node.createdAt).toLocaleDateString('pt-BR');
+    DOM['sb-meta'].textContent=`ID: ${node.id} · ${d}`;
   }
 
-  /* ═══════════════════════════════════════════════
-     TAGS
-  ════════════════════════════════════════════════ */
-  function renderTags(tags) {
-    const list = DOM['tags-list'];
-    list.innerHTML = '';
-    tags.forEach(tag => {
-      const chip = document.createElement('span');
-      chip.className = 'tag-chip';
-      chip.innerHTML = `${escHtml(tag)}<button data-tag="${escHtml(tag)}" title="Remover tag">✕</button>`;
-      chip.querySelector('button').addEventListener('click', () => removeTag(tag));
+  /* ── Tags sidebar ───────────────────────────── */
+  function renderTags(tags){
+    const list=DOM['tags-list'];
+    list.innerHTML='';
+    tags.forEach(tag=>{
+      const chip=document.createElement('span');
+      chip.className='tag-chip';
+      chip.innerHTML=`${esc(tag)}<button data-tag="${esc(tag)}" title="Remover">✕</button>`;
+      chip.querySelector('button').addEventListener('click',()=>removeTag(tag));
       list.appendChild(chip);
     });
   }
 
-  function addTag(raw) {
-    const tag = raw.trim().toLowerCase().replace(/\s+/g, '-');
-    if (!tag) return;
+  function addTag(raw){
+    const tag=raw.trim().toLowerCase().replace(/\s+/g,'-');
+    if(!tag) return;
+    const node=Store.getSelectedNode();
+    if(!node) return;
+    if(node.tags.includes(tag)){ toast(`Etiqueta "${tag}" já existe`); return; }
+    const newTags=[...node.tags,tag];
+    Store.updateNode(node.id,{tags:newTags});
+    renderTags(newTags);
+    DOM['sb-tags'].value='';
+  }
 
-    const node = Store.getSelectedNode();
-    if (!node) return;
+  function removeTag(tag){
+    const node=Store.getSelectedNode();
+    if(!node) return;
+    const newTags=node.tags.filter(t=>t!==tag);
+    Store.updateNode(node.id,{tags:newTags});
+    renderTags(newTags);
+  }
 
-    if (node.tags.includes(tag)) {
-      toast(`Tag "${tag}" já existe`);
-      return;
+  function bindSidebarInputs(){
+    let tTimer=null;
+    DOM['sb-title'].addEventListener('input',e=>{
+      clearTimeout(tTimer);
+      tTimer=setTimeout(()=>{
+        const n=Store.getSelectedNode(); if(!n) return;
+        Store.updateNode(n.id,{title:e.target.value});
+      },300);
+    });
+
+    let dTimer=null;
+    DOM['sb-desc'].addEventListener('input',e=>{
+      clearTimeout(dTimer);
+      dTimer=setTimeout(()=>{
+        const n=Store.getSelectedNode(); if(!n) return;
+        Store.updateNode(n.id,{description:e.target.value});
+      },400);
+    });
+
+    DOM['sb-priority-selector'].addEventListener('click',e=>{
+      const btn=e.target.closest('.priority-btn'); if(!btn) return;
+      const n=Store.getSelectedNode(); if(!n) return;
+      Store.updateNode(n.id,{priority:btn.dataset.priority});
+      DOM['sb-priority-selector'].querySelectorAll('.priority-btn')
+        .forEach(b=>b.classList.toggle('active',b===btn));
+    });
+
+    DOM['sb-tags'].addEventListener('keydown',e=>{
+      if(e.key==='Enter'||e.key===','){
+        e.preventDefault(); addTag(DOM['sb-tags'].value.replace(',',''));
+      }
+    });
+
+    DOM['sidebar-close'].addEventListener('click',closeSidebar);
+  }
+
+  /* ═══════════════════════════════════════════════
+     ADD NODE
+  ════════════════════════════════════════════════ */
+  function bindAddNodeButtons(){
+    document.querySelectorAll('.btn-tool[data-type]').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const node=Graph.addNodeAtCenter(btn.dataset.type);
+        Store.selectNode(node.id);
+        openSidebar(node.id);
+        requestAnimationFrame(()=>{ DOM['sb-title'].focus(); DOM['sb-title'].select(); });
+        toast(`Vértice criado — edite o título`);
+      });
+    });
+  }
+
+  /* ═══════════════════════════════════════════════
+     SEARCH UNIFICADO (nome + #etiqueta)
+  ════════════════════════════════════════════════ */
+  const Search = (() => {
+    let activeTagFilters = [];
+    let ddIndex = -1;
+
+    function getInput()    { return DOM['search-input'] }
+    function getDropdown() { return DOM['search-dropdown'] }
+    function getChips()    { return DOM['search-chips'] }
+
+    function renderChips(){
+      getChips().innerHTML='';
+      activeTagFilters.forEach(tag=>{
+        const chip=document.createElement('span');
+        chip.className='search-chip';
+        chip.innerHTML=`#${esc(tag)}<button title="Remover">✕</button>`;
+        chip.querySelector('button').addEventListener('click',()=>removeTagFilter(tag));
+        getChips().appendChild(chip);
+      });
+      DOM['search-clear'].classList.toggle(
+        'visible', activeTagFilters.length>0 || getInput().value.length>0
+      );
     }
 
-    const newTags = [...node.tags, tag];
-    Store.updateNode(node.id, { tags: newTags });
-    renderTags(newTags);
-    DOM['sb-tags'].value = '';
-  }
+    function addTagFilter(tag){
+      if(activeTagFilters.includes(tag)) return;
+      activeTagFilters.push(tag);
+      Store.setFilter({tags:[...activeTagFilters]});
+      renderChips();
+      getInput().value='';
+      hideDropdown();
+    }
 
-  function removeTag(tag) {
-    const node = Store.getSelectedNode();
-    if (!node) return;
-    const newTags = node.tags.filter(t => t !== tag);
-    Store.updateNode(node.id, { tags: newTags });
-    renderTags(newTags);
-  }
+    function removeTagFilter(tag){
+      activeTagFilters=activeTagFilters.filter(t=>t!==tag);
+      Store.setFilter({tags:[...activeTagFilters]});
+      renderChips();
+    }
 
-  /* ═══════════════════════════════════════════════
-     SIDEBAR — bind inputs (edita Store em tempo real)
-  ════════════════════════════════════════════════ */
-  function bindSidebarInputs() {
-
-    /* Título — debounced */
-    let titleTimer = null;
-    DOM['sb-title'].addEventListener('input', e => {
-      clearTimeout(titleTimer);
-      titleTimer = setTimeout(() => {
-        const node = Store.getSelectedNode();
-        if (!node) return;
-        Store.updateNode(node.id, { title: e.target.value });
-      }, 300);
-    });
-
-    /* Descrição — debounced */
-    let descTimer = null;
-    DOM['sb-desc'].addEventListener('input', e => {
-      clearTimeout(descTimer);
-      descTimer = setTimeout(() => {
-        const node = Store.getSelectedNode();
-        if (!node) return;
-        Store.updateNode(node.id, { description: e.target.value });
-      }, 400);
-    });
-
-    /* Status buttons */
-    DOM['sb-status-selector'].addEventListener('click', e => {
-      const btn = e.target.closest('.status-btn');
-      if (!btn) return;
-      const node = Store.getSelectedNode();
-      if (!node) return;
-
-      Store.updateNode(node.id, { status: btn.dataset.status });
-
-      DOM['sb-status-selector']
-        .querySelectorAll('.status-btn')
-        .forEach(b => b.classList.toggle('active', b === btn));
-    });
-
-    /* Priority buttons */
-    DOM['sb-priority-selector'].addEventListener('click', e => {
-      const btn = e.target.closest('.priority-btn');
-      if (!btn) return;
-      const node = Store.getSelectedNode();
-      if (!node) return;
-
-      Store.updateNode(node.id, { priority: btn.dataset.priority });
-
-      DOM['sb-priority-selector']
-        .querySelectorAll('.priority-btn')
-        .forEach(b => b.classList.toggle('active', b === btn));
-    });
-
-    /* Tags: Enter ou vírgula adicionam */
-    DOM['sb-tags'].addEventListener('keydown', e => {
-      if (e.key === 'Enter' || e.key === ',') {
-        e.preventDefault();
-        addTag(DOM['sb-tags'].value.replace(',', ''));
-      }
-    });
-
-    /* Fechar sidebar */
-    DOM['sidebar-close'].addEventListener('click', closeSidebar);
-  }
-
-  /* ═══════════════════════════════════════════════
-     ADD NÓ (toolbar canvas)
-  ════════════════════════════════════════════════ */
-  function bindAddNodeButtons() {
-    document.querySelectorAll('.btn-tool[data-type]').forEach(btn => {
-      btn.addEventListener('click', () => {
-            const type = btn.dataset.type;
-            const node = Graph.addNodeAtCenter(type);
-            Store.selectNode(node.id);
-            openSidebar(node.id);
-            // Foca e seleciona título para edição imediata
-            requestAnimationFrame(() => {
-                DOM['sb-title'].focus();
-                DOM['sb-title'].select();
-            });
-            toast(`Nó "${node.title}" criado — edite o título`);
-        });
-    });
-  }
-
-  /* ═══════════════════════════════════════════════
-     SEARCH + FILTROS
-  ════════════════════════════════════════════════ */
-  function bindFilters() {
-
-    /* Search input */
-    let searchTimer = null;
-    DOM['search-input'].addEventListener('input', e => {
-      const val = e.target.value;
-
-      // Mostra/oculta botão clear
-      DOM['search-clear'].classList.toggle('visible', val.length > 0);
-
-      clearTimeout(searchTimer);
-      searchTimer = setTimeout(() => {
-        Store.setFilter({ text: val });
-      }, 200);
-    });
-
-    /* Clear button */
-    DOM['search-clear'].addEventListener('click', () => {
-      DOM['search-input'].value = '';
+    function clearAll(){
+      activeTagFilters=[];
+      getInput().value='';
+      Store.setFilter({tags:[],text:''});
+      renderChips();
       DOM['search-clear'].classList.remove('visible');
-      Store.setFilter({ text: '' });
-      DOM['search-input'].focus();
-    });
+      hideDropdown();
+    }
 
-    /* Type pills */
-    document.getElementById('filter-type').addEventListener('click', e => {
-      const pill = e.target.closest('.pill');
-      if (!pill || pill.dataset.filter !== 'type') return;
+    function showDropdown(items){
+      hideDropdown();
+      if(!items.length) return;
+      const dd=getDropdown();
+      dd.innerHTML=''; dd.hidden=false; ddIndex=-1;
 
-      document.querySelectorAll('#filter-type .pill')
-        .forEach(p => p.classList.remove('active'));
-      pill.classList.add('active');
+      items.forEach((item,i)=>{
+        const el=document.createElement('div');
+        el.dataset.index=i;
 
-      Store.setFilter({ type: pill.dataset.value });
-    });
+        if(item.kind==='tag'){
+          el.className='search-dd-item search-dd-tag';
+          el.innerHTML=`<span class="tag-icon">#</span>
+            <span class="dd-node-title">${esc(item.value)}</span>
+            <span class="dd-node-sub">etiqueta</span>`;
+          el.addEventListener('mousedown',e=>{ e.preventDefault(); addTagFilter(item.value) });
+        } else {
+          const typeColor={'problema':'var(--node-problema)','solucao':'var(--node-solucao)','agrupador':'var(--node-agrupador)'}[item.type]||'var(--text-muted)';
+          el.className='search-dd-item';
+          el.innerHTML=`<span class="dd-node-type" style="background:${typeColor}"></span>
+            <span class="dd-node-title">${esc(item.title)}</span>
+            <span class="dd-node-sub">${item.type}</span>`;
+          el.addEventListener('mousedown',e=>{
+            e.preventDefault();
+            Graph.focusNode(item.id);
+            hideDropdown();
+            getInput().value='';
+            DOM['search-clear'].classList.remove('visible');
+          });
+        }
+        dd.appendChild(el);
+      });
+    }
 
-    /* Status pills (toggle) */
-    document.getElementById('filter-status').addEventListener('click', e => {
-      const pill = e.target.closest('.pill');
-      if (!pill || pill.dataset.filter !== 'status') return;
+    function hideDropdown(){
+      const dd=getDropdown();
+      dd.hidden=true; dd.innerHTML=''; ddIndex=-1;
+    }
 
-      const isActive = pill.classList.contains('active');
+    function navigate(dir){
+      const dd=getDropdown();
+      const items=dd.querySelectorAll('.search-dd-item');
+      if(!items.length) return;
+      items[ddIndex]?.classList.remove('active');
+      ddIndex=(ddIndex+dir+items.length)%items.length;
+      items[ddIndex]?.classList.add('active');
+    }
 
-      document.querySelectorAll('#filter-status .pill')
-        .forEach(p => p.classList.remove('active'));
+    function confirmSelection(){
+      const dd=getDropdown();
+      const active=dd.querySelector('.search-dd-item.active');
+      if(active){ active.dispatchEvent(new MouseEvent('mousedown')); return true; }
+      return false;
+    }
 
-      if (isActive) {
-        // Toggle off → sem filtro de status
-        Store.setFilter({ status: null });
-      } else {
-        pill.classList.add('active');
-        Store.setFilter({ status: pill.dataset.value });
+    function buildSuggestions(q){
+      const raw=q.trim().toLowerCase();
+      const results=[];
+
+      if(raw.startsWith('#')){
+        // Modo tag: sugere etiquetas
+        const tagQ=raw.slice(1);
+        Store.getAllTags()
+          .filter(t=>t.includes(tagQ)&&!activeTagFilters.includes(t))
+          .slice(0,8)
+          .forEach(t=>results.push({kind:'tag',value:t}));
+      } else if(raw){
+        // Modo texto: sugere etiquetas e nós
+        Store.getAllTags()
+          .filter(t=>t.includes(raw)&&!activeTagFilters.includes(t))
+          .slice(0,3)
+          .forEach(t=>results.push({kind:'tag',value:t}));
+        Store.getNodes()
+          .filter(n=>n.title.toLowerCase().includes(raw)||n.description.toLowerCase().includes(raw))
+          .slice(0,6)
+          .forEach(n=>results.push({kind:'node',id:n.id,title:n.title,type:n.type}));
       }
-    });
+      return results;
+    }
 
-    FilterTags.bind();
+    function bind(){
+      const input=getInput();
+
+      input.addEventListener('input',()=>{
+        const val=input.value;
+        DOM['search-clear'].classList.toggle('visible',val.length>0||activeTagFilters.length>0);
+
+        const suggestions=buildSuggestions(val);
+        if(suggestions.length) showDropdown(suggestions);
+        else hideDropdown();
+
+        // Filtro de texto (não-tag)
+        if(!val.startsWith('#')){
+          Store.setFilter({text:val});
+        }
+      });
+
+      input.addEventListener('keydown',e=>{
+        if(e.key==='ArrowDown'){ e.preventDefault(); navigate(1); return }
+        if(e.key==='ArrowUp')  { e.preventDefault(); navigate(-1); return }
+        if(e.key==='Enter'){
+          e.preventDefault();
+          if(confirmSelection()) return;
+          // Se começa com # adiciona como tag filter
+          if(input.value.startsWith('#')) addTagFilter(input.value.slice(1).trim());
+          return;
+        }
+        if(e.key==='Backspace'&&!input.value&&activeTagFilters.length){
+          removeTagFilter(activeTagFilters[activeTagFilters.length-1]); return;
+        }
+        if(e.key==='Escape') hideDropdown();
+      });
+
+      input.addEventListener('blur',()=>setTimeout(hideDropdown,150));
+
+      // Clique no wrap foca input
+      document.getElementById('search-wrap')
+        .addEventListener('click',()=>input.focus());
+
+      DOM['search-clear'].addEventListener('click',clearAll);
+    }
+
+    return {bind};
+  })();
+
+  /* ═══════════════════════════════════════════════
+     DROPDOWNS (Tipo, Prioridade)
+  ════════════════════════════════════════════════ */
+  function bindDropdowns(){
+
+    function setupDropdown(ddId, triggerId, menuId, labelId, filterKey, labelPrefix){
+      const dd      = document.getElementById(ddId);
+      const trigger = document.getElementById(triggerId);
+      const menu    = document.getElementById(menuId);
+      const labelEl = document.getElementById(labelId);
+
+      trigger.addEventListener('click', e=>{
+        e.stopPropagation();
+        // Fecha outros
+        document.querySelectorAll('.dropdown.open').forEach(d=>{ if(d!==dd) d.classList.remove('open') });
+        dd.classList.toggle('open');
+      });
+
+      menu.addEventListener('click', e=>{
+        const item=e.target.closest('.dd-item'); if(!item) return;
+        const val=item.dataset.value;
+
+        menu.querySelectorAll('.dd-item').forEach(i=>i.classList.remove('active'));
+        item.classList.add('active');
+
+        const labels={
+          all: `${labelPrefix}: Todos`,
+          problema:'Problema', solucao:'Solução', agrupador:'Agrupador',
+          alta:'Alta', media:'Média', baixa:'Baixa',
+        };
+        const isAll = val==='all';
+        labelEl.textContent = isAll ? `${labelPrefix}: Todos` : `${labelPrefix}: ${labels[val]??val}`;
+        trigger.classList.toggle('active-filter',!isAll);
+
+        Store.setFilter({[filterKey]:val});
+        dd.classList.remove('open');
+      });
+    }
+
+    setupDropdown('dd-type',    'dd-type-trigger',    'dd-type-menu',    'dd-type-label',    'type',    'Tipo');
+    setupDropdown('dd-priority','dd-priority-trigger', 'dd-priority-menu','dd-priority-label','priority','Prioridade');
+
+    // Fecha dropdowns ao clicar fora
+    document.addEventListener('click',()=>{
+      document.querySelectorAll('.dropdown.open').forEach(d=>d.classList.remove('open'));
+    });
   }
 
   /* ═══════════════════════════════════════════════
-     EXPORT / IMPORT
+     STORE OBSERVER
   ════════════════════════════════════════════════ */
-  function bindIO() {
-
-    /* Export */
-    DOM['btn-export'].addEventListener('click', () => {
-      try {
-        Store.exportJSON();
-        toast('Grafo exportado com sucesso');
-      } catch (err) {
-        toast(`Erro ao exportar: ${err.message}`);
-      }
-    });
-
-    /* Import */
-    DOM['btn-import'].addEventListener('change', async e => {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      try {
-        const count = await Store.importJSON(file);
-        toast(`Importado: ${count} nós carregados`);
-        closeSidebar();
-      } catch (err) {
-        toast(`Erro ao importar: ${err.message}`);
-      } finally {
-        // Reset input para permitir reimport do mesmo arquivo
-        e.target.value = '';
-      }
-    });
-  }
-
-  /* ═══════════════════════════════════════════════
-     STORE OBSERVER → UI reactions
-  ════════════════════════════════════════════════ */
-  function bindStoreObserver() {
-    Store.subscribe((event, payload) => {
-      switch (event) {
-
-        /* Seleção muda → abre/fecha sidebar */
+  function bindStoreObserver(){
+    Store.subscribe((event,payload)=>{
+      switch(event){
         case 'selection:change':
-            if (!payload) closeSidebar();
-            // sidebar abre só via dbltap — não abre aqui
-            break;
+          if(!payload) closeSidebar();
+          break;
 
-        /* Nó atualizado → re-popula sidebar se for o selecionado */
-        case 'node:update': {
-          const node = Store.getSelectedNode();
-          if (node && node.id === payload.id) {
-            populateSidebar(payload);
-          }
+        case 'node:update':{
+          const n=Store.getSelectedNode();
+          if(n&&n.id===payload.id) populateSidebar(payload);
           break;
         }
 
-        /* Nó deletado → fecha sidebar */
         case 'node:delete':
-            // Fecha sidebar sem chamar Store.clearSelection (evita loop com o batch do cy)
-            DOM['sidebar'].classList.remove('open');
-            toast('Nó removido');
-            break;
+          DOM['sidebar'].classList.remove('open');
+          toast('Vértice removido');
+          break;
 
-        /* Aresta adicionada */
         case 'edge:add':
-          toast(`Aresta "${payload.edgeType}" criada`);
-          break;
+          toast(`Aresta "${payload.edgeType}" criada`); break;
 
-        /* Aresta deletada */
         case 'edge:delete':
-          toast('Aresta removida');
-          break;
+          toast('Aresta removida'); break;
 
-        /* Import completo */
         case 'io:import':
-          Graph.applyFilter();
-          break;
+          Graph.applyFilter(); break;
 
-        /* Store pronto */
         case 'store:ready':
-          toast(`GraphMind carregado · ${payload.nodes.length} nós`, 2000);
-          break;
+          toast(`Trama · ${payload.nodes.length} vértices carregados`,2000); break;
       }
     });
   }
 
   /* ═══════════════════════════════════════════════
-     GRAPH CUSTOM EVENTS → vêm de graph.js
+     GRAPH EVENTS
   ════════════════════════════════════════════════ */
-  function bindGraphEvents() {
-
-    /* Sidebar via double-tap */
-    document.addEventListener('graph:openSidebar', () => {
-      const node = Store.getSelectedNode();
-      if (node) openSidebar(node.id);
+  function bindGraphEvents(){
+    document.addEventListener('graph:openSidebar',()=>{
+      const n=Store.getSelectedNode(); if(n) openSidebar(n.id);
     });
 
-    /* Erro de aresta (ex: duplicata, self-loop) */
-    document.addEventListener('graph:error', e => {
-      toast(`⚠ ${e.detail}`);
-    });
+    document.addEventListener('graph:error',e=>toast(`⚠ ${e.detail}`));
 
-    /* Aresta selecionada → toast com info */
-    document.addEventListener('graph:edgeSelected', e => {
-      const edges = Store.getEdges();
-      const edge  = edges.find(ed => ed.id === e.detail.edgeId);
-      if (!edge) return;
-      const src = Store.getNode(edge.source)?.title ?? edge.source;
-      const tgt = Store.getNode(edge.target)?.title ?? edge.target;
-      toast(`Aresta: ${src} → ${tgt} [${edge.edgeType}]  ·  Del para remover`);
-      // Seleciona no Cytoscape para que Delete funcione
-      const cy = Graph.getInstance();
+    document.addEventListener('graph:edgeSelected',e=>{
+      const edge=Store.getEdges().find(ed=>ed.id===e.detail.edgeId);
+      if(!edge) return;
+      const src=Store.getNode(edge.source)?.title??edge.source;
+      const tgt=Store.getNode(edge.target)?.title??edge.target;
+      toast(`${src} → ${tgt} [${edge.edgeType}]  ·  Del para remover`);
+      const cy=Graph.getInstance();
       cy.$(':selected').unselect();
       cy.getElementById(edge.id).select();
     });
   }
 
   /* ═══════════════════════════════════════════════
-     LAYOUT BUTTON feedback visual
+     IO
   ════════════════════════════════════════════════ */
-  function bindLayoutButton() {
-    document.getElementById('btn-layout').addEventListener('click', () => {
-      toast('Organizando layout…');
+  function bindIO(){
+    DOM['btn-export'].addEventListener('click',()=>{
+      try{ Store.exportJSON(); toast('Exportado com sucesso') }
+      catch(e){ toast(`Erro: ${e.message}`) }
+    });
+
+    DOM['btn-import'].addEventListener('change',async e=>{
+      const file=e.target.files[0]; if(!file) return;
+      try{
+        const count=await Store.importJSON(file);
+        toast(`Importado: ${count} vértices`);
+        closeSidebar();
+      }catch(err){ toast(`Erro: ${err.message}`) }
+      finally{ e.target.value='' }
     });
   }
 
   /* ═══════════════════════════════════════════════
      KEYBOARD GLOBAL
   ════════════════════════════════════════════════ */
-  function bindKeyboard() {
-    document.addEventListener('keydown', e => {
-      const tag = document.activeElement.tagName;
-      const inInput = tag === 'INPUT' || tag === 'TEXTAREA';
-
-      /* Ctrl/Cmd + E → exportar */
-      if ((e.ctrlKey || e.metaKey) && e.key === 'e') {
-        e.preventDefault();
-        Store.exportJSON();
-        toast('Grafo exportado');
-      }
-
-      /* Ctrl/Cmd + F → foca busca */
-      if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
-        e.preventDefault();
-        DOM['search-input'].focus();
-        DOM['search-input'].select();
-      }
-
-      /* / → foca busca (sem Ctrl, fora de input) */
-      if (e.key === '/' && !inInput) {
-        e.preventDefault();
-        DOM['search-input'].focus();
-      }
-
-      /* T → toggle tema (fora de input) */
-      if (e.key === 't' && !inInput) {
-        toggleTheme();
-      }
-
-      /* L → layout (fora de input) */
-      if (e.key === 'l' && !inInput) {
-        Graph.runForceLayout();
-        toast('Organizando layout…');
-      }
-
-      /* 1 / 2 / 3 → adicionar nó (fora de input) */
-      if (!inInput && !e.ctrlKey && !e.metaKey) {
-        if (e.key === '1') document.querySelector('[data-type="problema"]')?.click();
-        if (e.key === '2') document.querySelector('[data-type="solucao"]')?.click();
-        if (e.key === '3') document.querySelector('[data-type="agrupador"]')?.click();
+  function bindKeyboard(){
+    document.addEventListener('keydown',e=>{
+      const tag=document.activeElement.tagName;
+      const inInput=tag==='INPUT'||tag==='TEXTAREA';
+      if((e.ctrlKey||e.metaKey)&&e.key==='e'){ e.preventDefault(); Store.exportJSON(); toast('Exportado') }
+      if((e.ctrlKey||e.metaKey)&&e.key==='f'){ e.preventDefault(); DOM['search-input'].focus(); DOM['search-input'].select() }
+      if(e.key==='/'&&!inInput){ e.preventDefault(); DOM['search-input'].focus() }
+      if(e.key==='t'&&!inInput) toggleTheme();
+      if(e.key==='l'&&!inInput){ Graph.runForceLayout(); toast('Organizando…') }
+      if(!inInput&&!e.ctrlKey&&!e.metaKey){
+        if(e.key==='1') document.querySelector('[data-type="problema"]')?.click();
+        if(e.key==='2') document.querySelector('[data-type="solucao"]')?.click();
+        if(e.key==='3') document.querySelector('[data-type="agrupador"]')?.click();
       }
     });
   }
 
+  /* ── Utils ──────────────────────────────────── */
+  function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') }
+
   /* ═══════════════════════════════════════════════
-     TOOLTIP de atalhos (hint inicial)
+     INIT
   ════════════════════════════════════════════════ */
-  function showHints() {
-    setTimeout(() => {
-      toast('Dica: duplo-clique no nó abre propriedades · / para buscar · L para layout', 4000);
-    }, 2200);
-  }
-
-  /* ═══════════════════════════════════════════════
-     UTILS
-  ════════════════════════════════════════════════ */
-  function escHtml(str) {
-    return String(str)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
-  }
-
-  /* ═══════════════════════════════════════════════
-   FILTER TAGS
-    ════════════════════════════════════════════════ */
-    const FilterTags = (() => {
-        let activeTags = [];
-        let autocompleteIndex = -1;
-        let dropdownEl = null;
-
-        function getInput()  { return document.getElementById('filter-tags-input'); }
-        function getList()   { return document.getElementById('filter-tags-list'); }
-
-        function renderChips() {
-            const list = getList();
-            list.innerHTML = '';
-            activeTags.forEach(tag => {
-            const chip = document.createElement('span');
-            chip.className = 'filter-tag-chip';
-            chip.innerHTML = `${escHtml(tag)}<button data-tag="${escHtml(tag)}" title="Remover">✕</button>`;
-            chip.querySelector('button').addEventListener('click', () => removeTag(tag));
-            list.appendChild(chip);
-            });
-        }
-
-        function addTag(tag) {
-            tag = tag.trim().toLowerCase();
-            if (!tag || activeTags.includes(tag)) return;
-            // Só permite tags que existem em algum nó
-            if (!Store.getAllTags().includes(tag)) return;
-            activeTags.push(tag);
-            Store.setFilter({ tags: [...activeTags] });
-            renderChips();
-            getInput().value = '';
-            hideDropdown();
-        }
-
-        function removeTag(tag) {
-            activeTags = activeTags.filter(t => t !== tag);
-            Store.setFilter({ tags: [...activeTags] });
-            renderChips();
-        }
-
-        function clearAll() {
-            activeTags = [];
-            Store.setFilter({ tags: [] });
-            renderChips();
-        }
-
-        /* ── Autocomplete ──────────────────────────── */
-        function showDropdown(matches) {
-            hideDropdown();
-            if (!matches.length) return;
-
-            dropdownEl = document.createElement('div');
-            dropdownEl.className = 'tags-autocomplete';
-            autocompleteIndex = -1;
-
-            matches.forEach((tag, i) => {
-            const item = document.createElement('div');
-            item.className = 'tags-autocomplete-item';
-            item.innerHTML = `<span class="dot"></span>${escHtml(tag)}`;
-            item.addEventListener('mousedown', e => {
-                e.preventDefault(); // evita blur antes do click
-                addTag(tag);
-            });
-            item.dataset.index = i;
-            dropdownEl.appendChild(item);
-            });
-
-            // Posiciona relativo ao wrap
-            getInput().closest('.filter-tags-wrap').appendChild(dropdownEl);
-        }
-
-        function hideDropdown() {
-            if (dropdownEl) { dropdownEl.remove(); dropdownEl = null; }
-            autocompleteIndex = -1;
-        }
-
-        function navigateDropdown(dir) {
-            if (!dropdownEl) return;
-            const items = dropdownEl.querySelectorAll('.tags-autocomplete-item');
-            if (!items.length) return;
-            items[autocompleteIndex]?.classList.remove('active');
-            autocompleteIndex = (autocompleteIndex + dir + items.length) % items.length;
-            items[autocompleteIndex]?.classList.add('active');
-        }
-
-        function confirmDropdown() {
-            if (!dropdownEl) return false;
-            const active = dropdownEl.querySelector('.tags-autocomplete-item.active');
-            if (active) { addTag(active.textContent.trim()); return true; }
-            return false;
-        }
-
-        /* ── Bind ──────────────────────────────────── */
-        function bind() {
-            const input = getInput();
-
-            input.addEventListener('input', () => {
-            const q = input.value.trim().toLowerCase();
-            if (!q) { hideDropdown(); return; }
-
-            const all = Store.getAllTags();
-            const matches = all.filter(t =>
-                t.includes(q) && !activeTags.includes(t)
-            );
-            showDropdown(matches);
-            });
-
-            input.addEventListener('keydown', e => {
-            if (e.key === 'ArrowDown') { e.preventDefault(); navigateDropdown(1); return; }
-            if (e.key === 'ArrowUp')   { e.preventDefault(); navigateDropdown(-1); return; }
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                if (confirmDropdown()) return;
-                addTag(input.value);
-                return;
-            }
-            if (e.key === 'Backspace' && !input.value && activeTags.length) {
-                removeTag(activeTags[activeTags.length - 1]);
-                return;
-            }
-            if (e.key === 'Escape') { hideDropdown(); }
-            });
-
-            input.addEventListener('blur', () => {
-            // Delay para permitir mousedown no dropdown
-            setTimeout(hideDropdown, 150);
-            });
-        }
-
-        return { bind, clearAll, addTag, removeTag };
-    })();
-
-  /* ═══════════════════════════════════════════════
-     INIT — ordem importa
-  ════════════════════════════════════════════════ */
-  function init() {
+  function init(){
     cacheDOM();
     initTheme();
-
-    // Store primeiro (fonte de verdade)
     Store.init();
-
-    // Observer antes do Graph (captura store:ready)
     bindStoreObserver();
-
-    // Graph monta Cytoscape com dados do Store
     Graph.init();
-
-    // Eventos graph.js → main.js
     bindGraphEvents();
-
-    // UI
     bindSidebarInputs();
     bindAddNodeButtons();
-    bindFilters();
+    bindDropdowns();
+    Search.bind();
     bindIO();
-    bindLayoutButton();
     bindKeyboard();
 
-    // Botão tema
-    DOM['btn-theme'].addEventListener('click', toggleTheme);
+    DOM['btn-theme'].addEventListener('click',toggleTheme);
 
-    const btnMeta = document.getElementById('btn-toggle-meta');
-        // Estado inicial: ativo (meta visível)
-        btnMeta.classList.add('active');
-        btnMeta.addEventListener('click', () => {
-        const current = Store.getShowNodeMeta();
-        Store.setShowNodeMeta(!current);
-        btnMeta.classList.toggle('active', !current);
-        toast(!current ? 'Metadados visíveis nos nós' : 'Metadados ocultos nos nós');
+    // Toggle meta
+    const btnMeta=DOM['btn-toggle-meta'];
+    btnMeta.classList.add('active');
+    btnMeta.addEventListener('click',()=>{
+      const cur=Store.getShowNodeMeta();
+      Store.setShowNodeMeta(!cur);
+      btnMeta.classList.toggle('active',!cur);
+      toast(!cur?'Metadados visíveis':'Metadados ocultos');
     });
 
-    // Hints
-    showHints();
+    setTimeout(()=>toast('Dica: hover longo foca vértice · Shift inverte · / para buscar',4000),2200);
   }
 
-  /* ─── API pública (debug) ─────────────────────── */
-  return { init, toast, openSidebar, closeSidebar };
-
+  return {init,toast,openSidebar,closeSidebar};
 })();
 
-/* ─── Bootstrap ───────────────────────────────────── */
-document.addEventListener('DOMContentLoaded', App.init);
+document.addEventListener('DOMContentLoaded',App.init);
