@@ -59,6 +59,9 @@
           <button class="dd-item" data-value="agrupador">
             <span class="dd-dot dd-dot--agrupador"></span>Agrupador
           </button>
+          <button class="dd-item" data-value="neutro">
+            <span class="dd-dot dd-dot--neutro"></span>Neutro
+          </button>
         </div>
       </div>
 
@@ -152,40 +155,60 @@
     <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
-        <h2 class="sidebar-title">Propriedades</h2>
+        <h2 class="sidebar-title" id="sidebar-title">Propriedades</h2>
         <button class="sidebar-close" id="sidebar-close">✕</button>
       </div>
       <div class="sidebar-body">
+        <!-- Campos de Vértice -->
+        <div id="sb-node-fields" class="sidebar-section">
+          <div class="field-row">
+            <label class="field-label">Tipo</label>
+            <span class="type-badge" id="sb-type-badge">—</span>
+          </div>
 
-        <div class="field-row">
-          <label class="field-label">Tipo</label>
-          <span class="type-badge" id="sb-type-badge">—</span>
-        </div>
+          <div class="field-row">
+            <label class="field-label" for="sb-title">Título</label>
+            <input class="field-input" id="sb-title" type="text" placeholder="Nome do vértice…" />
+          </div>
 
-        <div class="field-row">
-          <label class="field-label" for="sb-title">Título</label>
-          <input class="field-input" id="sb-title" type="text" placeholder="Nome do vértice…" />
-        </div>
+          <div class="field-row">
+            <label class="field-label" for="sb-desc">Descrição</label>
+            <textarea class="field-textarea" id="sb-desc" rows="4" placeholder="Contexto, detalhes…"></textarea>
+          </div>
 
-        <div class="field-row">
-          <label class="field-label" for="sb-desc">Descrição</label>
-          <textarea class="field-textarea" id="sb-desc" rows="4" placeholder="Contexto, detalhes…"></textarea>
-        </div>
+          <div class="field-row">
+            <label class="field-label">Prioridade</label>
+            <div class="priority-selector" id="sb-priority-selector">
+              <button class="priority-btn" data-priority="alta">🔴 Alta</button>
+              <button class="priority-btn" data-priority="media">🟡 Média</button>
+              <button class="priority-btn" data-priority="baixa">🟢 Baixa</button>
+            </div>
+          </div>
 
-        <div class="field-row">
-          <label class="field-label">Prioridade</label>
-          <div class="priority-selector" id="sb-priority-selector">
-            <button class="priority-btn" data-priority="alta">🔴 Alta</button>
-            <button class="priority-btn" data-priority="media">🟡 Média</button>
-            <button class="priority-btn" data-priority="baixa">🟢 Baixa</button>
+          <div class="field-row">
+            <label class="field-label" for="sb-tags">Etiquetas</label>
+            <div class="tags-wrap" id="tags-wrap">
+              <div class="tags-list" id="tags-list"></div>
+              <input class="tags-input" id="sb-tags" type="text" placeholder="Adicionar etiqueta… (Enter)" />
+            </div>
           </div>
         </div>
 
-        <div class="field-row">
-          <label class="field-label" for="sb-tags">Etiquetas</label>
-          <div class="tags-wrap" id="tags-wrap">
-            <div class="tags-list" id="tags-list"></div>
-            <input class="tags-input" id="sb-tags" type="text" placeholder="Adicionar etiqueta… (Enter)" />
+        <!-- Campos de Aresta -->
+        <div id="sb-edge-fields" class="sidebar-section" hidden>
+          <div class="field-row">
+            <label class="field-label">Tipo de Conexão</label>
+            <span class="type-badge" id="sb-edge-type-badge">—</span>
+          </div>
+
+          <div class="field-row">
+            <label class="field-label" for="sb-edge-label">Nome / Rótulo</label>
+            <input class="field-input" id="sb-edge-label" type="text" placeholder="Rótulo no meio da aresta…" />
+          </div>
+
+          <div class="field-row">
+            <label class="field-label">Conexão</label>
+            <div class="meta-info" id="sb-edge-endpoints">—</div>
           </div>
         </div>
 

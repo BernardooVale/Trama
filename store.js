@@ -1,13 +1,14 @@
 const Store = (() => {
   const LS_KEY     = 'trama_v1';
-  const NODE_TYPES  = ['problema','solucao','agrupador'];
-  const EDGE_TYPES  = ['dependencia','resolve','relaciona'];
+  const NODE_TYPES  = ['problema','solucao','agrupador','neutro'];
+  const EDGE_TYPES  = ['dependencia','resolve','relaciona','neutra'];
   const PRIORITIES  = ['alta','media','baixa'];
 
   let state = {
     nodes:        [],
     edges:        [],
     selectedId:   null,
+    selectedEdgeId: null,
     showNodeMeta: true,
     filter: {
       text:     '',
@@ -27,7 +28,7 @@ const Store = (() => {
   function nodeDefaults(p={}){
     return {
       id:          p.id          ?? uid(),
-      type:        p.type        ?? 'problema',
+      type:        p.type        ?? 'neutro',
       title:       p.title       ?? 'Novo vértice',
       description: p.description ?? '',
       priority:    p.priority    ?? 'media',
@@ -43,7 +44,8 @@ const Store = (() => {
       id:       p.id       ?? edgeUid(),
       source:   p.source,
       target:   p.target,
-      edgeType: p.edgeType ?? 'relaciona',
+      edgeType: p.edgeType ?? 'neutra',
+      label:    p.label    ?? p.edgeType ?? 'neutra',
       directed: p.directed ?? true,
     };
   }
@@ -60,7 +62,10 @@ const Store = (() => {
     if(idx===-1) throw new Error(`Nó não encontrado: ${id}`);
     if(changes.type     && !NODE_TYPES.includes(changes.type))  delete changes.type;
     if(changes.priority && !PRIORITIES.includes(changes.priority)) delete changes.priority;
-    if(changes.title!==undefined) changes.title=String(changes.title).trim()||'Sem título';
+    if(changes.title!==undefined){
+      // Não fazemos .trim() aqui para não comer espaços enquanto o usuário digita
+      changes.title = String(changes.title);
+    }
     if(changes.tags!==undefined && !Array.isArray(changes.tags)) delete changes.tags;
     state.nodes[idx]={...state.nodes[idx],...changes};
     save(); notify('node:update',state.nodes[idx]); return state.nodes[idx];
@@ -81,7 +86,7 @@ const Store = (() => {
 
   /* ── Edges ─────────────────────────────────────── */
   function addEdge(partial={}){
-    const {source,target,edgeType='relaciona',directed=true}=partial;
+    const {source,target,edgeType='neutra',label,directed=true}=partial;
     if(!source||!target)               throw new Error('source e target obrigatórios');
     if(source===target)                throw new Error('Self-loop não permitido');
     if(!EDGE_TYPES.includes(edgeType)) throw new Error(`edgeType inválido: ${edgeType}`);
@@ -89,23 +94,38 @@ const Store = (() => {
     if(!getNode(target))               throw new Error(`Target não encontrado: ${target}`);
     const exists=state.edges.some(e=>e.source===source&&e.target===target&&e.edgeType===edgeType);
     if(exists) throw new Error('Aresta duplicada');
-    const edge=edgeDefaults({source,target,edgeType,directed});
+    const edge=edgeDefaults({source,target,edgeType,label: label ?? edgeType,directed});
     state.edges.push(edge); save(); notify('edge:add',edge); return edge;
+  }
+
+  function updateEdge(id,changes={}){
+    const idx = state.edges.findIndex(e=>e.id===id);
+    if(idx===-1) throw new Error(`Aresta não encontrada: ${id}`);
+    if(changes.edgeType && !EDGE_TYPES.includes(changes.edgeType)) delete changes.edgeType;
+    if(changes.label !== undefined){
+      changes.label = String(changes.label);
+    }
+    state.edges[idx]={...state.edges[idx],...changes};
+    save(); notify('edge:update',state.edges[idx]); return state.edges[idx];
   }
 
   function deleteEdge(id){
     const before=state.edges.length;
     state.edges=state.edges.filter(e=>e.id!==id);
     if(state.edges.length===before) throw new Error(`Aresta não encontrada: ${id}`);
+    if(state.selectedEdgeId===id) state.selectedEdgeId=null;
     save(); notify('edge:delete',{id}); return id;
   }
 
+  function getEdge(id){ return state.edges.find(e=>e.id===id)??null }
   function getEdges(){ return [...state.edges] }
 
   /* ── Selection ─────────────────────────────────── */
-  function selectNode(id){ state.selectedId=id; notify('selection:change',id) }
-  function clearSelection(){ state.selectedId=null; notify('selection:change',null) }
+  function selectNode(id){ state.selectedId=id; state.selectedEdgeId=null; notify('selection:change',id) }
+  function selectEdge(id){ state.selectedEdgeId=id; state.selectedId=null; notify('selection:edgeChange',id) }
+  function clearSelection(){ state.selectedId=null; state.selectedEdgeId=null; notify('selection:change',null); notify('selection:edgeChange',null) }
   function getSelectedNode(){ return state.selectedId?getNode(state.selectedId):null }
+  function getSelectedEdge(){ return state.selectedEdgeId?getEdge(state.selectedEdgeId):null }
 
   /* ── Filter ────────────────────────────────────── */
   function setFilter(changes={}){
@@ -229,8 +249,8 @@ const Store = (() => {
   return {
     init,reset,seed,
     addNode,updateNode,deleteNode,getNode,getNodes,updateNodePosition,
-    addEdge,deleteEdge,getEdges,
-    selectNode,clearSelection,getSelectedNode,
+    addEdge,updateEdge,deleteEdge,getEdge,getEdges,
+    selectNode,selectEdge,clearSelection,getSelectedNode,getSelectedEdge,
     setFilter,getFilter,getVisibleNodeIds,
     setShowNodeMeta,getShowNodeMeta,
     save,load,exportJSON,importJSON,

@@ -4,11 +4,13 @@ const App = (() => {
   function cacheDOM(){
     [
       'sidebar','sidebar-close','sidebar-title',
+      'sb-node-fields','sb-edge-fields',
       'sb-type-badge','sb-title','sb-desc','sb-meta',
+      'sb-edge-type-badge','sb-edge-label','sb-edge-endpoints',
       'sb-priority-selector','tags-list','sb-tags',
       'search-input','search-clear','search-chips','search-dropdown',
       'btn-export','btn-import','btn-theme','icon-theme','btn-toggle-meta',
-      'toast','canvas-wrap','focus-hint',
+      'btn-layout','toast','canvas-wrap','focus-hint',
     ].forEach(id=>{ DOM[id]=document.getElementById(id) });
   }
 
@@ -59,8 +61,25 @@ const App = (() => {
   function openSidebar(nodeId){
     const node=Store.getNode(nodeId);
     if(!node) return;
+    DOM['sidebar-title'].textContent = 'Propriedades do Vértice';
+    DOM['sb-node-fields'].hidden = false;
+    DOM['sb-edge-fields'].hidden = true;
     populateSidebar(node);
     DOM['sidebar'].classList.add('open');
+  }
+
+  function openEdgeSidebar(edgeId){
+    const edge=Store.getEdge(edgeId);
+    if(!edge) return;
+    DOM['sidebar-title'].textContent = 'Propriedades da Aresta';
+    DOM['sb-node-fields'].hidden = true;
+    DOM['sb-edge-fields'].hidden = false;
+    populateEdgeSidebar(edge);
+    DOM['sidebar'].classList.add('open');
+    setTimeout(() => {
+      DOM['sb-edge-label'].focus();
+      DOM['sb-edge-label'].select();
+    }, 50);
   }
 
   function closeSidebar(){
@@ -70,13 +89,30 @@ const App = (() => {
   function populateSidebar(node){
     const badge=DOM['sb-type-badge'];
     badge.textContent=node.type; badge.dataset.type=node.type;
-    DOM['sb-title'].value=node.title;
-    DOM['sb-desc'].value=node.description;
+    // Não sobrescrever o input se o usuário estiver ativamente digitando nele
+    if(document.activeElement !== DOM['sb-title']){
+      DOM['sb-title'].value=node.title;
+    }
+    if(document.activeElement !== DOM['sb-desc']){
+      DOM['sb-desc'].value=node.description;
+    }
     DOM['sb-priority-selector'].querySelectorAll('.priority-btn')
       .forEach(b=>b.classList.toggle('active',b.dataset.priority===node.priority));
     renderTags(node.tags);
     const d=new Date(node.createdAt).toLocaleDateString('pt-BR');
     DOM['sb-meta'].textContent=`ID: ${node.id} · ${d}`;
+  }
+
+  function populateEdgeSidebar(edge){
+    const badge=DOM['sb-edge-type-badge'];
+    badge.textContent=edge.edgeType; badge.dataset.type=edge.edgeType;
+    if(document.activeElement !== DOM['sb-edge-label']){
+      DOM['sb-edge-label'].value = edge.label ?? edge.edgeType;
+    }
+    const src = Store.getNode(edge.source)?.title ?? edge.source;
+    const tgt = Store.getNode(edge.target)?.title ?? edge.target;
+    DOM['sb-edge-endpoints'].textContent = `${src} → ${tgt}`;
+    DOM['sb-meta'].textContent = `ID: ${edge.id}`;
   }
 
   /* ── Tags sidebar ───────────────────────────── */
@@ -119,7 +155,33 @@ const App = (() => {
       tTimer=setTimeout(()=>{
         const n=Store.getSelectedNode(); if(!n) return;
         Store.updateNode(n.id,{title:e.target.value});
-      },300);
+      },200);
+    });
+
+    DOM['sb-title'].addEventListener('blur',e=>{
+      const n=Store.getSelectedNode(); if(!n) return;
+      if(!e.target.value.trim()){
+        e.target.value = 'Sem título';
+        Store.updateNode(n.id,{title:'Sem título'});
+      }
+    });
+
+    let elTimer=null;
+    DOM['sb-edge-label'].addEventListener('input',e=>{
+      clearTimeout(elTimer);
+      elTimer=setTimeout(()=>{
+        const ed=Store.getSelectedEdge(); if(!ed) return;
+        Store.updateEdge(ed.id,{label:e.target.value});
+      },200);
+    });
+
+    DOM['sb-edge-label'].addEventListener('blur',e=>{
+      const ed=Store.getSelectedEdge(); if(!ed) return;
+      if(!e.target.value.trim()){
+        const fallback = ed.edgeType;
+        e.target.value = fallback;
+        Store.updateEdge(ed.id,{label:fallback});
+      }
     });
 
     let dTimer=null;
@@ -128,7 +190,7 @@ const App = (() => {
       dTimer=setTimeout(()=>{
         const n=Store.getSelectedNode(); if(!n) return;
         Store.updateNode(n.id,{description:e.target.value});
-      },400);
+      },300);
     });
 
     DOM['sb-priority-selector'].addEventListener('click',e=>{
@@ -175,8 +237,22 @@ const App = (() => {
         <button class="cm-item" data-action="edge" data-edge="dependencia">Dependência</button>
         <button class="cm-item" data-action="edge" data-edge="resolve">Resolve</button>
         <button class="cm-item" data-action="edge" data-edge="relaciona">Relaciona</button>
+        <button class="cm-item" data-action="edge" data-edge="neutra">Neutra</button>
         <div class="cm-divider"></div>
         <button class="cm-item" data-action="delete" style="color:var(--node-problema)">Excluir Vértice</button>
+      `;
+      position(cx, cy);
+    }
+
+    function showEdgeMenu(id, cx, cy){
+      targetId = id;
+      const edge = Store.getEdge(id);
+      const label = edge ? (edge.label || edge.edgeType) : 'Aresta';
+      el.innerHTML = `
+        <div class="cm-item" style="font-size:10px;text-transform:uppercase;color:var(--text-muted);pointer-events:none">Aresta: ${esc(label)}</div>
+        <button class="cm-item" data-action="edit-edge">Editar Propriedades</button>
+        <div class="cm-divider"></div>
+        <button class="cm-item" data-action="delete-edge" style="color:var(--node-problema)">Excluir Aresta</button>
       `;
       position(cx, cy);
     }
@@ -188,6 +264,7 @@ const App = (() => {
         <button class="cm-item" data-action="add" data-type="problema"><span class="dot dot-problema"></span>Problema</button>
         <button class="cm-item" data-action="add" data-type="solucao"><span class="dot dot-solucao"></span>Solução</button>
         <button class="cm-item" data-action="add" data-type="agrupador"><span class="dot dot-agrupador"></span>Agrupador</button>
+        <button class="cm-item" data-action="add" data-type="neutro"><span class="dot dot-neutro"></span>Neutro</button>
       `;
       position(cx, cy);
     }
@@ -198,19 +275,32 @@ const App = (() => {
         if(!btn || btn.dataset.action === undefined) return;
         
         const action = btn.dataset.action;
-        if(action === 'add'){
-          const node = Graph.addNodeAtPos(btn.dataset.type, targetPos.x, targetPos.y);
+        const currentTargetId = targetId;
+        const currentTargetPos = targetPos;
+        hide(); // Esconde o menu de contexto imediatamente
+
+        if(action === 'add' && currentTargetPos){
+          const node = Graph.addNodeAtPos(btn.dataset.type, currentTargetPos.x, currentTargetPos.y);
           Store.selectNode(node.id);
           openSidebar(node.id);
-          setTimeout(() => DOM['sb-title'].focus(), 50);
+          setTimeout(() => {
+            DOM['sb-title'].focus();
+            DOM['sb-title'].select();
+          }, 50);
         } 
-        else if(action === 'edge'){
-          Graph.startEdgeModeFromContext(btn.dataset.edge, targetId);
+        else if(action === 'edge' && currentTargetId){
+          Graph.startEdgeModeFromContext(btn.dataset.edge, currentTargetId);
         }
-        else if(action === 'delete'){
-          Store.deleteNode(targetId);
+        else if(action === 'delete' && currentTargetId){
+          Store.deleteNode(currentTargetId);
         }
-        hide();
+        else if(action === 'edit-edge' && currentTargetId){
+          Store.selectEdge(currentTargetId);
+          openEdgeSidebar(currentTargetId);
+        }
+        else if(action === 'delete-edge' && currentTargetId){
+          Store.deleteEdge(currentTargetId);
+        }
       });
 
       document.addEventListener('click', e => {
@@ -222,7 +312,7 @@ const App = (() => {
       });
     }
 
-    return { showNodeMenu, showCoreMenu, bind };
+    return { showNodeMenu, showEdgeMenu, showCoreMenu, hide, bind };
   })();
 
   /* ═══════════════════════════════════════════════
@@ -291,7 +381,7 @@ const App = (() => {
             <span class="dd-node-sub">etiqueta</span>`;
           el.addEventListener('mousedown',e=>{ e.preventDefault(); addTagFilter(item.value) });
         } else {
-          const typeColor={'problema':'var(--node-problema)','solucao':'var(--node-solucao)','agrupador':'var(--node-agrupador)'}[item.type]||'var(--text-muted)';
+          const typeColor={'problema':'var(--node-problema)','solucao':'var(--node-solucao)','agrupador':'var(--node-agrupador)','neutro':'var(--node-neutro)'}[item.type]||'var(--text-muted)';
           el.className='search-dd-item';
           el.innerHTML=`<span class="dd-node-type" style="background:${typeColor}"></span>
             <span class="dd-node-title">${esc(item.title)}</span>
@@ -299,6 +389,8 @@ const App = (() => {
           el.addEventListener('mousedown',e=>{
             e.preventDefault();
             Graph.focusNode(item.id);
+            Store.selectNode(item.id);
+            openSidebar(item.id);
             hideDropdown();
             getInput().value='';
             DOM['search-clear'].classList.remove('visible');
@@ -426,7 +518,7 @@ const App = (() => {
 
         const labels={
           all: `${labelPrefix}: Todos`,
-          problema:'Problema', solucao:'Solução', agrupador:'Agrupador',
+          problema:'Problema', solucao:'Solução', agrupador:'Agrupador', neutro:'Neutro',
           alta:'Alta', media:'Média', baixa:'Baixa',
         };
         const isAll = val==='all';
@@ -454,7 +546,11 @@ const App = (() => {
     Store.subscribe((event,payload)=>{
       switch(event){
         case 'selection:change':
-          if(!payload) closeSidebar();
+          if(!payload && !Store.getSelectedEdge()) closeSidebar();
+          break;
+
+        case 'selection:edgeChange':
+          if(!payload && !Store.getSelectedNode()) closeSidebar();
           break;
 
         case 'node:update':{
@@ -463,8 +559,14 @@ const App = (() => {
           break;
         }
 
+        case 'edge:update':{
+          const e=Store.getSelectedEdge();
+          if(e&&e.id===payload.id) populateEdgeSidebar(payload);
+          break;
+        }
+
         case 'node:delete':
-          DOM['sidebar'].classList.remove('open');
+          if(!Store.getSelectedNode() && !Store.getSelectedEdge()) closeSidebar();
           toast('Vértice removido');
           break;
 
@@ -472,6 +574,7 @@ const App = (() => {
           toast(`Aresta "${payload.edgeType}" criada`); break;
 
         case 'edge:delete':
+          if(!Store.getSelectedNode() && !Store.getSelectedEdge()) closeSidebar();
           toast('Aresta removida'); break;
 
         case 'io:import':
@@ -488,23 +591,27 @@ const App = (() => {
   ════════════════════════════════════════════════ */
   function bindGraphEvents(){
     document.addEventListener('graph:openSidebar',()=>{
-      const n=Store.getSelectedNode(); if(n) openSidebar(n.id);
+      const n=Store.getSelectedNode();
+      if(n){
+        openSidebar(n.id);
+        setTimeout(() => {
+          DOM['sb-title'].focus();
+          DOM['sb-title'].select();
+        }, 50);
+      }
     });
 
     document.addEventListener('graph:error',e=>toast(`⚠ ${e.detail}`));
 
     document.addEventListener('graph:edgeSelected',e=>{
-      const edge=Store.getEdges().find(ed=>ed.id===e.detail.edgeId);
+      const edge=Store.getEdge(e.detail.edgeId);
       if(!edge) return;
-      const src=Store.getNode(edge.source)?.title??edge.source;
-      const tgt=Store.getNode(edge.target)?.title??edge.target;
-      toast(`${src} → ${tgt} [${edge.edgeType}]  ·  Del para remover`);
-      const cy=Graph.getInstance();
-      cy.$(':selected').unselect();
-      cy.getElementById(edge.id).select();
+      Store.selectEdge(edge.id);
+      openEdgeSidebar(edge.id);
     });
 
     document.addEventListener('graph:contextNode', e => ContextMenu.showNodeMenu(e.detail.id, e.detail.x, e.detail.y));
+    document.addEventListener('graph:contextEdge', e => ContextMenu.showEdgeMenu(e.detail.id, e.detail.x, e.detail.y));
     document.addEventListener('graph:contextCore', e => ContextMenu.showCoreMenu(e.detail.gx, e.detail.gy, e.detail.cx, e.detail.cy));
   }
 
@@ -541,9 +648,10 @@ const App = (() => {
       if(e.key==='t'&&!inInput) toggleTheme();
       if(e.key==='l'&&!inInput){ Graph.runForceLayout(); toast('Organizando…') }
       if(!inInput&&!e.ctrlKey&&!e.metaKey){
-        if(e.key==='1') document.querySelector('[data-type="problema"]')?.click();
-        if(e.key==='2') document.querySelector('[data-type="solucao"]')?.click();
-        if(e.key==='3') document.querySelector('[data-type="agrupador"]')?.click();
+        if(e.key==='1') document.querySelector('[data-value="problema"]')?.click();
+        if(e.key==='2') document.querySelector('[data-value="solucao"]')?.click();
+        if(e.key==='3') document.querySelector('[data-value="agrupador"]')?.click();
+        if(e.key==='4') document.querySelector('[data-value="neutro"]')?.click();
       }
     });
   }
@@ -569,6 +677,10 @@ const App = (() => {
     bindKeyboard();
 
     DOM['btn-theme'].addEventListener('click',toggleTheme);
+    DOM['btn-layout'].addEventListener('click',()=>{
+      Graph.runForceLayout();
+      toast('Organizando…');
+    });
 
     // Toggle meta
     const btnMeta=DOM['btn-toggle-meta'];

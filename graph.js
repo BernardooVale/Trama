@@ -18,8 +18,8 @@ const Graph = (() => {
 
   /* ── Palette (espelha CSS vars) ────────────────── */
   const C = {
-    node:   { problema:'#d95c55', solucao:'#4a8da0', agrupador:'#76965d' },
-    edge:   { dependencia:'#d97d55', resolve:'#4aa078', relaciona:'#7676a0' },
+    node:   { problema:'#d95c55', solucao:'#4a8da0', agrupador:'#76965d', neutro:'#8a8880' },
+    edge:   { dependencia:'#d97d55', resolve:'#4aa078', relaciona:'#7676a0', neutra:'#8a8880' },
     accent: '#d99a55',
     border: '#2e2f2a',
     bg:     { surface:'#181916', elevated:'#21221e' },
@@ -81,6 +81,13 @@ const Graph = (() => {
         },
       },
       {
+        selector: 'node[type="neutro"]',
+        style: {
+          'border-color': C.node.neutro, 'border-width': 1.5,
+          'background-color': `${C.node.neutro}12`,
+        },
+      },
+      {
         selector: 'node:selected',
         style: {
           'border-width':    2.5, 'border-color': C.accent,
@@ -133,6 +140,15 @@ const Graph = (() => {
         },
       },
       {
+        selector: 'node.focus-highlight[type="neutro"]',
+        style: {
+          'border-color':   C.node.neutro, 'border-width': 2.5,
+          'background-color': `${C.node.neutro}28`,
+          'shadow-blur':    18, 'shadow-color': C.node.neutro,
+          'shadow-opacity': 0.45,'shadow-offset-x':0,'shadow-offset-y':0,
+        },
+      },
+      {
         selector: 'node.focus-dim',
         style: { 'opacity': 0.07 },
       },
@@ -151,6 +167,10 @@ const Graph = (() => {
         style: { 'opacity':1,'width':2.5,'line-color':C.edge.relaciona,'target-arrow-color':C.edge.relaciona },
       },
       {
+        selector: 'edge.focus-highlight[edgeType="neutra"]',
+        style: { 'opacity':1,'width':2.5,'line-color':C.edge.neutra,'target-arrow-color':C.edge.neutra },
+      },
+      {
         selector: 'edge.focus-dim',
         style: { 'opacity': 0.04 },
       },
@@ -166,7 +186,7 @@ const Graph = (() => {
           'width':1.5,'line-color':C.border,
           'target-arrow-color':C.border,'target-arrow-shape':'triangle',
           'arrow-scale':1.0,'curve-style':'bezier',
-          'label':'data(edgeType)',
+          'label':'data(label)',
           'font-size':'10px','font-family':'Inter,system-ui,sans-serif',
           'color':C.text.muted,
           'text-background-color':C.bg.surface,
@@ -199,6 +219,14 @@ const Graph = (() => {
         },
       },
       {
+        selector: 'edge[edgeType="neutra"]',
+        style: {
+          'line-color':C.edge.neutra,
+          'target-arrow-color':C.edge.neutra,
+          'color':C.edge.neutra,
+        },
+      },
+      {
         selector: 'edge:selected',
         style:{'width':3,'overlay-color':C.accent,'overlay-padding':4,'overlay-opacity':0.12},
       },
@@ -220,7 +248,7 @@ const Graph = (() => {
   function edgeToEl(e){
     return {
       group:'edges',
-      data:{ id:e.id, source:e.source, target:e.target, edgeType:e.edgeType, bidirectional:!e.directed },
+      data:{ id:e.id, source:e.source, target:e.target, edgeType:e.edgeType, label:e.label ?? e.edgeType, bidirectional:!e.directed },
     };
   }
   function buildLabel(n){
@@ -328,19 +356,12 @@ const Graph = (() => {
     cy.on('mouseover','edge', evt => evt.target.addClass('hover'));
     cy.on('mouseout', 'edge', evt => evt.target.removeClass('hover'));
 
-    /* ── Tap: duplo clique manual ───────────────── */
+    /* ── Tap: clique seleciona e abre sidebar ─── */
     cy.on('tap','node', evt => {
       const id = evt.target.id();
       if(edgeMode.active){ _handleEdgeModeClick(id); return; }
 
-      if(_tapTimer && _tapTimerId === id){
-        clearTimeout(_tapTimer); _tapTimer=null; _tapTimerId=null;
-        Store.selectNode(id);
-        document.dispatchEvent(new CustomEvent('graph:openSidebar'));
-        return;
-      }
-
-      // Shift+tap: adiciona à seleção
+      // Shift+tap: adiciona à seleção sem abrir sidebar
       if(window._shiftHeld){
         evt.target.select();
         _selectedCyId = id;
@@ -350,8 +371,8 @@ const Graph = (() => {
       cy.nodes().unselect();
       evt.target.select();
       _selectedCyId = id;
-      _tapTimerId   = id;
-      _tapTimer = setTimeout(() => { _tapTimer=null; _tapTimerId=null; }, TAP_DELAY);
+      Store.selectNode(id);
+      document.dispatchEvent(new CustomEvent('graph:openSidebar'));
     });
 
     cy.on('tap','edge', evt => {
@@ -379,6 +400,12 @@ const Graph = (() => {
     /* ── Context Menu (Right Click) ─────────────── */
     cy.on('cxttap', 'node', evt => {
       document.dispatchEvent(new CustomEvent('graph:contextNode', {
+        detail: { id: evt.target.id(), x: evt.originalEvent.clientX, y: evt.originalEvent.clientY }
+      }));
+    });
+
+    cy.on('cxttap', 'edge', evt => {
+      document.dispatchEvent(new CustomEvent('graph:contextEdge', {
         detail: { id: evt.target.id(), x: evt.originalEvent.clientX, y: evt.originalEvent.clientY }
       }));
     });
@@ -522,6 +549,17 @@ const Graph = (() => {
         case 'edge:add':
           cy.add(edgeToEl(payload)); break;
 
+        case 'edge:update':{
+          const e = cy.getElementById(payload.id);
+          if(e.length){
+            e.data({
+              edgeType: payload.edgeType,
+              label: payload.label ?? payload.edgeType
+            });
+          }
+          break;
+        }
+
         case 'edge:delete':{
           const ce = cy.getElementById(payload.id);
           if(ce && ce.length) ce.remove();
@@ -531,6 +569,11 @@ const Graph = (() => {
         case 'selection:change':
           cy.nodes().unselect();
           if(payload){ const n=cy.getElementById(payload); if(n.length) n.select(); }
+          break;
+
+        case 'selection:edgeChange':
+          cy.edges().unselect();
+          if(payload){ const e=cy.getElementById(payload); if(e.length) e.select(); }
           break;
 
         case 'filter:change':
@@ -605,7 +648,14 @@ const Graph = (() => {
       return;
     }
     const directed = true;
-    try{ Store.addEdge({source:edgeMode.sourceId, target:id, edgeType:edgeMode.edgeType, directed}) }
+    try{
+      const newEdge = Store.addEdge({source:edgeMode.sourceId, target:id, edgeType:edgeMode.edgeType, directed});
+      if(newEdge){
+        setTimeout(()=>{
+          document.dispatchEvent(new CustomEvent('graph:edgeSelected',{detail:{edgeId:newEdge.id}}));
+        }, 60);
+      }
+    }
     catch(err){ document.dispatchEvent(new CustomEvent('graph:error',{detail:err.message})) }
     finally{ cancelEdgeMode() }
   }
@@ -660,8 +710,28 @@ const Graph = (() => {
     _handleEdgeModeClick(sourceId);
   }
 
+  function runForceLayout(){
+    if(!cy) return;
+    const layout = cy.layout({
+      name: 'cose',
+      animate: true,
+      animationDuration: 500,
+      randomize: false,
+      fit: true,
+      padding: 60,
+      stop: () => {
+        cy.nodes().forEach(n => {
+          const p = n.position();
+          Store.updateNodePosition(n.id(), p.x, p.y);
+        });
+      }
+    });
+    layout.run();
+  }
+
   return {
     init, addNodeAtCenter, addNodeAtPos, applyFilter,
-    focusNode, syncTheme, cancelEdgeMode, getInstance, startEdgeModeFromContext
+    focusNode, syncTheme, cancelEdgeMode, getInstance, startEdgeModeFromContext,
+    runForceLayout
   };
 })();
