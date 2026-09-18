@@ -81,6 +81,10 @@ const Sidebar = (() => {
 
     renderTags(node.tags);
 
+    const isTexto = node.type === 'texto';
+    getEl('sb-priority-row').hidden = isTexto;
+    getEl('sb-tags-row').hidden = isTexto;
+
     if(node.type === 'subgrafo' && node.subgraphTabId){
       getEl('sb-subgraph-fields').hidden = false;
     } else {
@@ -96,7 +100,7 @@ const Sidebar = (() => {
     badge.textContent = edge.edgeType;
     badge.dataset.type = edge.edgeType;
     if(document.activeElement !== getEl('sb-edge-label')){
-      getEl('sb-edge-label').value = edge.label !== undefined ? edge.label : (edge.edgeType ?? '');
+      getEl('sb-edge-label').value = edge.label ?? '';
     }
     const src = Store.getNode(edge.source)?.title ?? edge.source;
     const tgt = Store.getNode(edge.target)?.title ?? edge.target;

@@ -85,6 +85,7 @@ const ContextMenu = (() => {
       <button class="cm-item" data-action="add" data-type="solucao"><span class="dd-dot dd-dot--solucao"></span>Solução</button>
       <button class="cm-item" data-action="add" data-type="agrupador"><span class="dd-dot dd-dot--agrupador"></span>Agrupador</button>
       <button class="cm-item" data-action="add" data-type="neutro"><span class="dd-dot dd-dot--neutro"></span>Neutro</button>
+      <button class="cm-item" data-action="add" data-type="texto"><span class="dd-dot dd-dot--texto"></span>Texto <span style="margin-left:auto;font-size:11px;color:var(--text-muted)">T</span></button>
       ${importTabsHtml}
       <div class="cm-divider"></div>
       <button class="cm-item" data-action="paste" ${canPaste ? '' : 'disabled style="opacity:0.4;cursor:not-allowed"'}>

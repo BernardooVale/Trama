@@ -1,0 +1,115 @@
+{
+  "version": 2,
+  "exportedAt": "2026-09-18T15:28:00.000Z",
+  "activeTabId": "tab_main",
+  "tabs": [
+    {
+      "id": "tab_main",
+      "name": "Principal",
+      "nodes": [
+        {
+          "id": "n_p1",
+          "type": "problema",
+          "title": "Performance degradada",
+          "description": "API responde >2s em pico.",
+          "priority": "alta",
+          "tags": ["backend", "api"],
+          "x": 320,
+          "y": 200,
+          "createdAt": 1700000000000,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_p2",
+          "type": "problema",
+          "title": "UX confusa no onboarding",
+          "description": "Abandono 60% no passo 3.",
+          "priority": "alta",
+          "tags": ["ux", "onboarding"],
+          "x": 640,
+          "y": 160,
+          "createdAt": 1700000000000,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_s1",
+          "type": "solucao",
+          "title": "Cache Redis",
+          "description": "TTL 5min para queries quentes.",
+          "priority": "alta",
+          "tags": ["backend", "cache"],
+          "x": 200,
+          "y": 400,
+          "createdAt": 1700000000000,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_s2",
+          "type": "solucao",
+          "title": "Refatorar onboarding",
+          "description": "Reduzir de 5 para 3 passos.",
+          "priority": "media",
+          "tags": ["ux"],
+          "x": 720,
+          "y": 360,
+          "createdAt": 1700000000000,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_g1",
+          "type": "agrupador",
+          "title": "Sprint Q3 — Infra",
+          "description": "Épico de infra e performance.",
+          "priority": "media",
+          "tags": ["sprint", "infra"],
+          "x": 460,
+          "y": 490,
+          "createdAt": 1700000000000,
+          "subgraphTabId": null
+        }
+      ],
+      "edges": [
+        {
+          "id": "e_1",
+          "source": "n_s1",
+          "target": "n_p1",
+          "edgeType": "resolve",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_2",
+          "source": "n_s2",
+          "target": "n_p2",
+          "edgeType": "resolve",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_3",
+          "source": "n_p1",
+          "target": "n_p2",
+          "edgeType": "relaciona",
+          "label": "",
+          "directed": false
+        },
+        {
+          "id": "e_4",
+          "source": "n_g1",
+          "target": "n_s1",
+          "edgeType": "dependencia",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_5",
+          "source": "n_g1",
+          "target": "n_s2",
+          "edgeType": "dependencia",
+          "label": "",
+          "directed": true
+        }
+      ]
+    }
+  ]
+}

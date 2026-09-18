@@ -65,6 +65,9 @@
           <button class="dd-item" data-value="subgrafo">
             <span class="dd-dot" style="background:var(--node-subgrafo)"></span>Subgrafo
           </button>
+          <button class="dd-item" data-value="texto">
+            <span class="dd-dot dd-dot--texto"></span>Texto
+          </button>
         </div>
       </div>
 
@@ -104,22 +107,29 @@
           <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
         </svg>
       </button>
-      <button class="btn-icon" id="btn-export" title="Exportar JSON (Ctrl+S)">
+      <button class="btn-icon" id="btn-save" title="Salvar em trama.json (Ctrl+S)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-          <polyline points="7 10 12 15 17 10"/>
-          <line x1="12" y1="15" x2="12" y2="3"/>
+          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+          <polyline points="17 21 17 13 7 13 7 21"/>
+          <polyline points="7 3 7 8 15 8"/>
         </svg>
       </button>
-      <label class="btn-icon" title="Importar JSON">
+      <button class="btn-icon" id="btn-export" title="Exportar JSON">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
           <polyline points="17 8 12 3 7 8"/>
           <line x1="12" y1="3" x2="12" y2="15"/>
         </svg>
+      </button>
+      <label class="btn-icon" title="Importar JSON">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
         <input type="file" id="btn-import" accept=".json" hidden />
       </label>
-      <button class="btn-icon" id="btn-theme" title="Alternar tema (T)">
+      <button class="btn-icon" id="btn-theme" title="Alternar tema">
         <svg id="icon-theme" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="12" cy="12" r="5"/>
           <line x1="12" y1="1"  x2="12" y2="3"/>

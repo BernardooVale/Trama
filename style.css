@@ -29,6 +29,7 @@
   --node-agrupador: #76965d;   /* verde-musgo mais vivo */
   --node-neutro:    #8a8880;   /* cinza neutro elegante */
   --node-subgrafo:  #9d72cf;   /* roxo ametista sutil */
+  --node-texto:     #e0a96d;   /* âmbar quente para texto */
 
   /* Arestas */
   --edge-dependencia: #d97d55;  /* âmbar escuro */
@@ -211,6 +212,7 @@ textarea{resize:vertical}
 .dd-dot--solucao{background:var(--node-solucao)}
 .dd-dot--agrupador{background:var(--node-agrupador)}
 .dd-dot--neutro{background:var(--node-neutro)}
+.dd-dot--texto{background:var(--node-texto)}
 
 /* ── Header actions ──────────────────────────────── */
 .header-actions{display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0}
@@ -485,6 +487,7 @@ kbd{
 .type-badge[data-type="agrupador"]{background:rgba(138,156,122,.1);border-color:var(--node-agrupador);color:var(--node-agrupador)}
 .type-badge[data-type="neutro"],.type-badge[data-type="neutra"]{background:rgba(138,136,128,.1);border-color:var(--node-neutro);color:var(--text-secondary)}
 .type-badge[data-type="subgrafo"]{background:rgba(157,114,207,.15);border-color:var(--node-subgrafo);color:var(--node-subgrafo)}
+.type-badge[data-type="texto"]{background:rgba(224,169,109,.1);border-color:var(--node-texto);color:var(--node-texto)}
 .type-badge[data-type="dependencia"]{background:rgba(217,125,85,.1);border-color:var(--edge-dependencia);color:var(--edge-dependencia)}
 .type-badge[data-type="resolve"]{background:rgba(74,160,120,.1);border-color:var(--edge-resolve);color:var(--edge-resolve)}
 .type-badge[data-type="relaciona"]{background:rgba(118,118,160,.1);border-color:var(--edge-relaciona);color:var(--edge-relaciona)}

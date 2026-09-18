@@ -27,7 +27,7 @@ Centraliza os tokens visuais, paleta de cores e a geração da folha de estilos 
 
 #### `buildStyle()`
 - **Assinatura:** `buildStyle(): Array<cytoscape.Stylesheet>`
-- **Descrição:** Constrói o array com todas as regras de estilo de nós (problema, solução, agrupador, neutro, subgrafo), arestas, seleções e estados de foco e esmaecimento.
+- **Descrição:** Constrói o array com todas as regras de estilo de nós (problema, solução, agrupador, neutro, subgrafo, texto), arestas, seleções e estados de foco e esmaecimento.
 - **Retorno:** Array de regras de estilo Cytoscape.
 
 ---

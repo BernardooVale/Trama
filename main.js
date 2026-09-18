@@ -11,7 +11,7 @@ const App = (() => {
       'sb-edge-type-badge','sb-edge-label','sb-edge-endpoints',
       'sb-priority-selector','tags-list','sb-tags',
       'search-input','search-clear','search-chips','search-dropdown',
-      'btn-export','btn-import','btn-theme','icon-theme','btn-toggle-meta',
+      'btn-save','btn-export','btn-import','btn-theme','icon-theme','btn-toggle-meta',
       'btn-layout','btn-undo','toast','canvas-wrap','focus-hint',
     ].forEach(id=>{ DOM[id]=document.getElementById(id) });
   }
@@ -329,9 +329,18 @@ const App = (() => {
      IO
   ════════════════════════════════════════════════ */
   function bindIO(){
-    DOM['btn-export'].addEventListener('click',()=>{
-      try{ Store.exportJSON(); toast('Exportado com sucesso') }
-      catch(e){ toast(`Erro: ${e.message}`) }
+    DOM['btn-save']?.addEventListener('click', async () => {
+      try {
+        const saved = await Store.exportJSON('trama.json');
+        if(saved) toast('Salvo em trama.json');
+      } catch(e) {
+        toast(`Erro: ${e.message}`);
+      }
+    });
+
+    DOM['btn-export']?.addEventListener('click', () => {
+      try { Store.exportJSON(); toast('Exportado com sucesso') }
+      catch(e) { toast(`Erro: ${e.message}`) }
     });
 
     DOM['btn-import'].addEventListener('change',async e=>{
@@ -420,11 +429,12 @@ const App = (() => {
           TabsUI.renameActiveTabPrompt();
           return;
         }
-        // Ctrl+S: Exportar JSON do projeto
+        // Ctrl+S: Salvar trama.json no repositório
         if(key === 's' && !inInput){
           e.preventDefault();
-          Store.exportJSON();
-          toast('Exportado');
+          Store.exportJSON('trama.json').then(saved => {
+            if(saved) toast('Salvo em trama.json');
+          });
           return;
         }
         if(key === 'z' && !inInput){
@@ -451,9 +461,27 @@ const App = (() => {
       }
 
       if(e.key==='/'&&!inInput){ e.preventDefault(); DOM['search-input'].focus() }
-      if(e.key==='t'&&!inInput&&!e.ctrlKey&&!e.metaKey) toggleTheme();
-      if(e.key==='l'&&!inInput){ Graph.runForceLayout(); toast('Organizando…') }
+      if(e.key.toLowerCase()==='l'&&!inInput&&!e.ctrlKey&&!e.metaKey){ Graph.runForceLayout(); toast('Organizando…') }
       if(!inInput&&!e.ctrlKey&&!e.metaKey){
+        const k = e.key.toLowerCase();
+        const typeMap = {
+          'w': { type: 'problema',  label: 'Problema (W)' },
+          's': { type: 'solucao',   label: 'Solução (S)' },
+          'a': { type: 'agrupador', label: 'Agrupador (A)' },
+          'd': { type: 'neutro',    label: 'Neutro (D)' },
+          't': { type: 'texto',     label: 'Campo de texto (T)' },
+        };
+        if(typeMap[k]){
+          e.preventDefault();
+          const item = typeMap[k];
+          const pos = Graph.getCursorModelPos();
+          const node = Graph.addNodeAtPos(item.type, pos.x, pos.y);
+          Store.selectNode(node.id);
+          Sidebar.open(node.id, true);
+          toast(`${item.label} adicionado`);
+          return;
+        }
+
         if(e.key==='1') document.querySelector('[data-value="problema"]')?.click();
         if(e.key==='2') document.querySelector('[data-value="solucao"]')?.click();
         if(e.key==='3') document.querySelector('[data-value="agrupador"]')?.click();
@@ -468,7 +496,7 @@ const App = (() => {
   /* ═══════════════════════════════════════════════
      INIT
   ════════════════════════════════════════════════ */
-  function init(){
+  async function init(){
     cacheDOM();
     initTheme();
     Sidebar.bind();
@@ -480,7 +508,7 @@ const App = (() => {
     Search.bind();
     bindIO();
     bindKeyboard();
-    Store.init();
+    await Store.init();
     TabsUI.render();
     Graph.init();
 

@@ -22,7 +22,7 @@ const Graph = (() => {
   function edgeToEl(e){
     return {
       group: 'edges',
-      data: { id: e.id, source: e.source, target: e.target, edgeType: e.edgeType, label: e.label ?? e.edgeType, bidirectional: !e.directed },
+      data: { id: e.id, source: e.source, target: e.target, edgeType: e.edgeType, label: e.label ?? '', bidirectional: !e.directed },
     };
   }
 
@@ -292,7 +292,7 @@ const Graph = (() => {
 
         case 'edge:update':{
           const e = cy.getElementById(payload.id);
-          if(e.length) e.data({ edgeType: payload.edgeType, label: payload.label ?? payload.edgeType });
+          if(e.length) e.data({ edgeType: payload.edgeType, label: payload.label ?? '' });
           break;
         }
 

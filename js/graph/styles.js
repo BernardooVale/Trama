@@ -4,7 +4,7 @@
  */
 const GraphStyles = (() => {
   const C = {
-    node:   { problema:'#d95c55', solucao:'#4a8da0', agrupador:'#76965d', neutro:'#8a8880', subgrafo:'#9d72cf' },
+    node:   { problema:'#d95c55', solucao:'#4a8da0', agrupador:'#76965d', neutro:'#8a8880', subgrafo:'#9d72cf', texto:'#e0a96d' },
     edge:   { dependencia:'#d97d55', resolve:'#4aa078', relaciona:'#7676a0', neutra:'#8a8880' },
     accent: '#d99a55',
     border: '#2e2f2a',
@@ -81,6 +81,25 @@ const GraphStyles = (() => {
         },
       },
       {
+        selector: 'node[type="texto"]',
+        style: {
+          'background-opacity': 0,
+          'border-width': 1,
+          'border-color': 'transparent',
+          'border-style': 'dashed',
+          'color': C.text.primary,
+          'font-size': '13px',
+          'font-weight': '500',
+        },
+      },
+      {
+        selector: 'node[type="texto"].hover',
+        style: {
+          'border-color': `${C.node.texto}60`,
+          'border-style': 'dashed',
+        },
+      },
+      {
         selector: 'node:selected',
         style: {
           'border-width':    2.5, 'border-color': C.accent,
@@ -147,6 +166,15 @@ const GraphStyles = (() => {
           'background-color': `${C.node.subgrafo}30`,
           'shadow-blur':    18, 'shadow-color': C.node.subgrafo,
           'shadow-opacity': 0.5,'shadow-offset-x':0,'shadow-offset-y':0,
+        },
+      },
+      {
+        selector: 'node.focus-highlight[type="texto"]',
+        style: {
+          'border-color':   C.node.texto, 'border-width': 2.5,
+          'background-color': `${C.node.texto}28`,
+          'shadow-blur':    18, 'shadow-color': C.node.texto,
+          'shadow-opacity': 0.45,'shadow-offset-x':0,'shadow-offset-y':0,
         },
       },
       {

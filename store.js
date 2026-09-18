@@ -3,7 +3,7 @@
  * Camada de estado central (Model), orquestrando abas, nós, arestas e observadores.
  */
 const Store = (() => {
-  const NODE_TYPES = ['problema', 'solucao', 'agrupador', 'neutro', 'subgrafo'];
+  const NODE_TYPES = ['problema', 'solucao', 'agrupador', 'neutro', 'subgrafo', 'texto'];
   const EDGE_TYPES = ['dependencia', 'resolve', 'relaciona', 'neutra'];
   const PRIORITIES = ['alta', 'media', 'baixa'];
 
@@ -161,7 +161,7 @@ const Store = (() => {
     return {
       id:            p.id            ?? uid(),
       type:          p.type          ?? 'neutro',
-      title:         p.title !== undefined ? p.title : (p.type === 'subgrafo' && p.subgraphTabId ? (state.tabs.find(t => t.id === p.subgraphTabId)?.name || 'Subgrafo') : 'Novo vértice'),
+      title:         p.title !== undefined ? p.title : (p.type === 'subgrafo' && p.subgraphTabId ? (state.tabs.find(t => t.id === p.subgraphTabId)?.name || 'Subgrafo') : (p.type === 'texto' ? 'Texto' : 'Novo vértice')),
       description:   p.description   ?? '',
       priority:      p.priority      ?? 'media',
       tags:          Array.isArray(p.tags) ? [...p.tags] : [],
@@ -178,7 +178,7 @@ const Store = (() => {
       source:   p.source,
       target:   p.target,
       edgeType: p.edgeType ?? 'neutra',
-      label:    p.label !== undefined ? p.label : (p.edgeType ?? 'neutra'),
+      label:    p.label !== undefined ? p.label : '',
       directed: p.directed ?? true,
     };
   }
@@ -256,7 +256,7 @@ const Store = (() => {
     const exists = tab.edges.some(e => e.source === source && e.target === target && e.edgeType === edgeType);
     if(exists) throw new Error('Aresta duplicada');
     if(!options.skipHistory) recordHistory();
-    const edge = edgeDefaults({ source, target, edgeType, label: label ?? edgeType, directed });
+    const edge = edgeDefaults({ source, target, edgeType, label: label ?? '', directed });
     tab.edges.push(edge);
     save();
     notify('edge:add', edge);
@@ -390,9 +390,10 @@ const Store = (() => {
     return false;
   }
 
-  function exportJSON(){
-    StoreStorage.exportJSON(state);
-    notify('io:export', { count: getNodes().length });
+  async function exportJSON(filename = 'trama.json'){
+    const success = await StoreStorage.exportJSON(state, filename);
+    if(success) notify('io:export', { count: getNodes().length });
+    return success;
   }
 
   function importJSON(file){
@@ -454,9 +455,29 @@ const Store = (() => {
     save();
   }
 
-  function init(){
-    if(!load()){
-      seed();
+  async function init(){
+    let loadedFromJSON = false;
+    try {
+      const res = await fetch('./trama.json', { cache: 'no-store' });
+      if(res.ok){
+        const jsonText = await res.text();
+        const snap = JSON.parse(jsonText);
+        const parsed = StoreStorage.parseJSONContent(snap, nodeDefaults, edgeDefaults);
+        if(parsed){
+          state.tabs = parsed.tabs;
+          state.activeTabId = parsed.activeTabId;
+          loadedFromJSON = true;
+          save();
+        }
+      }
+    } catch(err){
+      console.warn('[Store] Auto-fetch ./trama.json fallback:', err);
+    }
+
+    if(!loadedFromJSON){
+      if(!load()){
+        seed();
+      }
     }
     notify('store:ready', getSnapshot());
   }

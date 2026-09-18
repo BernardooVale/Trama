@@ -81,6 +81,7 @@ const Search = (() => {
           'agrupador': 'var(--node-agrupador)',
           'neutro':    'var(--node-neutro)',
           'subgrafo':  'var(--node-subgrafo)',
+          'texto':     'var(--node-texto)',
         }[item.type] || 'var(--text-muted)';
 
         el.className = 'search-dd-item';

@@ -65,7 +65,9 @@ const StoreStorage = (() => {
     }
   }
 
-  function exportJSON(state){
+  let _fileHandle = null;
+
+  async function exportJSON(state, filename = 'trama.json'){
     const data = {
       version: 2,
       exportedAt: new Date().toISOString(),
@@ -77,49 +79,82 @@ const StoreStorage = (() => {
         edges: t.edges,
       }))
     };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const jsonContent = JSON.stringify(data, null, 2);
+
+    // Se o navegador suportar File System Access API (Chrome/Edge/Brave)
+    if('showSaveFilePicker' in window){
+      try {
+        if(!_fileHandle){
+          _fileHandle = await window.showSaveFilePicker({
+            suggestedName: filename,
+            types: [{
+              description: 'Arquivo JSON Trama',
+              accept: { 'application/json': ['.json'] },
+            }],
+          });
+        }
+        const writable = await _fileHandle.createWritable();
+        await writable.write(jsonContent);
+        await writable.close();
+        return true;
+      } catch(err){
+        if(err.name === 'AbortError') return false; // usuário cancelou
+        console.warn('[StoreStorage] showSaveFilePicker fallback:', err);
+      }
+    }
+
+    // Fallback padrão de download via elemento HTML <a>
+    const blob = new Blob([jsonContent], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `trama_${Date.now()}.json`;
+    a.download = filename;
     a.click();
     URL.revokeObjectURL(url);
+    return true;
+  }
+
+  function parseJSONContent(snap, nodeDefaultsFn, edgeDefaultsFn){
+    if(!snap) return null;
+    if(Array.isArray(snap?.nodes)){
+      const tabDefaultId = TabsManager.tabUid();
+      return {
+        tabs: [{
+          id: tabDefaultId,
+          name: 'Principal',
+          nodes: snap.nodes.map(n => nodeDefaultsFn(n)),
+          edges: (snap.edges ?? []).filter(e => e.source && e.target).map(e => edgeDefaultsFn(e))
+        }],
+        activeTabId: tabDefaultId
+      };
+    }
+    if(Array.isArray(snap?.tabs) && snap.tabs.length > 0){
+      const tabs = snap.tabs.map(t => ({
+        id: t.id || TabsManager.tabUid(),
+        name: t.name || 'Aba',
+        nodes: (t.nodes || []).map(n => nodeDefaultsFn(n)),
+        edges: (t.edges || []).filter(e => e.source && e.target).map(e => edgeDefaultsFn(e))
+      }));
+      const activeTabId = (snap.activeTabId && tabs.some(t => t.id === snap.activeTabId))
+        ? snap.activeTabId
+        : tabs[0].id;
+      return { tabs, activeTabId };
+    }
+    return null;
   }
 
   function parseImportFile(file, nodeDefaultsFn, edgeDefaultsFn){
     return new Promise((resolve, reject) => {
-      if(!file || file.type !== 'application/json'){
+      if(!file){
         return reject(new Error('Use um arquivo .json válido exportado pelo Trama.'));
       }
       const reader = new FileReader();
       reader.onload = evt => {
         try {
           const snap = JSON.parse(evt.target.result);
-          if(Array.isArray(snap?.nodes)){
-            const tabDefaultId = TabsManager.tabUid();
-            resolve({
-              tabs: [{
-                id: tabDefaultId,
-                name: 'Principal',
-                nodes: snap.nodes.map(n => nodeDefaultsFn(n)),
-                edges: (snap.edges ?? []).filter(e => e.source && e.target).map(e => edgeDefaultsFn(e))
-              }],
-              activeTabId: tabDefaultId
-            });
-          } else if(Array.isArray(snap?.tabs) && snap.tabs.length > 0){
-            const tabs = snap.tabs.map(t => ({
-              id: t.id || TabsManager.tabUid(),
-              name: t.name || 'Aba',
-              nodes: (t.nodes || []).map(n => nodeDefaultsFn(n)),
-              edges: (t.edges || []).filter(e => e.source && e.target).map(e => edgeDefaultsFn(e))
-            }));
-            const activeTabId = (snap.activeTabId && tabs.some(t => t.id === snap.activeTabId))
-              ? snap.activeTabId
-              : tabs[0].id;
-            resolve({ tabs, activeTabId });
-          } else {
-            reject(new Error('Formato do arquivo JSON inválido.'));
-          }
+          const parsed = parseJSONContent(snap, nodeDefaultsFn, edgeDefaultsFn);
+          if(parsed) resolve(parsed);
+          else reject(new Error('Formato do arquivo JSON inválido.'));
         } catch(err){
           reject(err);
         }
@@ -129,5 +164,5 @@ const StoreStorage = (() => {
     });
   }
 
-  return { save, load, exportJSON, parseImportFile };
+  return { save, load, exportJSON, parseImportFile, parseJSONContent };
 })();

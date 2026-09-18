@@ -26,7 +26,7 @@ Gerencia os dados da aplicação e notifica os ouvintes sobre qualquer alteraç�
 
 ### Constantes e Estrutura Interna
 - `LS_KEY`: Chave do LocalStorage (`'trama_v1'`).
-- `NODE_TYPES`: Tipos de nós permitidos (`['problema', 'solucao', 'agrupador', 'neutro', 'subgrafo']`).
+- `NODE_TYPES`: Tipos de nós permitidos (`['problema', 'solucao', 'agrupador', 'neutro', 'subgrafo', 'texto']`).
 - `EDGE_TYPES`: Tipos de arestas permitidas (`['dependencia', 'resolve', 'relaciona', 'neutra']`).
 - `PRIORITIES`: Prioridades válidas (`['alta', 'media', 'baixa']`).
 - `state`: Objeto de estado contendo `version` (2), `activeTabId`, `tabs` (Array<{ id, name, nodes, edges }>), `selectedId`, `selectedEdgeId`, `showNodeMeta` e `filter`.
