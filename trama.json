@@ -1,111 +1,1451 @@
 {
   "version": 2,
-  "exportedAt": "2026-09-18T15:28:00.000Z",
-  "activeTabId": "tab_main",
+  "exportedAt": "2026-09-18T19:04:01.861Z",
+  "activeTabId": "tab_mu7bq3j1_bq9u",
   "tabs": [
     {
-      "id": "tab_main",
+      "id": "tab_mu6zvo1r_ksye",
       "name": "Principal",
       "nodes": [
         {
-          "id": "n_p1",
+          "id": "n_mu799edr_xymha",
           "type": "problema",
-          "title": "Performance degradada",
-          "description": "API responde >2s em pico.",
-          "priority": "alta",
-          "tags": ["backend", "api"],
-          "x": 320,
+          "title": "Qual seu objetivo com o Nobiu",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": 122,
+          "y": 195,
+          "createdAt": 1789753898511,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_mu799edr_oy8ft",
+          "type": "solucao",
+          "title": "Economizar",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": -97,
+          "y": -2,
+          "createdAt": 1789753898511,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_mu799edr_i13v4",
+          "type": "solucao",
+          "title": "Entender a conta",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": -101,
+          "y": 182,
+          "createdAt": 1789753898511,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_mu799eds_lqv57",
+          "type": "solucao",
+          "title": "Controlar investimentos",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": -92,
+          "y": 334,
+          "createdAt": 1789753898512,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_mu799eds_lg9sh",
+          "type": "solucao",
+          "title": "Gerenciar módulos",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": 343,
+          "y": 190,
+          "createdAt": 1789753898512,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_mu799eds_vol34",
+          "type": "solucao",
+          "title": "Oferecer serviços e produtos",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": 365,
+          "y": -6,
+          "createdAt": 1789753898512,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_mu799eds_cs2do",
+          "type": "solucao",
+          "title": "Previsão e Otimização",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": 334,
+          "y": 339,
+          "createdAt": 1789753898512,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_mu79a1xs_5wz2m",
+          "type": "subgrafo",
+          "title": "Conta de energia",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": -326,
+          "y": -6,
+          "createdAt": 1789753929040,
+          "subgraphTabId": "tab_mu70oez7_w9t3"
+        },
+        {
+          "id": "n_mu79adcp_xbk5o",
+          "type": "subgrafo",
+          "title": "Conta de energia",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": -323,
+          "y": 180,
+          "createdAt": 1789753943833,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_mu79adps_85023",
+          "type": "subgrafo",
+          "title": "Conta de energia",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": -315,
+          "y": 332,
+          "createdAt": 1789753944304,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_mu79fd5s_7f9qn",
+          "type": "subgrafo",
+          "title": "Serviço",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": 614,
+          "y": 0,
+          "createdAt": 1789754176864,
+          "subgraphTabId": "tab_mu79ausv_6rgr"
+        },
+        {
+          "id": "n_mu79fmm0_b0kun",
+          "type": "subgrafo",
+          "title": "Painel solar",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": 524,
+          "y": 199,
+          "createdAt": 1789754189112,
+          "subgraphTabId": "tab_mu70olro_5x0r"
+        },
+        {
+          "id": "n_mu79ha3t_3gexn",
+          "type": "subgrafo",
+          "title": "iot",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": -511,
+          "y": -9,
+          "createdAt": 1789754266217,
+          "subgraphTabId": "tab_mu70ornh_kte4"
+        },
+        {
+          "id": "n_mu79kqn3_r3ue3",
+          "type": "subgrafo",
+          "title": "Monitorar equipamento",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": -515,
+          "y": -150,
+          "createdAt": 1789754427615,
+          "subgraphTabId": "tab_mu79hji8_h3ie"
+        },
+        {
+          "id": "n_mu79owg7_b7gbx",
+          "type": "problema",
+          "title": "Fim",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": -671,
+          "y": -11,
+          "createdAt": 1789754621767,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_mu79vla7_wynzf",
+          "type": "subgrafo",
+          "title": "Painel solar",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": -510,
+          "y": 329,
+          "createdAt": 1789754933887,
+          "subgraphTabId": "tab_mu70olro_5x0r"
+        },
+        {
+          "id": "n_mu7a3zie_cpcwd",
+          "type": "subgrafo",
+          "title": "Baterias",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": 666,
           "y": 200,
-          "createdAt": 1700000000000,
+          "createdAt": 1789755325574,
+          "subgraphTabId": "tab_mu7a2h9r_hl9f"
+        },
+        {
+          "id": "n_mu7b7s5c_n33md",
+          "type": "subgrafo",
+          "title": "Conta de energia",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": 588,
+          "y": 345,
+          "createdAt": 1789757182272,
+          "subgraphTabId": "tab_mu70oez7_w9t3"
+        },
+        {
+          "id": "n_mu7b7z94_7cvee",
+          "type": "subgrafo",
+          "title": "iot",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": 788,
+          "y": 200,
+          "createdAt": 1789757191480,
+          "subgraphTabId": "tab_mu70ornh_kte4"
+        },
+        {
+          "id": "n_mu7bc0bu_0g4zc",
+          "type": "subgrafo",
+          "title": "Monitorar equipamento",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": 790,
+          "y": 343,
+          "createdAt": 1789757379498,
           "subgraphTabId": null
         },
         {
-          "id": "n_p2",
+          "id": "n_mu7bc93n_9mfxk",
+          "type": "subgrafo",
+          "title": "Interesse automações",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": 979,
+          "y": 342,
+          "createdAt": 1789757390867,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_mu7bcfjl_hd5cn",
           "type": "problema",
-          "title": "UX confusa no onboarding",
-          "description": "Abandono 60% no passo 3.",
-          "priority": "alta",
-          "tags": ["ux", "onboarding"],
-          "x": 640,
-          "y": 160,
-          "createdAt": 1700000000000,
-          "subgraphTabId": null
-        },
-        {
-          "id": "n_s1",
-          "type": "solucao",
-          "title": "Cache Redis",
-          "description": "TTL 5min para queries quentes.",
-          "priority": "alta",
-          "tags": ["backend", "cache"],
-          "x": 200,
-          "y": 400,
-          "createdAt": 1700000000000,
-          "subgraphTabId": null
-        },
-        {
-          "id": "n_s2",
-          "type": "solucao",
-          "title": "Refatorar onboarding",
-          "description": "Reduzir de 5 para 3 passos.",
+          "title": "Fim",
+          "description": "",
           "priority": "media",
-          "tags": ["ux"],
-          "x": 720,
-          "y": 360,
-          "createdAt": 1700000000000,
+          "tags": [],
+          "x": 968,
+          "y": 197,
+          "createdAt": 1789757399217,
           "subgraphTabId": null
         },
         {
-          "id": "n_g1",
-          "type": "agrupador",
-          "title": "Sprint Q3 — Infra",
-          "description": "Épico de infra e performance.",
+          "id": "n_mu7bpwj1_3o2dz",
+          "type": "solucao",
+          "title": "Coletar dados",
+          "description": "",
           "priority": "media",
-          "tags": ["sprint", "infra"],
-          "x": 460,
-          "y": 490,
-          "createdAt": 1700000000000,
+          "tags": [],
+          "x": 123,
+          "y": 399,
+          "createdAt": 1789758027757,
           "subgraphTabId": null
         }
       ],
       "edges": [
         {
-          "id": "e_1",
-          "source": "n_s1",
-          "target": "n_p1",
+          "id": "e_mu799edt_wcmxs",
+          "source": "n_mu799edr_xymha",
+          "target": "n_mu799edr_oy8ft",
           "edgeType": "resolve",
           "label": "",
           "directed": true
         },
         {
-          "id": "e_2",
-          "source": "n_s2",
-          "target": "n_p2",
+          "id": "e_mu799edt_peh0p",
+          "source": "n_mu799edr_xymha",
+          "target": "n_mu799eds_vol34",
           "edgeType": "resolve",
           "label": "",
           "directed": true
         },
         {
-          "id": "e_3",
-          "source": "n_p1",
-          "target": "n_p2",
-          "edgeType": "relaciona",
+          "id": "e_mu799edt_r2hlm",
+          "source": "n_mu799edr_xymha",
+          "target": "n_mu799eds_lg9sh",
+          "edgeType": "resolve",
           "label": "",
-          "directed": false
+          "directed": true
         },
         {
-          "id": "e_4",
-          "source": "n_g1",
-          "target": "n_s1",
+          "id": "e_mu799edt_z8tk3",
+          "source": "n_mu799edr_xymha",
+          "target": "n_mu799eds_cs2do",
+          "edgeType": "resolve",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mu799edt_dl6u2",
+          "source": "n_mu799edr_xymha",
+          "target": "n_mu799eds_lqv57",
+          "edgeType": "resolve",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mu799edu_joz18",
+          "source": "n_mu799edr_xymha",
+          "target": "n_mu799edr_i13v4",
+          "edgeType": "resolve",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mu79a4iv_5evmz",
+          "source": "n_mu799edr_oy8ft",
+          "target": "n_mu79a1xs_5wz2m",
+          "edgeType": "neutra",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mu79ai5s_xgp0h",
+          "source": "n_mu799edr_i13v4",
+          "target": "n_mu79adcp_xbk5o",
+          "edgeType": "neutra",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mu79ajf4_lsoob",
+          "source": "n_mu799eds_lqv57",
+          "target": "n_mu79adps_85023",
+          "edgeType": "neutra",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mu79fhim_444kf",
+          "source": "n_mu799eds_vol34",
+          "target": "n_mu79fd5s_7f9qn",
+          "edgeType": "neutra",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mu79foaf_oameb",
+          "source": "n_mu799eds_lg9sh",
+          "target": "n_mu79fmm0_b0kun",
+          "edgeType": "neutra",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mu79hcp3_nm2lo",
+          "source": "n_mu79a1xs_5wz2m",
+          "target": "n_mu79ha3t_3gexn",
+          "edgeType": "neutra",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mu79ktpj_hcrar",
+          "source": "n_mu79ha3t_3gexn",
+          "target": "n_mu79kqn3_r3ue3",
+          "edgeType": "resolve",
+          "label": "Sim",
+          "directed": true
+        },
+        {
+          "id": "e_mu79p6fz_24b2i",
+          "source": "n_mu79ha3t_3gexn",
+          "target": "n_mu79owg7_b7gbx",
           "edgeType": "dependencia",
           "label": "",
           "directed": true
         },
         {
-          "id": "e_5",
-          "source": "n_g1",
-          "target": "n_s2",
+          "id": "e_mu79vnsm_a1o7s",
+          "source": "n_mu79adps_85023",
+          "target": "n_mu79vla7_wynzf",
+          "edgeType": "neutra",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mu7a50al_llq22",
+          "source": "n_mu79kqn3_r3ue3",
+          "target": "n_mu79owg7_b7gbx",
           "edgeType": "dependencia",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mu7b7ukp_4w6hh",
+          "source": "n_mu79fmm0_b0kun",
+          "target": "n_mu7b7s5c_n33md",
+          "edgeType": "neutra",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mu7b7vpc_2mya7",
+          "source": "n_mu7b7s5c_n33md",
+          "target": "n_mu7a3zie_cpcwd",
+          "edgeType": "neutra",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mu7b819t_fumzu",
+          "source": "n_mu7a3zie_cpcwd",
+          "target": "n_mu7b7z94_7cvee",
+          "edgeType": "neutra",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mu7bc2cx_0uqcl",
+          "source": "n_mu7b7z94_7cvee",
+          "target": "n_mu7bc0bu_0g4zc",
+          "edgeType": "resolve",
+          "label": "Sim",
+          "directed": true
+        },
+        {
+          "id": "e_mu7bcdep_dlrls",
+          "source": "n_mu7bc0bu_0g4zc",
+          "target": "n_mu7bc93n_9mfxk",
+          "edgeType": "neutra",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mu7bch5s_qxz7s",
+          "source": "n_mu7b7z94_7cvee",
+          "target": "n_mu7bcfjl_hd5cn",
+          "edgeType": "dependencia",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mu7bcig0_fom2i",
+          "source": "n_mu7bc93n_9mfxk",
+          "target": "n_mu7bcfjl_hd5cn",
+          "edgeType": "dependencia",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mu7bl1en_qf6s3",
+          "source": "n_mu799eds_cs2do",
+          "target": "n_mu79fmm0_b0kun",
+          "edgeType": "neutra",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mu7bq2hq_4t7vo",
+          "source": "n_mu799edr_xymha",
+          "target": "n_mu7bpwj1_3o2dz",
+          "edgeType": "resolve",
+          "label": "",
+          "directed": true
+        }
+      ]
+    },
+    {
+      "id": "tab_mu70oez7_w9t3",
+      "name": "Conta de energia",
+      "nodes": [
+        {
+          "id": "n_mu70ssp1_1w92a",
+          "type": "problema",
+          "title": "Pode enviar uma conta de energia",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": -150,
+          "y": 110,
+          "createdAt": 1789739686981,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_mu70tbha_j2zdi",
+          "type": "solucao",
+          "title": "PDF/Imagem",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": 50,
+          "y": 26,
+          "createdAt": 1789739711326,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_mu70tkv2_rlo7x",
+          "type": "solucao",
+          "title": "Conexão com concessionária",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": -376,
+          "y": 13,
+          "createdAt": 1789739723486,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_mu70u2c4_46u8d",
+          "type": "solucao",
+          "title": "Não",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": -148,
+          "y": 246,
+          "createdAt": 1789739746132,
+          "subgraphTabId": null
+        }
+      ],
+      "edges": [
+        {
+          "id": "e_mu70uaz9_505bs",
+          "source": "n_mu70ssp1_1w92a",
+          "target": "n_mu70tbha_j2zdi",
+          "edgeType": "resolve",
+          "label": "Sim",
+          "directed": true
+        },
+        {
+          "id": "e_mu70udy5_kyiu3",
+          "source": "n_mu70ssp1_1w92a",
+          "target": "n_mu70tkv2_rlo7x",
+          "edgeType": "resolve",
+          "label": "Não em mãos",
+          "directed": true
+        },
+        {
+          "id": "e_mu70ui6f_2qmur",
+          "source": "n_mu70ssp1_1w92a",
+          "target": "n_mu70u2c4_46u8d",
+          "edgeType": "resolve",
+          "label": "Não",
+          "directed": true
+        }
+      ]
+    },
+    {
+      "id": "tab_mu70olro_5x0r",
+      "name": "Painel solar",
+      "nodes": [
+        {
+          "id": "n_mu7a8jbk_6a80t",
+          "type": "problema",
+          "title": "Tem painel solar",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": -425,
+          "y": -193,
+          "createdAt": 1789755537872,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_mu7a8jbk_8bhbi",
+          "type": "solucao",
+          "title": "Cadastrar",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": -427,
+          "y": -321,
+          "createdAt": 1789755537872,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_mu7a8jbl_sxoqa",
+          "type": "solucao",
+          "title": "Não mas quero",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": -692,
+          "y": -191,
+          "createdAt": 1789755537873,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_mu7a8jbl_nix8k",
+          "type": "solucao",
+          "title": "Não",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": -428,
+          "y": -63,
+          "createdAt": 1789755537873,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_mu7a8jbl_nq1t9",
+          "type": "neutro",
+          "title": "Flag comercial",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": -687,
+          "y": -323,
+          "createdAt": 1789755537873,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_mu7a8jbm_2s5jp",
+          "type": "solucao",
+          "title": "Nem sei o que é",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": -186,
+          "y": -189,
+          "createdAt": 1789755537874,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_mu7a8jbm_3b7bm",
+          "type": "neutro",
+          "title": "Flag especialista técnico",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": 35,
+          "y": -185,
+          "createdAt": 1789755537874,
+          "subgraphTabId": null
+        }
+      ],
+      "edges": [
+        {
+          "id": "e_mu7a8jbm_iwcl6",
+          "source": "n_mu7a8jbk_6a80t",
+          "target": "n_mu7a8jbk_8bhbi",
+          "edgeType": "resolve",
+          "label": "Sim",
+          "directed": true
+        },
+        {
+          "id": "e_mu7a8jbm_k0p1h",
+          "source": "n_mu7a8jbk_6a80t",
+          "target": "n_mu7a8jbl_sxoqa",
+          "edgeType": "resolve",
+          "label": "não, mas quero",
+          "directed": true
+        },
+        {
+          "id": "e_mu7a8jbn_fujft",
+          "source": "n_mu7a8jbk_6a80t",
+          "target": "n_mu7a8jbl_nix8k",
+          "edgeType": "resolve",
+          "label": "Não",
+          "directed": true
+        },
+        {
+          "id": "e_mu7a8jbn_s2gxp",
+          "source": "n_mu7a8jbk_8bhbi",
+          "target": "n_mu7a8jbl_nq1t9",
+          "edgeType": "neutra",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mu7a8jbo_hqz1j",
+          "source": "n_mu7a8jbl_sxoqa",
+          "target": "n_mu7a8jbl_nq1t9",
+          "edgeType": "neutra",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mu7a8jbo_dct21",
+          "source": "n_mu7a8jbk_6a80t",
+          "target": "n_mu7a8jbm_2s5jp",
+          "edgeType": "resolve",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mu7a8jbo_qe7zc",
+          "source": "n_mu7a8jbm_2s5jp",
+          "target": "n_mu7a8jbm_3b7bm",
+          "edgeType": "neutra",
+          "label": "",
+          "directed": true
+        }
+      ]
+    },
+    {
+      "id": "tab_mu70ornh_kte4",
+      "name": "iot",
+      "nodes": [
+        {
+          "id": "n_mu70vv8f_b1r91",
+          "type": "problema",
+          "title": "Tem dispositivos iot",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": -227,
+          "y": -146,
+          "createdAt": 1789739830239,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_mu70vv8f_qrazv",
+          "type": "solucao",
+          "title": "Cadastrar",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": -226,
+          "y": -277,
+          "createdAt": 1789739830239,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_mu70vv8g_at9s3",
+          "type": "solucao",
+          "title": "Não mas quero",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": -491,
+          "y": -147,
+          "createdAt": 1789739830240,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_mu70vv8g_j3kz7",
+          "type": "solucao",
+          "title": "Não",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": -227,
+          "y": -19,
+          "createdAt": 1789739830240,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_mu7a6x5z_tsbbo",
+          "type": "neutro",
+          "title": "Flag comercial",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": -486,
+          "y": -279,
+          "createdAt": 1789755462503,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_mu7a7cre_8spei",
+          "type": "solucao",
+          "title": "Nem sei o que é",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": 15,
+          "y": -145,
+          "createdAt": 1789755482714,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_mu7a7k95_zcnx3",
+          "type": "neutro",
+          "title": "Flag especialista técnico",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": 236,
+          "y": -141,
+          "createdAt": 1789755492425,
+          "subgraphTabId": null
+        }
+      ],
+      "edges": [
+        {
+          "id": "e_mu70vv8g_q9lz9",
+          "source": "n_mu70vv8f_b1r91",
+          "target": "n_mu70vv8f_qrazv",
+          "edgeType": "resolve",
+          "label": "Sim",
+          "directed": true
+        },
+        {
+          "id": "e_mu70vv8h_yqul6",
+          "source": "n_mu70vv8f_b1r91",
+          "target": "n_mu70vv8g_at9s3",
+          "edgeType": "resolve",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mu70vv8h_zanmq",
+          "source": "n_mu70vv8f_b1r91",
+          "target": "n_mu70vv8g_j3kz7",
+          "edgeType": "resolve",
+          "label": "Não",
+          "directed": true
+        },
+        {
+          "id": "e_mu7a73z8_zv26t",
+          "source": "n_mu70vv8f_qrazv",
+          "target": "n_mu7a6x5z_tsbbo",
+          "edgeType": "neutra",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mu7a753o_xpbwj",
+          "source": "n_mu70vv8g_at9s3",
+          "target": "n_mu7a6x5z_tsbbo",
+          "edgeType": "neutra",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mu7a7gvi_wunxf",
+          "source": "n_mu70vv8f_b1r91",
+          "target": "n_mu7a7cre_8spei",
+          "edgeType": "resolve",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mu7a8fno_31wyj",
+          "source": "n_mu7a7cre_8spei",
+          "target": "n_mu7a7k95_zcnx3",
+          "edgeType": "neutra",
+          "label": "",
+          "directed": true
+        }
+      ]
+    },
+    {
+      "id": "tab_mu79ausv_6rgr",
+      "name": "Serviço e produto",
+      "nodes": [
+        {
+          "id": "n_mu79b0bu_m2mfp",
+          "type": "problema",
+          "title": "Qual serviço você oferece",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": 318,
+          "y": 163,
+          "createdAt": 1789753973610,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_mu79b9l4_nwby2",
+          "type": "solucao",
+          "title": "Manutenção",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": 518,
+          "y": 89,
+          "createdAt": 1789753985608,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_mu79bfhk_vs1i9",
+          "type": "solucao",
+          "title": "Instalação",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": 126,
+          "y": 87,
+          "createdAt": 1789753993256,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_mu79bwgn_g1pa6",
+          "type": "solucao",
+          "title": "Limpeza",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": 139,
+          "y": 290,
+          "createdAt": 1789754015255,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_mu79c6mw_in60r",
+          "type": "solucao",
+          "title": "Planejamento",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": 518,
+          "y": 282,
+          "createdAt": 1789754028440,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_mu7bnohc_je00p",
+          "type": "solucao",
+          "title": "Produtos",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": 319,
+          "y": -23,
+          "createdAt": 1789757924016,
+          "subgraphTabId": null
+        }
+      ],
+      "edges": [
+        {
+          "id": "e_mu79cmey_ccqug",
+          "source": "n_mu79b0bu_m2mfp",
+          "target": "n_mu79b9l4_nwby2",
+          "edgeType": "resolve",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mu79cowf_dpx46",
+          "source": "n_mu79b0bu_m2mfp",
+          "target": "n_mu79bfhk_vs1i9",
+          "edgeType": "resolve",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mu79cq5j_twbiu",
+          "source": "n_mu79b0bu_m2mfp",
+          "target": "n_mu79bwgn_g1pa6",
+          "edgeType": "resolve",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mu79crbr_mbia7",
+          "source": "n_mu79b0bu_m2mfp",
+          "target": "n_mu79c6mw_in60r",
+          "edgeType": "resolve",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mu7bnrig_7zkrw",
+          "source": "n_mu79b0bu_m2mfp",
+          "target": "n_mu7bnohc_je00p",
+          "edgeType": "resolve",
+          "label": "",
+          "directed": true
+        }
+      ]
+    },
+    {
+      "id": "tab_mu79hji8_h3ie",
+      "name": "Monitorar equipamento",
+      "nodes": [
+        {
+          "id": "n_mu79hxbq_9z0ac",
+          "type": "problema",
+          "title": "Você quer monitorar um equipamento",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": -779,
+          "y": -245,
+          "createdAt": 1789754296310,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_mu79i7pq_1otvx",
+          "type": "solucao",
+          "title": "Ar condicionado",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": -773,
+          "y": -425,
+          "createdAt": 1789754309774,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_mu79imd7_el3cz",
+          "type": "solucao",
+          "title": "Carro elétrico",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": -1039,
+          "y": -325,
+          "createdAt": 1789754328763,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_mu79iv9w_r3feq",
+          "type": "solucao",
+          "title": "Geladeira",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": -1028,
+          "y": -152,
+          "createdAt": 1789754340308,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_mu79jb7z_mz14b",
+          "type": "solucao",
+          "title": "Chuveiro",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": -524,
+          "y": -322,
+          "createdAt": 1789754360975,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_mu79jven_fznm3",
+          "type": "solucao",
+          "title": "Outro",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": -525,
+          "y": -160,
+          "createdAt": 1789754387135,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_mu79jyvs_nb7uw",
+          "type": "solucao",
+          "title": "Nenhum",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": -775,
+          "y": -82,
+          "createdAt": 1789754391640,
+          "subgraphTabId": null
+        }
+      ],
+      "edges": [
+        {
+          "id": "e_mu79kbzb_h0q9i",
+          "source": "n_mu79hxbq_9z0ac",
+          "target": "n_mu79imd7_el3cz",
+          "edgeType": "resolve",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mu79kdh2_rtq3s",
+          "source": "n_mu79hxbq_9z0ac",
+          "target": "n_mu79i7pq_1otvx",
+          "edgeType": "resolve",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mu79kep3_pf35w",
+          "source": "n_mu79hxbq_9z0ac",
+          "target": "n_mu79jb7z_mz14b",
+          "edgeType": "resolve",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mu79kfs6_ohr3t",
+          "source": "n_mu79hxbq_9z0ac",
+          "target": "n_mu79jven_fznm3",
+          "edgeType": "resolve",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mu79kgvj_4aj0h",
+          "source": "n_mu79hxbq_9z0ac",
+          "target": "n_mu79jyvs_nb7uw",
+          "edgeType": "resolve",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mu79ki7y_20orz",
+          "source": "n_mu79hxbq_9z0ac",
+          "target": "n_mu79iv9w_r3feq",
+          "edgeType": "resolve",
+          "label": "",
+          "directed": true
+        }
+      ]
+    },
+    {
+      "id": "tab_mu79y0rq_h6gq",
+      "name": "Interesse automações",
+      "nodes": [
+        {
+          "id": "n_mu79z129_yxtbl",
+          "type": "problema",
+          "title": "Qual seu interesse em automações",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": -435,
+          "y": 263,
+          "createdAt": 1789755094305,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_mu79z8s9_1r9ef",
+          "type": "solucao",
+          "title": "Nenhum",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": -200,
+          "y": 260,
+          "createdAt": 1789755104313,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_mu79zdt1_yuv6p",
+          "type": "solucao",
+          "title": "Não sei nada",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": -437,
+          "y": 120,
+          "createdAt": 1789755110821,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_mu79zqan_51p2k",
+          "type": "solucao",
+          "title": "Grande",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": -678,
+          "y": 264,
+          "createdAt": 1789755127007,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_mu7a5ozx_to67c",
+          "type": "neutro",
+          "title": "Flag comercial",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": -863,
+          "y": 264,
+          "createdAt": 1789755405261,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_mu7a5xet_ltl42",
+          "type": "neutro",
+          "title": "Flag especialista técnico",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": -438,
+          "y": -14,
+          "createdAt": 1789755416165,
+          "subgraphTabId": null
+        }
+      ],
+      "edges": [
+        {
+          "id": "e_mu7a01ml_xj8xn",
+          "source": "n_mu79z129_yxtbl",
+          "target": "n_mu79z8s9_1r9ef",
+          "edgeType": "resolve",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mu7a03hw_lie6m",
+          "source": "n_mu79z129_yxtbl",
+          "target": "n_mu79zdt1_yuv6p",
+          "edgeType": "resolve",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mu7a04it_rawuk",
+          "source": "n_mu79z129_yxtbl",
+          "target": "n_mu79zqan_51p2k",
+          "edgeType": "resolve",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mu7a5v4c_ryy2b",
+          "source": "n_mu79zqan_51p2k",
+          "target": "n_mu7a5ozx_to67c",
+          "edgeType": "neutra",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mu7a666k_30qm3",
+          "source": "n_mu79zdt1_yuv6p",
+          "target": "n_mu7a5xet_ltl42",
+          "edgeType": "neutra",
+          "label": "",
+          "directed": true
+        }
+      ]
+    },
+    {
+      "id": "tab_mu7a2h9r_hl9f",
+      "name": "Baterias",
+      "nodes": [
+        {
+          "id": "n_mu7a2raq_6w838",
+          "type": "problema",
+          "title": "Possui baterias",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": 444,
+          "y": 290,
+          "createdAt": 1789755268274,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_mu7a2zyf_6ke5j",
+          "type": "solucao",
+          "title": "Não, mas quero",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": 447,
+          "y": 130,
+          "createdAt": 1789755279495,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_mu7a3535_3ksze",
+          "type": "solucao",
+          "title": "Não",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": 641,
+          "y": 290,
+          "createdAt": 1789755286145,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_mu7a38h9_w5ybd",
+          "type": "solucao",
+          "title": "Sim",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": 238,
+          "y": 288,
+          "createdAt": 1789755290541,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_mu7a56on_0d2qm",
+          "type": "neutro",
+          "title": "Flag comercial",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": 242,
+          "y": 130,
+          "createdAt": 1789755381527,
+          "subgraphTabId": null
+        }
+      ],
+      "edges": [
+        {
+          "id": "e_mu7a3hjx_f2gxl",
+          "source": "n_mu7a2raq_6w838",
+          "target": "n_mu7a38h9_w5ybd",
+          "edgeType": "resolve",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mu7a3k2c_v94yk",
+          "source": "n_mu7a2raq_6w838",
+          "target": "n_mu7a3535_3ksze",
+          "edgeType": "resolve",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mu7a3tml_oro33",
+          "source": "n_mu7a2raq_6w838",
+          "target": "n_mu7a2zyf_6ke5j",
+          "edgeType": "resolve",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mu7a5fc2_4m0v5",
+          "source": "n_mu7a2zyf_6ke5j",
+          "target": "n_mu7a56on_0d2qm",
+          "edgeType": "neutra",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mu7a5goc_mejd0",
+          "source": "n_mu7a38h9_w5ybd",
+          "target": "n_mu7a56on_0d2qm",
+          "edgeType": "neutra",
+          "label": "",
+          "directed": true
+        }
+      ]
+    },
+    {
+      "id": "tab_mu7bq3j1_bq9u",
+      "name": "Coleta de dados",
+      "nodes": [
+        {
+          "id": "n_mu7bq94c_qtymd",
+          "type": "problema",
+          "title": "Quais dados você está interessado",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": 115,
+          "y": 206,
+          "createdAt": 1789758044076,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_mu7bqk7d_ylmay",
+          "type": "solucao",
+          "title": "Dados de geração",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": 112,
+          "y": 63,
+          "createdAt": 1789758058441,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_mu7bqq5q_5qtyc",
+          "type": "solucao",
+          "title": "Dados de consumo",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": 115,
+          "y": 347,
+          "createdAt": 1789758066158,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_mu7bqvff_6kcnb",
+          "type": "solucao",
+          "title": "Uso de Iot",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": 329,
+          "y": 205,
+          "createdAt": 1789758072987,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_mu7bqyom_3vbsy",
+          "type": "solucao",
+          "title": "Uso de baterias",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": -118,
+          "y": 206,
+          "createdAt": 1789758077206,
+          "subgraphTabId": null
+        }
+      ],
+      "edges": [
+        {
+          "id": "e_mu7br7cj_uk1vm",
+          "source": "n_mu7bq94c_qtymd",
+          "target": "n_mu7bqq5q_5qtyc",
+          "edgeType": "resolve",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mu7br8km_aipw6",
+          "source": "n_mu7bq94c_qtymd",
+          "target": "n_mu7bqvff_6kcnb",
+          "edgeType": "resolve",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mu7brbge_4zz8q",
+          "source": "n_mu7bq94c_qtymd",
+          "target": "n_mu7bqk7d_ylmay",
+          "edgeType": "resolve",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mu7brclj_wdrac",
+          "source": "n_mu7bq94c_qtymd",
+          "target": "n_mu7bqyom_3vbsy",
+          "edgeType": "resolve",
           "label": "",
           "directed": true
         }
