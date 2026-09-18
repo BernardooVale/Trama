@@ -1,260 +1,35 @@
+/**
+ * Graph — Trama
+ * Controlador principal da instância do Cytoscape, delegando estilos, foco e criação de arestas.
+ */
 const Graph = (() => {
-  let cy           = null;
-  let _selectedCyId  = null;
-  let _tapTimer      = null;
-  let _tapTimerId    = null;
-  const TAP_DELAY    = 250;
-
-  /* ── Focus mode ────────────────────────────────── */
-  let _focusTimer   = null;
-  let _focusActive  = false;
-  let _focusNodeId  = null;
-  const FOCUS_DELAY = 750;
-  let _lastMousePos = { x:0, y:0 };
-  let _mouseMoving  = false;
-  let _moveCheckTimer = null;
-
-  const edgeMode = { active:false, edgeType:null, sourceId:null };
-
-  /* ── Palette (espelha CSS vars) ────────────────── */
-  const C = {
-    node:   { problema:'#d95c55', solucao:'#4a8da0', agrupador:'#76965d', neutro:'#8a8880' },
-    edge:   { dependencia:'#d97d55', resolve:'#4aa078', relaciona:'#7676a0', neutra:'#8a8880' },
-    accent: '#d99a55',
-    border: '#2e2f2a',
-    bg:     { surface:'#181916', elevated:'#21221e' },
-    text:   { primary:'#ede9e2', secondary:'#8a8880', muted:'#4a4a45' },
-  };
+  let cy = null;
+  let _selectedCyId = null;
 
   function syncTheme(){
-    const light = document.documentElement.dataset.theme === 'light';
-    C.border         = light ? '#d8d4ce' : '#2e2f2a';
-    C.bg.surface     = light ? '#faf9f6' : '#181916';
-    C.bg.elevated    = light ? '#eeecea' : '#21221e';
-    C.text.primary   = light ? '#1c1b18' : '#ede9e2';
-    C.text.secondary = light ? '#5a5852' : '#8a8880';
-    C.text.muted     = light ? '#9a9890' : '#4a4a45';
-    if(cy) cy.style(buildStyle());
-  }
-
-  /* ── Stylesheet ────────────────────────────────── */
-  function buildStyle(){
-    return [
-      {
-        selector: 'node',
-        style: {
-          'shape':            'round-rectangle',
-          'width':            'label', 'height':'label', 'padding':'16px 20px',
-          'background-color': C.bg.elevated,
-          'border-width':     1.5, 'border-color': C.border,
-          'color':            C.text.primary,
-          'font-family':      'Inter,system-ui,sans-serif',
-          'font-size':        '12px', 'font-weight': '400',
-          'label':            'data(label)',
-          'text-valign':      'center', 'text-halign':'center',
-          'text-wrap':        'wrap', 'text-max-width':'130px',
-          'min-width':        '100px', 'min-height':'46px',
-          'transition-property': 'background-color,border-color,border-width,opacity',
-          'transition-duration': '140ms',
-        },
-      },
-      {
-        selector: 'node[type="problema"]',
-        style: {
-          'border-color': C.node.problema, 'border-width': 1.5,
-          'background-color': `${C.node.problema}12`,
-        },
-      },
-      {
-        selector: 'node[type="solucao"]',
-        style: {
-          'border-color': C.node.solucao, 'border-width': 1.5,
-          'background-color': `${C.node.solucao}12`,
-        },
-      },
-      {
-        selector: 'node[type="agrupador"]',
-        style: {
-          'border-color': C.node.agrupador, 'border-width': 1.5,
-          'border-style': 'dashed',
-          'background-color': `${C.node.agrupador}10`,
-        },
-      },
-      {
-        selector: 'node[type="neutro"]',
-        style: {
-          'border-color': C.node.neutro, 'border-width': 1.5,
-          'background-color': `${C.node.neutro}12`,
-        },
-      },
-      {
-        selector: 'node:selected',
-        style: {
-          'border-width':    2.5, 'border-color': C.accent,
-          'shadow-blur':     14,  'shadow-color': C.accent,
-          'shadow-opacity':  0.4, 'shadow-offset-x':0,'shadow-offset-y':0,
-        },
-      },
-      {
-        selector: 'node.hover',
-        style: {
-          'shadow-blur':    8, 'shadow-color': C.accent,
-          'shadow-opacity': 0.2,'shadow-offset-x':0,'shadow-offset-y':0,
-        },
-      },
-      {
-        selector: 'node.edge-source',
-        style: {
-          'border-color': C.accent,'border-width':2.5,
-          'shadow-blur':  18,'shadow-color':C.accent,
-          'shadow-opacity':0.6,'shadow-offset-x':0,'shadow-offset-y':0,
-        },
-      },
-
-      /* Focus: highlight preserva cor do tipo */
-      {
-        selector: 'node.focus-highlight[type="problema"]',
-        style: {
-          'border-color':   C.node.problema, 'border-width': 2.5,
-          'background-color': `${C.node.problema}28`,
-          'shadow-blur':    18, 'shadow-color': C.node.problema,
-          'shadow-opacity': 0.45,'shadow-offset-x':0,'shadow-offset-y':0,
-        },
-      },
-      {
-        selector: 'node.focus-highlight[type="solucao"]',
-        style: {
-          'border-color':   C.node.solucao, 'border-width': 2.5,
-          'background-color': `${C.node.solucao}28`,
-          'shadow-blur':    18, 'shadow-color': C.node.solucao,
-          'shadow-opacity': 0.45,'shadow-offset-x':0,'shadow-offset-y':0,
-        },
-      },
-      {
-        selector: 'node.focus-highlight[type="agrupador"]',
-        style: {
-          'border-color':   C.node.agrupador, 'border-width': 2.5,
-          'background-color': `${C.node.agrupador}28`,
-          'shadow-blur':    18, 'shadow-color': C.node.agrupador,
-          'shadow-opacity': 0.45,'shadow-offset-x':0,'shadow-offset-y':0,
-        },
-      },
-      {
-        selector: 'node.focus-highlight[type="neutro"]',
-        style: {
-          'border-color':   C.node.neutro, 'border-width': 2.5,
-          'background-color': `${C.node.neutro}28`,
-          'shadow-blur':    18, 'shadow-color': C.node.neutro,
-          'shadow-opacity': 0.45,'shadow-offset-x':0,'shadow-offset-y':0,
-        },
-      },
-      {
-        selector: 'node.focus-dim',
-        style: { 'opacity': 0.07 },
-      },
-
-      /* Focus arestas: preserva cor do tipo */
-      {
-        selector: 'edge.focus-highlight[edgeType="dependencia"]',
-        style: { 'opacity':1,'width':2.5,'line-color':C.edge.dependencia,'target-arrow-color':C.edge.dependencia },
-      },
-      {
-        selector: 'edge.focus-highlight[edgeType="resolve"]',
-        style: { 'opacity':1,'width':2.5,'line-color':C.edge.resolve,'target-arrow-color':C.edge.resolve },
-      },
-      {
-        selector: 'edge.focus-highlight[edgeType="relaciona"]',
-        style: { 'opacity':1,'width':2.5,'line-color':C.edge.relaciona,'target-arrow-color':C.edge.relaciona },
-      },
-      {
-        selector: 'edge.focus-highlight[edgeType="neutra"]',
-        style: { 'opacity':1,'width':2.5,'line-color':C.edge.neutra,'target-arrow-color':C.edge.neutra },
-      },
-      {
-        selector: 'edge.focus-dim',
-        style: { 'opacity': 0.04 },
-      },
-
-      /* Filter dim */
-      { selector:'node.dimmed', style:{ 'opacity':0.06 } },
-      { selector:'edge.dimmed', style:{ 'opacity':0.04 } },
-
-      /* ── Edges ─────────────────────────────────── */
-      {
-        selector: 'edge',
-        style: {
-          'width':1.5,'line-color':C.border,
-          'target-arrow-color':C.border,'target-arrow-shape':'triangle',
-          'arrow-scale':1.0,'curve-style':'bezier',
-          'label':'data(label)',
-          'font-size':'10px','font-family':'Inter,system-ui,sans-serif',
-          'color':C.text.muted,
-          'text-background-color':C.bg.surface,
-          'text-background-opacity':0.85,'text-background-padding':'2px',
-          'text-rotation':'autorotate',
-          'transition-property':'opacity,width',
-          'transition-duration':'140ms',
-        },
-      },
-      {
-        selector: 'edge[edgeType="dependencia"]',
-        style: {
-          'line-color':C.edge.dependencia,'target-arrow-color':C.edge.dependencia,
-          'line-style':'dashed','color':C.edge.dependencia,
-        },
-      },
-      {
-        selector: 'edge[edgeType="resolve"]',
-        style: {
-          'line-color':C.edge.resolve,'target-arrow-color':C.edge.resolve,
-          'color':C.edge.resolve,
-        },
-      },
-      {
-        selector: 'edge[edgeType="relaciona"]',
-        style: {
-          'line-color':C.edge.relaciona,
-          'target-arrow-color':C.edge.relaciona,
-          'color':C.edge.relaciona,
-        },
-      },
-      {
-        selector: 'edge[edgeType="neutra"]',
-        style: {
-          'line-color':C.edge.neutra,
-          'target-arrow-color':C.edge.neutra,
-          'color':C.edge.neutra,
-        },
-      },
-      {
-        selector: 'edge:selected',
-        style:{'width':3,'overlay-color':C.accent,'overlay-padding':4,'overlay-opacity':0.12},
-      },
-      {
-        selector: 'edge.hover',
-        style:{'width':2.5,'overlay-opacity':0.08,'overlay-color':C.accent,'overlay-padding':4},
-      },
-    ];
+    GraphStyles.syncTheme(cy);
   }
 
   /* ── Converters ────────────────────────────────── */
   function nodeToEl(n){
     return {
-      group:'nodes',
-      data:{ id:n.id, type:n.type, priority:n.priority, label:buildLabel(n), title:n.title },
-      position:{ x:n.x, y:n.y },
+      group: 'nodes',
+      data: { id: n.id, type: n.type, priority: n.priority, label: buildLabel(n), title: n.title },
+      position: { x: n.x, y: n.y },
     };
   }
+
   function edgeToEl(e){
     return {
-      group:'edges',
-      data:{ id:e.id, source:e.source, target:e.target, edgeType:e.edgeType, label:e.label ?? e.edgeType, bidirectional:!e.directed },
+      group: 'edges',
+      data: { id: e.id, source: e.source, target: e.target, edgeType: e.edgeType, label: e.label ?? e.edgeType, bidirectional: !e.directed },
     };
   }
+
   function buildLabel(n){
     const title = n.title ?? '';
     if(!Store.getShowNodeMeta()) return title;
-    const pi = {alta:'↑',media:'·',baixa:'↓'}[n.priority] ?? '';
+    const pi = { alta: '↑', media: '·', baixa: '↓' }[n.priority] ?? '';
     return pi ? (title ? `${pi} ${title}` : pi) : title;
   }
 
@@ -262,14 +37,13 @@ const Graph = (() => {
      INIT
   ════════════════════════════════════════════════ */
   function init(){
+    GraphFocus.init();
     const snap = Store.getSnapshot();
     cy = cytoscape({
       container: document.getElementById('cy'),
       elements:  [...snap.nodes.map(nodeToEl), ...snap.edges.map(edgeToEl)],
-      style:     buildStyle(),
-      layout:    { name:'preset' },
-
-      // Pan habilitado nativamente — controle via threshold no mousedown
+      style:     GraphStyles.buildStyle(),
+      layout:    { name: 'preset' },
       userZoomingEnabled:  true,
       userPanningEnabled:  true,
       boxSelectionEnabled: false,
@@ -285,83 +59,38 @@ const Graph = (() => {
   }
 
   /* ═══════════════════════════════════════════════
-     FOCUS MODE
-  ════════════════════════════════════════════════ */
-
-  document.addEventListener('mousemove', e => {
-    const dx = e.clientX - _lastMousePos.x;
-    const dy = e.clientY - _lastMousePos.y;
-    if(Math.hypot(dx,dy) > 2){
-      _mouseMoving = true;
-      clearTimeout(_moveCheckTimer);
-      _moveCheckTimer = setTimeout(() => { _mouseMoving = false; }, 120);
-    }
-    _lastMousePos = { x:e.clientX, y:e.clientY };
-  }, { passive:true });
-
-  function _activateFocus(nodeId, inbound){
-    _clearFocusClasses();
-    _focusActive = true;
-    _focusNodeId = nodeId;
-
-    const root      = cy.getElementById(nodeId);
-    const edges     = inbound ? root.incomers('edge')  : root.outgoers('edge');
-    const neighbors = inbound ? root.incomers('node')  : root.outgoers('node');
-    const highlighted = root.union(edges).union(neighbors);
-    const dimmed      = cy.elements().difference(highlighted);
-
-    cy.batch(() => {
-      highlighted.addClass('focus-highlight');
-      dimmed.addClass('focus-dim');
-    });
-
-    document.getElementById('focus-hint').hidden = false;
-  }
-
-  function _clearFocusClasses(){
-    cy.batch(() => cy.elements().removeClass('focus-highlight focus-dim'));
-  }
-
-  function _clearFocus(){
-    if(!_focusActive) return;
-    _focusActive = false;
-    _focusNodeId = null;
-    _clearFocusClasses();
-    document.getElementById('focus-hint').hidden = true;
-  }
-
-  /* ═══════════════════════════════════════════════
      CY EVENTS
   ════════════════════════════════════════════════ */
   function _bindCyEvents(){
-
-    /* ── Hover ──────────────────────────────────── */
-    cy.on('mouseover','node', evt => {
+    cy.on('mouseover', 'node', evt => {
       evt.target.addClass('hover');
-      const id = evt.target.id();
-      clearTimeout(_focusTimer);
-      _focusTimer = setTimeout(() => {
-        if(_mouseMoving || evt.target.grabbed()) return;
-        const inbound = window._shiftHeld === true;
-        _activateFocus(id, inbound);
-      }, FOCUS_DELAY);
+      GraphFocus.onNodeMouseOver(cy, evt.target.id(), evt.target.grabbed());
     });
 
-    cy.on('mouseout','node', evt => {
+    cy.on('mouseout', 'node', evt => {
       evt.target.removeClass('hover');
-      clearTimeout(_focusTimer);
-      _clearFocus();
+      GraphFocus.onNodeMouseOut(cy);
     });
 
-    cy.on('mouseover','edge', evt => evt.target.addClass('hover'));
+    cy.on('mouseover', 'edge', evt => evt.target.addClass('hover'));
     cy.on('mouseout', 'edge', evt => evt.target.removeClass('hover'));
 
-    /* ── Tap: clique seleciona e abre sidebar ─── */
-    cy.on('tap','node', evt => {
+    cy.on('tap', 'node', evt => {
       const id = evt.target.id();
-      if(edgeMode.active){ _handleEdgeModeClick(id); return; }
+      if(GraphEdgeMode.isActive()){
+        GraphEdgeMode.handleClick(cy, id);
+        return;
+      }
 
-      // Shift+tap: adiciona à seleção sem abrir sidebar
+      const origEvent = evt.originalEvent;
+      const isCtrl = origEvent && (origEvent.ctrlKey || origEvent.metaKey);
+      const nodeData = Store.getNode(id);
+
+      if(isCtrl && nodeData && nodeData.type === 'subgrafo' && nodeData.subgraphTabId){
+        document.dispatchEvent(new CustomEvent('graph:jumpTab', { detail: { tabId: nodeData.subgraphTabId } }));
+        return;
+      }
+
       if(window._shiftHeld){
         evt.target.select();
         _selectedCyId = id;
@@ -375,29 +104,25 @@ const Graph = (() => {
       document.dispatchEvent(new CustomEvent('graph:openSidebar'));
     });
 
-    cy.on('tap','edge', evt => {
-      if(edgeMode.active) return;
+    cy.on('tap', 'edge', evt => {
+      if(GraphEdgeMode.isActive()) return;
       if(window._shiftHeld){ evt.target.select(); return; }
-      document.dispatchEvent(
-        new CustomEvent('graph:edgeSelected',{detail:{edgeId:evt.target.id()}})
-      );
+      document.dispatchEvent(new CustomEvent('graph:edgeSelected', { detail: { edgeId: evt.target.id() } }));
     });
 
     cy.on('tap', evt => {
-      if(evt.target !== cy) return;
-      if(edgeMode.active) return;
+      if(evt.target !== cy || GraphEdgeMode.isActive()) return;
       _selectedCyId = null;
       cy.elements().unselect();
       Store.clearSelection();
     });
 
-    /* ── Drag sync ──────────────────────────────── */
     let _nodeGrabPos = null;
     cy.on('grab', 'node', evt => {
       _nodeGrabPos = { ...evt.target.position() };
     });
 
-    cy.on('dragfreeon','node', evt => {
+    cy.on('dragfreeon', 'node', evt => {
       const p = evt.target.position();
       if(_nodeGrabPos && (Math.round(_nodeGrabPos.x) !== Math.round(p.x) || Math.round(_nodeGrabPos.y) !== Math.round(p.y))){
         Store.recordHistory();
@@ -406,7 +131,6 @@ const Graph = (() => {
       Store.updateNodePosition(evt.target.id(), p.x, p.y);
     });
 
-    /* ── Context Menu (Right Click) ─────────────── */
     cy.on('cxttap', 'node', evt => {
       document.dispatchEvent(new CustomEvent('graph:contextNode', {
         detail: { id: evt.target.id(), x: evt.originalEvent.clientX, y: evt.originalEvent.clientY }
@@ -426,68 +150,55 @@ const Graph = (() => {
       }));
     });
 
-    /* ── Pan: só com clique+arrasta ────────────── */
-    // Estratégia: pan sempre habilitado no Cytoscape,
-    // mas bloqueamos o mousedown no container até o threshold
-    // usando grab/ungrab do cy para detectar se o usuário
-    // está segurando um nó. Se não estiver, aplicamos threshold manual.
-    let _panMouseStart  = null;
-    let _panUnlocked    = false;
+    let _panMouseStart = null;
+    let _panUnlocked = false;
     const PAN_THRESHOLD = 5;
-
     const cyContainer = document.getElementById('cy');
 
-    // Cytoscape dispara 'grab' quando arrasta nó — nesse caso pan nativo já está bloqueado
     let _draggingNode = false;
-    cy.on('grab','node',   () => { _draggingNode=true });
-    cy.on('free','node',   () => { _draggingNode=false });
-    cy.on('dragfree','node',() => { _draggingNode=false });
+    cy.on('grab', 'node', () => { _draggingNode = true; });
+    cy.on('free', 'node', () => { _draggingNode = false; });
+    cy.on('dragfree', 'node', () => { _draggingNode = false; });
 
     cyContainer.addEventListener('mousedown', e => {
       if(e.button !== 0) return;
-      _panMouseStart = { x:e.clientX, y:e.clientY };
-      _panUnlocked   = false;
-      // Desabilita pan até threshold ser atingido (se não for nó)
+      _panMouseStart = { x: e.clientX, y: e.clientY };
+      _panUnlocked = false;
       if(!_draggingNode) cy.userPanningEnabled(false);
-    }, { capture:true });
+    }, { capture: true });
 
     cyContainer.addEventListener('mousemove', e => {
       if(!_panMouseStart || _draggingNode) return;
       const dx = e.clientX - _panMouseStart.x;
       const dy = e.clientY - _panMouseStart.y;
-      if(!_panUnlocked && Math.hypot(dx,dy) > PAN_THRESHOLD){
+      if(!_panUnlocked && Math.hypot(dx, dy) > PAN_THRESHOLD){
         _panUnlocked = true;
         cy.userPanningEnabled(true);
       }
-    }, { capture:true });
+    }, { capture: true });
 
     cyContainer.addEventListener('mouseup', () => {
       _panMouseStart = null;
-      if(!_panUnlocked) cy.userPanningEnabled(true); // restaura para scroll/wheel
-    }, { capture:true });
+      if(!_panUnlocked) cy.userPanningEnabled(true);
+    }, { capture: true });
 
     cyContainer.addEventListener('mouseleave', () => {
-      _panMouseStart = null; _panUnlocked = false;
+      _panMouseStart = null;
+      _panUnlocked = false;
       cy.userPanningEnabled(true);
     });
 
-    // Scroll/wheel: sempre habilitado (zoom nativo do cy)
-    // pan via wheel/trackpad: re-habilita temporariamente
     cyContainer.addEventListener('wheel', () => {
       cy.userPanningEnabled(true);
-    }, { passive:true });
+    }, { passive: true });
 
-    /* ── Shift: multi-seleção ───────────────────── */
-    // Shift+drag → box selection nativa do Cytoscape
     document.addEventListener('keydown', e => {
       if(e.key !== 'Shift') return;
       window._shiftHeld = true;
       cy.boxSelectionEnabled(true);
       cy.selectionType('additive');
-
-      // Se foco ativo, reinverte
-      if(_focusActive && _focusNodeId){
-        _activateFocus(_focusNodeId, true);
+      if(GraphFocus.isFocusActive() && GraphFocus.getFocusNodeId()){
+        GraphFocus.activate(cy, GraphFocus.getFocusNodeId(), true);
       }
     });
 
@@ -496,37 +207,38 @@ const Graph = (() => {
       window._shiftHeld = false;
       cy.boxSelectionEnabled(false);
       cy.selectionType('single');
-
-      // Volta ao foco normal se ainda hover
-      if(_focusActive && _focusNodeId){
-        _activateFocus(_focusNodeId, false);
+      if(GraphFocus.isFocusActive() && GraphFocus.getFocusNodeId()){
+        GraphFocus.activate(cy, GraphFocus.getFocusNodeId(), false);
       }
     });
 
-    /* ── Keyboard delete/escape ─────────────────── */
     document.addEventListener('keydown', e => {
       const tag = document.activeElement.tagName;
-      const inInput = tag==='INPUT' || tag==='TEXTAREA';
-      if((e.key==='Delete'||e.key==='Backspace') && !inInput){
-        e.preventDefault(); _deleteSelected();
+      const inInput = tag === 'INPUT' || tag === 'TEXTAREA';
+      if((e.key === 'Delete' || e.key === 'Backspace') && !inInput){
+        e.preventDefault();
+        _deleteSelected();
       }
-      if(e.key==='Escape'){
-        if(edgeMode.active) cancelEdgeMode();
-        else { _selectedCyId=null; cy.elements().unselect(); Store.clearSelection(); }
+      if(e.key === 'Escape'){
+        if(GraphEdgeMode.isActive()) GraphEdgeMode.cancel(cy);
+        else {
+          _selectedCyId = null;
+          cy.elements().unselect();
+          Store.clearSelection();
+        }
       }
     });
   }
 
-  /* ── Delete ──────────────────────────────────── */
   function _deleteSelected(){
     const selected = cy.$(':selected');
-    const nodeIds  = selected.nodes().map(n => n.id());
-    const edgeIds  = selected.edges().map(e => e.id());
+    const nodeIds = selected.nodes().map(n => n.id());
+    const edgeIds = selected.edges().map(e => e.id());
     if(_selectedCyId && !nodeIds.includes(_selectedCyId)) nodeIds.push(_selectedCyId);
     if(!nodeIds.length && !edgeIds.length) return;
     Store.batch(() => {
-      nodeIds.forEach(id => { try{ Store.deleteNode(id) }catch(e){ console.warn(e) } });
-      edgeIds.forEach(id => { try{ Store.deleteEdge(id) }catch(e){ console.warn(e) } });
+      nodeIds.forEach(id => { try { Store.deleteNode(id); } catch(e){ console.warn(e); } });
+      edgeIds.forEach(id => { try { Store.deleteEdge(id); } catch(e){ console.warn(e); } });
     });
     _selectedCyId = null;
   }
@@ -538,12 +250,12 @@ const Graph = (() => {
     Store.subscribe((event, payload) => {
       switch(event){
         case 'node:add':
-          cy.add(nodeToEl(payload)); break;
+          cy.add(nodeToEl(payload));
+          break;
 
         case 'node:update':{
           const n = cy.getElementById(payload.id);
-          if(!n.length) break;
-          n.data({ type:payload.type, priority:payload.priority, label:buildLabel(payload), title:payload.title });
+          if(n.length) n.data({ type: payload.type, priority: payload.priority, label: buildLabel(payload), title: payload.title });
           break;
         }
 
@@ -559,16 +271,12 @@ const Graph = (() => {
         }
 
         case 'edge:add':
-          cy.add(edgeToEl(payload)); break;
+          cy.add(edgeToEl(payload));
+          break;
 
         case 'edge:update':{
           const e = cy.getElementById(payload.id);
-          if(e.length){
-            e.data({
-              edgeType: payload.edgeType,
-              label: payload.label ?? payload.edgeType
-            });
-          }
+          if(e.length) e.data({ edgeType: payload.edgeType, label: payload.label ?? payload.edgeType });
           break;
         }
 
@@ -580,16 +288,17 @@ const Graph = (() => {
 
         case 'selection:change':
           cy.nodes().unselect();
-          if(payload){ const n=cy.getElementById(payload); if(n.length) n.select(); }
+          if(payload){ const n = cy.getElementById(payload); if(n.length) n.select(); }
           break;
 
         case 'selection:edgeChange':
           cy.edges().unselect();
-          if(payload){ const e=cy.getElementById(payload); if(e.length) e.select(); }
+          if(payload){ const e = cy.getElementById(payload); if(e.length) e.select(); }
           break;
 
         case 'filter:change':
-          applyFilter(); break;
+          applyFilter();
+          break;
 
         case 'io:import':{
           cy.elements().remove();
@@ -608,7 +317,17 @@ const Graph = (() => {
         }
 
         case 'store:reset':
-          cy.elements().remove(); break;
+          cy.elements().remove();
+          break;
+
+        case 'tabs:switch':{
+          cy.elements().remove();
+          const snap = Store.getSnapshot();
+          cy.add([...snap.nodes.map(nodeToEl), ...snap.edges.map(edgeToEl)]);
+          applyFilter();
+          if(snap.nodes.length > 0) cy.fit(undefined, 60);
+          break;
+        }
 
         case 'display:nodeMeta':
           cy.nodes().forEach(n => {
@@ -620,115 +339,67 @@ const Graph = (() => {
     });
   }
 
-  /* ═══════════════════════════════════════════════
-     UI EVENTS
-  ════════════════════════════════════════════════ */
   function _bindUIEvents(){
-    document.getElementById('zoom-in')
-      .addEventListener('click', () => cy.zoom({level:cy.zoom()*1.25, renderedPosition:_center()}));
-    document.getElementById('zoom-out')
-      .addEventListener('click', () => cy.zoom({level:cy.zoom()*0.8,  renderedPosition:_center()}));
-    document.getElementById('zoom-fit')
-      .addEventListener('click', () => cy.fit(undefined, 60));
+    document.getElementById('zoom-in')?.addEventListener('click', () => cy.zoom({ level: cy.zoom() * 1.25, renderedPosition: _center() }));
+    document.getElementById('zoom-out')?.addEventListener('click', () => cy.zoom({ level: cy.zoom() * 0.8, renderedPosition: _center() }));
+    document.getElementById('zoom-fit')?.addEventListener('click', () => cy.fit(undefined, 60));
 
     document.querySelectorAll('.edge-tool').forEach(btn => {
-      btn.addEventListener('click', () => startEdgeMode(btn.dataset.edge));
+      btn.addEventListener('click', () => GraphEdgeMode.start(btn.dataset.edge));
     });
-    document.getElementById('cancel-edge')
-      .addEventListener('click', cancelEdgeMode);
+    document.getElementById('cancel-edge')?.addEventListener('click', () => GraphEdgeMode.cancel(cy));
   }
 
-  /* ═══════════════════════════════════════════════
-     EDGE MODE
-  ════════════════════════════════════════════════ */
-  function startEdgeMode(type){
-    edgeMode.active=true; edgeMode.edgeType=type; edgeMode.sourceId=null;
-    document.getElementById('edge-mode-banner').hidden = false;
-    document.getElementById('edge-mode-label').innerHTML =
-      `Clique no vértice de <strong>origem</strong> — <em>${type}</em>`;
-    document.getElementById('canvas-wrap').classList.add('edge-mode');
-    document.querySelectorAll('.edge-tool').forEach(b => b.classList.remove('active'));
-    document.querySelector(`.edge-tool[data-edge="${type}"]`)?.classList.add('active');
-  }
-
-  function cancelEdgeMode(){
-    edgeMode.active=false; edgeMode.edgeType=null; edgeMode.sourceId=null;
-    document.getElementById('edge-mode-banner').hidden = true;
-    document.getElementById('canvas-wrap').classList.remove('edge-mode');
-    document.querySelectorAll('.edge-tool').forEach(b => b.classList.remove('active'));
-    cy.nodes().removeClass('edge-source');
-  }
-
-  function _handleEdgeModeClick(id){
-    if(!edgeMode.sourceId){
-      edgeMode.sourceId = id;
-      cy.getElementById(id).addClass('edge-source');
-      document.getElementById('edge-mode-label').innerHTML =
-        `Clique no vértice de <strong>destino</strong>`;
-      return;
-    }
-    const directed = true;
-    try{
-      const newEdge = Store.addEdge({source:edgeMode.sourceId, target:id, edgeType:edgeMode.edgeType, directed});
-      if(newEdge){
-        setTimeout(()=>{
-          document.dispatchEvent(new CustomEvent('graph:edgeSelected',{detail:{edgeId:newEdge.id, isNew:true}}));
-        }, 60);
-      }
-    }
-    catch(err){ document.dispatchEvent(new CustomEvent('graph:error',{detail:err.message})) }
-    finally{ cancelEdgeMode() }
-  }
-
-  /* ═══════════════════════════════════════════════
-     FILTER
-  ════════════════════════════════════════════════ */
   function applyFilter(){
     const visible = Store.getVisibleNodeIds();
     cy.batch(() => {
       cy.nodes().forEach(n => {
-        if(visible.has(n.id())){ n.removeClass('dimmed'); n.style('display','element'); }
-        else                   { n.addClass('dimmed');    n.style('display','none'); }
+        if(visible.has(n.id())){ n.removeClass('dimmed'); n.style('display', 'element'); }
+        else                   { n.addClass('dimmed');    n.style('display', 'none'); }
       });
       cy.edges().forEach(e => {
         const ok = visible.has(e.source().id()) && visible.has(e.target().id());
-        if(ok){ e.removeClass('dimmed'); e.style('display','element'); }
-        else  { e.addClass('dimmed');   e.style('display','none'); }
+        if(ok){ e.removeClass('dimmed'); e.style('display', 'element'); }
+        else  { e.addClass('dimmed');   e.style('display', 'none'); }
       });
     });
   }
 
-  /* ── Helpers ───────────────────────────────────── */
   function _center(){
     const c = document.getElementById('cy');
-    return { x:c.clientWidth/2, y:c.clientHeight/2 };
+    return { x: c.clientWidth / 2, y: c.clientHeight / 2 };
   }
 
   function addNodeAtCenter(type){
     const e = cy.extent();
     return Store.addNode({
-      type, x:(e.x1+e.x2)/2+(Math.random()-.5)*80,
-            y:(e.y1+e.y2)/2+(Math.random()-.5)*80,
+      type,
+      x: (e.x1 + e.x2) / 2 + (Math.random() - .5) * 80,
+      y: (e.y1 + e.y2) / 2 + (Math.random() - .5) * 80,
     });
   }
-
-  function focusNode(id){
-    const n = cy.getElementById(id);
-    if(!n.length) return;
-    cy.animate({center:{eles:n}, zoom:Math.max(cy.zoom(),1), duration:320, easing:'ease-in-out-cubic'});
-    n.flashClass('hover',500);
-  }
-
-  function getInstance(){ return cy }
 
   function addNodeAtPos(type, x, y){
     return Store.addNode({ type, x, y });
   }
 
   function startEdgeModeFromContext(type, sourceId){
-    startEdgeMode(type);
-    _handleEdgeModeClick(sourceId);
+    GraphEdgeMode.startFromContext(cy, type, sourceId);
   }
+
+  function cancelEdgeMode(){
+    GraphEdgeMode.cancel(cy);
+  }
+
+  function focusNode(id){
+    const n = cy.getElementById(id);
+    if(n.length){
+      cy.center(n);
+      cy.zoom({ level: Math.max(cy.zoom(), 1.2), position: n.position() });
+    }
+  }
+
+  function getInstance(){ return cy; }
 
   function getModelCenter(){
     if(!cy) return { x: 300, y: 300 };
@@ -741,16 +412,15 @@ const Graph = (() => {
     const container = document.getElementById('cy');
     if(!container) return getModelCenter();
     const rect = container.getBoundingClientRect();
-    // Verifica se o mouse está dentro dos limites da janela/canvas
-    if(_lastMousePos.x < rect.left || _lastMousePos.x > rect.right ||
-       _lastMousePos.y < rect.top  || _lastMousePos.y > rect.bottom){
+    const mouse = GraphFocus.getLastMousePos();
+    if(mouse.x < rect.left || mouse.x > rect.right || mouse.y < rect.top || mouse.y > rect.bottom){
       return getModelCenter();
     }
     const pan = cy.pan();
     const zoom = cy.zoom();
     return {
-      x: Math.round((_lastMousePos.x - rect.left - pan.x) / zoom),
-      y: Math.round((_lastMousePos.y - rect.top  - pan.y) / zoom),
+      x: Math.round((mouse.x - rect.left - pan.x) / zoom),
+      y: Math.round((mouse.y - rect.top  - pan.y) / zoom),
     };
   }
 

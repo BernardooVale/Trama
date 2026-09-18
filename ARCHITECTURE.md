@@ -6,13 +6,17 @@ Este documento serve como mapa de engenharia do repositório **Trama**, detalhan
 
 ## 1. Visão Geral dos Arquivos do Diretório Raiz
 
-| Arquivo | Função Principal / Responsabilidade |
+| Arquivo / Diretório | Função Principal / Responsabilidade |
 | :--- | :--- |
 | `index.html` | Estrutura de interface da aplicação: barra de ferramentas superior, container Cytoscape, sidebar de propriedades, banner de criação de arestas, controle de zoom e containers de menu de contexto e toast. |
-| `style.css` | Folha de estilos: variáveis de tema (dark/light), layout flex/grid, componentes de formulário, animações e regras visuais do canvas e sidebar. |
-| `store.js` | **Camada de Estado (Model)**: módulo Singleton `Store`. Centraliza a lista de nós (`nodes`), arestas (`edges`), seleções ativas, filtros e persistência no `localStorage`. Implementa padrão Observer (Pub/Sub). |
-| `graph.js` | **Camada do Grafo (Cytoscape Controller)**: módulo Singleton `Graph`. Inicializa e gerencia a instância do Cytoscape.js, interações com a tela (arraste, zoom, clique, duplo clique/tap, foco com hover longo), layouts automáticos e conversão dos dados do Store para elementos visuais. |
-| `main.js` | **Camada de UI & Aplicação (App Controller)**: módulo Singleton `App`. Gerencia eventos do DOM, inputs da sidebar, menus de contexto (`ContextMenu`), busca inteligente (`Search`), alternância de temas, atalhos de teclado e sincronização entre `Store` e `Graph`. |
+| `style.css` | Folha de estilos: variáveis de tema (dark/light), layout flex/grid, abas de grafos com destaque para aba fixa principal, componentes de formulário, animações e regras visuais do canvas e sidebar. |
+| `store.js` | **Camada de Estado Central (Model)**: módulo Singleton `Store` enxuto. Orquestra nós, arestas, filtros e pub/sub de eventos delegando responsabilidades para submódulos especializados em `js/store/`. |
+| `graph.js` | **Camada do Grafo Central (Cytoscape Controller)**: módulo Singleton `Graph` enxuto. Inicializa e gerencia a instância do Cytoscape.js, interações com a tela e eventos delegando estilos, foco e desenho de arestas para submódulos em `js/graph/`. |
+| `main.js` | **Camada de UI & Aplicação (App Controller)**: módulo Singleton `App`. Orquestrador enxuto que integra os componentes modulares, alternância de temas, atalhos de teclado, clipboard e sincronização com `Store` e `Graph`. |
+| `js/` | Diretório contendo todos os submódulos desacoplados do sistema. Possui seu próprio documento detalhado de arquitetura em [`js/ARCHITECTURE.md`](file:///c:/Users/Bernardo/Documents/GitHub/Trama/js/ARCHITECTURE.md). |
+| `js/store/` | Submódulos da camada de dados: histórico atômico (`history.js`), DAG e abas (`tabsManager.js`) e persistência (`storage.js`). |
+| `js/graph/` | Submódulos de renderização visual: folha de estilos Cytoscape (`styles.js`), modo foco dinâmico (`focus.js`) e modo interativo de arestas (`edgeMode.js`). |
+| `js/components/` | Componentes de interface desacoplados: abas (`tabs.js`), busca (`search.js`), sidebar (`sidebar.js`) e menus de contexto (`contextMenu.js`). |
 
 ---
 
@@ -22,12 +26,57 @@ Gerencia os dados da aplicação e notifica os ouvintes sobre qualquer alteraç�
 
 ### Constantes e Estrutura Interna
 - `LS_KEY`: Chave do LocalStorage (`'trama_v1'`).
-- `NODE_TYPES`: Tipos de nós permitidos (`['problema', 'solucao', 'agrupador', 'neutro']`).
+- `NODE_TYPES`: Tipos de nós permitidos (`['problema', 'solucao', 'agrupador', 'neutro', 'subgrafo']`).
 - `EDGE_TYPES`: Tipos de arestas permitidas (`['dependencia', 'resolve', 'relaciona', 'neutra']`).
 - `PRIORITIES`: Prioridades válidas (`['alta', 'media', 'baixa']`).
-- `state`: Objeto de estado contendo `nodes`, `edges`, `selectedId`, `selectedEdgeId`, `showNodeMeta` e `filter`.
+- `state`: Objeto de estado contendo `version` (2), `activeTabId`, `tabs` (Array<{ id, name, nodes, edges }>), `selectedId`, `selectedEdgeId`, `showNodeMeta` e `filter`.
 
 ### Funções Internas e Métodos Públicos
+
+#### `getTabs()`
+- **Assinatura:** `getTabs(): Array<{ id: string, name: string, isMain: boolean }>`
+- **Descrição:** Retorna lista de todas as abas cadastradas no projeto. A primeira aba (`idx === 0`) possui a flag `isMain: true`, designando-a como a aba fixa principal.
+- **Retorno:** Array de objetos com `id`, `name` e `isMain`.
+
+#### `getActiveTab()`
+- **Assinatura:** `getActiveTab(): Tab | null`
+- **Descrição:** Retorna o objeto da aba ativa atual com seus nós e arestas.
+- **Retorno:** Objeto `Tab` ou `null`.
+
+#### `getActiveTabId()`
+- **Assinatura:** `getActiveTabId(): string | null`
+- **Descrição:** Retorna o identificador da aba ativa.
+- **Retorno:** String com ID da aba ou `null`.
+
+#### `createTab(name)`
+- **Assinatura:** `createTab(name?: string): Tab`
+- **Descrição:** Cria uma nova aba independente dentro do projeto com nome customizado ou gerado automaticamente (`Aba N`), torna-a ativa, persiste e notifica `tabs:change`.
+- **Retorno:** Objeto `Tab` recém-criado.
+
+#### `renameTab(tabId, newName)`
+- **Assinatura:** `renameTab(tabId: string, newName: string): Tab`
+- **Descrição:** Altera o nome de uma aba (inclusive a aba principal fixa), sincroniza títulos em nós de subgrafo que a referenciam e notifica `tabs:change`.
+- **Retorno:** Objeto `Tab` atualizado.
+
+#### `switchTab(tabId)`
+- **Assinatura:** `switchTab(tabId: string): void`
+- **Descrição:** Alterna a aba ativa para `tabId`, limpa seleções ativas, salva e dispara `tabs:switch`.
+- **Retorno:** `undefined`.
+
+#### `deleteTab(tabId)`
+- **Assinatura:** `deleteTab(tabId: string): void`
+- **Descrição:** Exclui a aba informada (bloqueando e emitindo erro caso seja a aba fixa principal `idx === 0` ou a única existente). Executa **exclusão em cascata** removendo nós em outras abas que a importavam como subgrafo. Seleciona aba adjacente e notifica `tabs:change` e `tabs:switch`.
+- **Retorno:** `undefined`.
+
+#### `canImportTab(targetTabId, candidateTabId)`
+- **Assinatura:** `canImportTab(targetTabId: string, candidateTabId: string): boolean`
+- **Descrição:** Executa algoritmo de detecção de ciclo / DAG para prevenir auto-importação ou dependência circular direta/indireta entre abas.
+- **Retorno:** `true` se a importação for válida e livre de ciclos; `false` se causar ciclo ou for a mesma aba.
+
+#### `getImportableTabs(targetTabId)`
+- **Assinatura:** `getImportableTabs(targetTabId?: string): Array<{ id: string, name: string }>`
+- **Descrição:** Retorna a lista de abas que podem ser importadas como subgrafo na aba de destino especificada.
+- **Retorno:** Array de abas importáveis.
 
 #### `subscribe(fn)`
 - **Assinatura:** `subscribe(fn: Function): Function`
@@ -382,41 +431,18 @@ Controlador responsável pela renderização física com Cytoscape.js e tratamen
 
 ## 4. Módulo `App` (`main.js`)
 
-Orquestrador geral da aplicação, responsável por amarrar a interface do usuário às camadas de Store e Graph.
+Orquestrador geral enxuto da aplicação, responsável por integrar os componentes, gerenciar clipboard, atalhos de teclado globais, alternância de temas e sincronizar o ciclo de vida do `Store` com o `Graph`.
 
-### Sub-módulos e Componentes
-
-### 4.1 Sub-módulo `ContextMenu`
-- `hide()`: Esconde e desassocia elementos do menu de contexto.
-- `position(x, y)`: Posiciona o menu na coordenada do clique prevenindo estouro de tela.
-- `showNodeMenu(id, cx, cy)`: Renderiza opções para o vértice (criar arestas específicas ou excluir vértice).
-- `showEdgeMenu(id, cx, cy)`: Renderiza opções para a aresta (editar propriedades ou excluir aresta).
-- `showCoreMenu(gx, gy, cx, cy)`: Renderiza opções de criar novos nós (Problema, Solução, Agrupador, Neutro) no ponto clicado da tela.
-- `bind()`: Gerencia cliques nos botões do menu contextual e clique externo para fechar.
-
-### 4.2 Sub-módulo `Search`
-- `getInput()`, `getDropdown()`, `getChips()`: Acesso aos nós do DOM de busca.
-- `renderChips()`: Renderiza as etiquetas ativas selecionadas como tags de filtro.
-- `addTagFilter(tag)`: Adiciona etiqueta aos filtros.
-- `removeTagFilter(tag)`: Remove etiqueta dos filtros.
-- `clearAll()`: Limpa filtros de tags e texto.
-- `showDropdown(items)`: Monta a lista suspensa com sugestões de nós e etiquetas.
-- `hideDropdown()`: Oculta e esvazia o dropdown.
-- `navigate(dir)`: Permite navegação por setas (cima/baixo) na lista de sugestões.
-- `confirmSelection()`: Aciona a seleção do item ativo no dropdown ao pressionar Enter.
-- `buildSuggestions(q)`: Busca dinamicamente no Store por títulos, descrições e tags correspondentes.
-- `bind()`: Associa todos os listeners de teclado e input da barra de busca.
-
-### 4.3 Funções do `App`
+### Funções Internas e Métodos Públicos
 
 #### `cacheDOM()`
 - **Assinatura:** `cacheDOM(): void`
-- **Descrição:** Localiza e armazena referências de todos os elementos DOM estáticos no mapa `DOM`.
+- **Descrição:** Localiza e armazena referências dos elementos DOM estáticos no mapa `DOM`.
 - **Retorno:** `undefined`.
 
 #### `toast(msg, dur = 2600)`
 - **Assinatura:** `toast(msg: string, dur?: number): void`
-- **Descrição:** Exibe mensagem flutuante temporária no rodapé.
+- **Descrição:** Exibe mensagem flutuante temporária no rodapé da aplicação.
 - **Retorno:** `undefined`.
 
 #### `initTheme()`
@@ -426,62 +452,27 @@ Orquestrador geral da aplicação, responsável por amarrar a interface do usuá
 
 #### `setTheme(theme)`
 - **Assinatura:** `setTheme(theme: 'dark' | 'light'): void`
-- **Descrição:** Define atributo `data-theme` no `document.documentElement`, persiste no Storage, altera o ícone SVG e sincroniza o gráfico.
+- **Descrição:** Define atributo `data-theme` no `document.documentElement`, persiste no Storage, altera o ícone SVG e sincroniza as cores do canvas Cytoscape.
 - **Retorno:** `undefined`.
 
 #### `toggleTheme()`
 - **Assinatura:** `toggleTheme(): void`
-- **Descrição:** Alterna entre os modos `'dark'` e `'light'`.
+- **Descrição:** Alterna entre os temas `'dark'` e `'light'`.
 - **Retorno:** `undefined`.
 
 #### `openSidebar(nodeId, autoSelectText = false)`
 - **Assinatura:** `openSidebar(nodeId: string, autoSelectText?: boolean): void`
-- **Descrição:** Abre o painel lateral exibindo campos do vértice (`#sb-node-fields`). Caso `autoSelectText === true` (exclusivo para criação de novos nós), seleciona automaticamente o texto do campo de título.
+- **Descrição:** Delega abertura de barra lateral do nó para `Sidebar.open(nodeId, autoSelectText)`.
 - **Retorno:** `undefined`.
 
 #### `openEdgeSidebar(edgeId, autoSelectText = false)`
 - **Assinatura:** `openEdgeSidebar(edgeId: string, autoSelectText?: boolean): void`
-- **Descrição:** Abre o painel lateral exibindo campos da aresta (`#sb-edge-fields`). Caso `autoSelectText === true` (exclusivo para novas arestas), seleciona automaticamente o texto do rótulo.
+- **Descrição:** Delega abertura de barra lateral de aresta para `Sidebar.openEdge(edgeId, autoSelectText)`.
 - **Retorno:** `undefined`.
 
 #### `closeSidebar()`
 - **Assinatura:** `closeSidebar(): void`
-- **Descrição:** Salva imediatamente quaisquer alterações pendentes nos inputs e fecha o painel lateral (`classList.remove('open')`).
-- **Retorno:** `undefined`.
-
-#### `populateSidebar(node)`
-- **Assinatura:** `populateSidebar(node: Node): void`
-- **Descrição:** Preenche os dados de título, descrição, tipo, prioridade e tags na barra lateral do vértice selecionado.
-- **Retorno:** `undefined`.
-
-#### `populateEdgeSidebar(edge)`
-- **Assinatura:** `populateEdgeSidebar(edge: Edge): void`
-- **Descrição:** Preenche os dados de tipo, rótulo e endpoints (Origem → Destino) na barra lateral da aresta selecionada.
-- **Retorno:** `undefined`.
-
-#### `renderTags(tags)`
-- **Assinatura:** `renderTags(tags: string[]): void`
-- **Descrição:** Monta a lista visual de tags do nó com botão individual para remoção.
-- **Retorno:** `undefined`.
-
-#### `addTag(raw)`
-- **Assinatura:** `addTag(raw: string): void`
-- **Descrição:** Higieniza e inclui nova tag no nó selecionado.
-- **Retorno:** `undefined`.
-
-#### `removeTag(tag)`
-- **Assinatura:** `removeTag(tag: string): void`
-- **Descrição:** Remove tag especificada do nó ativo.
-- **Retorno:** `undefined`.
-
-#### `bindSidebarInputs()`
-- **Assinatura:** `bindSidebarInputs(): void`
-- **Descrição:** Associa listeners de `input` com debounce de 200ms para título e rótulo de aresta, salvando imediatamente ao fechar a barra lateral e permitindo nomes vazios sem fallback involuntário.
-- **Retorno:** `undefined`.
-
-#### `bindDropdowns()`
-- **Assinatura:** `bindDropdowns(): void`
-- **Descrição:** Configura funcionamento dos seletores dropdown de Tipo e Prioridade na topbar.
+- **Descrição:** Delega fechamento da barra lateral para `Sidebar.close()`.
 - **Retorno:** `undefined`.
 
 #### `bindStoreObserver()`
@@ -497,6 +488,11 @@ Orquestrador geral da aplicação, responsável por amarrar a interface do usuá
 #### `bindIO()`
 - **Assinatura:** `bindIO(): void`
 - **Descrição:** Conecta botões de importação e exportação de JSON.
+- **Retorno:** `undefined`.
+
+#### `bindDropdowns()`
+- **Assinatura:** `bindDropdowns(): void`
+- **Descrição:** Conecta os dropdowns customizados de filtro na barra de ferramentas superior (`#dd-type` para tipos de nó e `#dd-priority` para prioridades), configurando cliques de seleção e fechamento ao clicar fora.
 - **Retorno:** `undefined`.
 
 #### `copySelection()`
@@ -516,7 +512,7 @@ Orquestrador geral da aplicação, responsável por amarrar a interface do usuá
 
 #### `bindKeyboard()`
 - **Assinatura:** `bindKeyboard(): void`
-- **Descrição:** Mapeia atalhos globais de teclado (`Ctrl+C` copiar, `Ctrl+V` colar, `Ctrl+Z` desfazer, `Ctrl+E` exportar, `Ctrl+F` ou `/` buscar, `T` tema, `L` layout automático, `1-4` filtros), respeitando a digitação em inputs de texto.
+- **Descrição:** Mapeia atalhos globais de teclado (`Ctrl+T` nova aba, `Ctrl+W` fechar aba ativa, `Ctrl+E` renomear aba ativa, `Ctrl+S` exportar JSON, `Ctrl+C` copiar, `Ctrl+V` colar, `Ctrl+Z` desfazer, `Ctrl+F` ou `/` buscar, `T` tema, `L` layout automático, `1-4` filtros), respeitando a digitação em inputs de texto.
 - **Retorno:** `undefined`.
 
 #### `esc(s)`

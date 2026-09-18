@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css?v=4" />
 </head>
 <body>
 
@@ -62,6 +62,9 @@
           <button class="dd-item" data-value="neutro">
             <span class="dd-dot dd-dot--neutro"></span>Neutro
           </button>
+          <button class="dd-item" data-value="subgrafo">
+            <span class="dd-dot" style="background:var(--node-subgrafo)"></span>Subgrafo
+          </button>
         </div>
       </div>
 
@@ -101,7 +104,7 @@
           <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
         </svg>
       </button>
-      <button class="btn-icon" id="btn-export" title="Exportar JSON (Ctrl+E)">
+      <button class="btn-icon" id="btn-export" title="Exportar JSON (Ctrl+S)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
           <polyline points="7 10 12 15 17 10"/>
@@ -131,6 +134,19 @@
       </button>
     </div>
   </header>
+
+  <!-- Barra de Abas de Grafos (CircuitVerse / Browser style) -->
+  <nav class="tabs-bar" id="tabs-bar">
+    <div class="tabs-list" id="tabs-list">
+      <!-- Inserido dinamicamente pelo TabsUI -->
+    </div>
+    <button class="tab-add-btn" id="btn-tab-add" title="Nova Aba (Ctrl+T)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+        <line x1="12" y1="5" x2="12" y2="19"/>
+        <line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+    </button>
+  </nav>
 
   <main class="app-main">
     <div class="canvas-wrap" id="canvas-wrap">
@@ -182,7 +198,7 @@
             <textarea class="field-textarea" id="sb-desc" rows="4" placeholder="Contexto, detalhes…"></textarea>
           </div>
 
-          <div class="field-row">
+          <div class="field-row" id="sb-priority-row">
             <label class="field-label">Prioridade</label>
             <div class="priority-selector" id="sb-priority-selector">
               <button class="priority-btn" data-priority="alta">🔴 Alta</button>
@@ -191,12 +207,26 @@
             </div>
           </div>
 
-          <div class="field-row">
+          <div class="field-row" id="sb-tags-row">
             <label class="field-label" for="sb-tags">Etiquetas</label>
             <div class="tags-wrap" id="tags-wrap">
               <div class="tags-list" id="tags-list"></div>
               <input class="tags-input" id="sb-tags" type="text" placeholder="Adicionar etiqueta… (Enter)" />
             </div>
+          </div>
+
+          <!-- Ação especial para Subgrafo -->
+          <div class="field-row" id="sb-subgraph-fields" hidden>
+            <label class="field-label">Aba do Subgrafo</label>
+            <button class="btn-jump-tab" id="btn-jump-tab">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                <polyline points="15 3 21 3 21 9"/>
+                <line x1="10" y1="14" x2="21" y2="3"/>
+              </svg>
+              <span>Pular para Aba</span>
+            </button>
+            <span class="subgraph-hint"><kbd>Ctrl</kbd> + Clique no vértice pula direto para a aba</span>
           </div>
         </div>
 
@@ -229,8 +259,25 @@
   <div class="toast" id="toast"></div>
   <div id="context-menu" class="context-menu" hidden></div>
 
-  <script src="store.js"></script>
-  <script src="graph.js"></script>
-  <script src="main.js"></script>
+  <!-- Store modules -->
+  <script src="js/store/history.js?v=4"></script>
+  <script src="js/store/tabsManager.js?v=4"></script>
+  <script src="js/store/storage.js?v=4"></script>
+  <script src="store.js?v=4"></script>
+
+  <!-- Graph modules -->
+  <script src="js/graph/styles.js?v=4"></script>
+  <script src="js/graph/focus.js?v=4"></script>
+  <script src="js/graph/edgeMode.js?v=4"></script>
+  <script src="graph.js?v=4"></script>
+
+  <!-- UI Components -->
+  <script src="js/components/search.js?v=4"></script>
+  <script src="js/components/tabs.js?v=4"></script>
+  <script src="js/components/sidebar.js?v=4"></script>
+  <script src="js/components/contextMenu.js?v=4"></script>
+
+  <!-- App Controller -->
+  <script src="main.js?v=4"></script>
 </body>
 </html>
