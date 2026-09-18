@@ -110,6 +110,22 @@ const Graph = (() => {
       document.dispatchEvent(new CustomEvent('graph:edgeSelected', { detail: { edgeId: evt.target.id() } }));
     });
 
+    cy.on('dbltap', 'node', evt => {
+      const id = evt.target.id();
+      if(GraphEdgeMode.isActive()) return;
+
+      cy.nodes().unselect();
+      evt.target.select();
+      _selectedCyId = id;
+      Store.selectNode(id);
+      document.dispatchEvent(new CustomEvent('graph:openSidebar', { detail: { autoSelectText: true } }));
+    });
+
+    cy.on('dbltap', 'edge', evt => {
+      if(GraphEdgeMode.isActive()) return;
+      document.dispatchEvent(new CustomEvent('graph:edgeSelected', { detail: { edgeId: evt.target.id(), autoSelectText: true } }));
+    });
+
     cy.on('tap', evt => {
       if(evt.target !== cy || GraphEdgeMode.isActive()) return;
       _selectedCyId = null;

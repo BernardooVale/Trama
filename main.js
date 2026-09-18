@@ -296,10 +296,10 @@ const App = (() => {
      GRAPH EVENTS
   ════════════════════════════════════════════════ */
   function bindGraphEvents(){
-    document.addEventListener('graph:openSidebar',()=>{
+    document.addEventListener('graph:openSidebar', e => {
       const n=Store.getSelectedNode();
       if(n){
-        openSidebar(n.id, false);
+        openSidebar(n.id, !!e.detail?.autoSelectText);
       }
     });
 
@@ -317,7 +317,7 @@ const App = (() => {
       const edge=Store.getEdge(e.detail.edgeId);
       if(!edge) return;
       Store.selectEdge(edge.id);
-      openEdgeSidebar(edge.id, !!e.detail.isNew);
+      openEdgeSidebar(edge.id, !!e.detail.isNew || !!e.detail.autoSelectText);
     });
 
     document.addEventListener('graph:contextNode', e => ContextMenu.showNodeMenu(e.detail.id, e.detail.x, e.detail.y));

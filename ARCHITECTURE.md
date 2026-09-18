@@ -344,7 +344,7 @@ Controlador responsável pela renderização física com Cytoscape.js e tratamen
 
 #### `_bindCyEvents()`
 - **Assinatura:** `_bindCyEvents(): void`
-- **Descrição:** Registra listeners do Cytoscape: hover com timer de foco, clique em nó, clique em aresta, clique no fundo, arraste de nó, clique direito (`cxttap`) em nós, arestas e tela, além de controle de threshold de pan e suporte a Shift multi-seleção.
+- **Descrição:** Registra listeners do Cytoscape: hover com timer de foco, clique em nó, clique em aresta, clique duplo (dbltap) em nó ou aresta para seleção automática de título/rótulo na sidebar, clique no fundo, arraste de nó, clique direito (`cxttap`) em nós, arestas e tela, além de controle de threshold de pan e suporte a Shift multi-seleção.
 - **Retorno:** `undefined`.
 
 #### `_deleteSelected()`
