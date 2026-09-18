@@ -18,6 +18,55 @@ const Store = (() => {
     },
   };
 
+  /* ── Undo / History ────────────────────────────── */
+  const MAX_UNDO = 50;
+  const undoStack = [];
+  let _isBatching = false;
+
+  function recordHistory(){
+    if(_isBatching) return; // Se estiver executando uma transação em lote, não grava snapshots intermediários
+    // Salva uma cópia profunda de nodes e edges atuais
+    const snapshot = {
+      nodes: state.nodes.map(n => ({ ...n, tags: [...n.tags] })),
+      edges: state.edges.map(e => ({ ...e })),
+    };
+    undoStack.push(snapshot);
+    if(undoStack.length > MAX_UNDO) undoStack.shift();
+  }
+
+  function batch(fn){
+    if(_isBatching){
+      return fn();
+    }
+    recordHistory();
+    _isBatching = true;
+    try {
+      return fn();
+    } finally {
+      _isBatching = false;
+    }
+  }
+
+  function canUndo(){
+    return undoStack.length > 0;
+  }
+
+  function undo(){
+    if(!undoStack.length) return false;
+    const prev = undoStack.pop();
+    state.nodes = prev.nodes.map(n => nodeDefaults(n));
+    state.edges = (prev.edges ?? []).filter(e => e.source && e.target).map(e => edgeDefaults(e));
+    if(state.selectedId && !state.nodes.some(n => n.id === state.selectedId)){
+      state.selectedId = null;
+    }
+    if(state.selectedEdgeId && !state.edges.some(e => e.id === state.selectedEdgeId)){
+      state.selectedEdgeId = null;
+    }
+    save();
+    notify('store:restore', getSnapshot());
+    return true;
+  }
+
   const listeners = new Set();
   function subscribe(fn){ listeners.add(fn); return ()=>listeners.delete(fn) }
   function notify(event,payload){ listeners.forEach(fn=>fn(event,payload)) }
@@ -29,7 +78,7 @@ const Store = (() => {
     return {
       id:          p.id          ?? uid(),
       type:        p.type        ?? 'neutro',
-      title:       p.title       ?? 'Novo vértice',
+      title:       p.title !== undefined ? p.title : 'Novo vértice',
       description: p.description ?? '',
       priority:    p.priority    ?? 'media',
       tags:        Array.isArray(p.tags) ? [...p.tags] : [],
@@ -45,21 +94,23 @@ const Store = (() => {
       source:   p.source,
       target:   p.target,
       edgeType: p.edgeType ?? 'neutra',
-      label:    p.label    ?? p.edgeType ?? 'neutra',
+      label:    p.label !== undefined ? p.label : (p.edgeType ?? 'neutra'),
       directed: p.directed ?? true,
     };
   }
 
   /* ── Nodes ─────────────────────────────────────── */
-  function addNode(partial={}){
+  function addNode(partial={},options={}){
+    if(!options.skipHistory) recordHistory();
     const node = nodeDefaults(partial);
     state.nodes.push(node);
     save(); notify('node:add',node); return node;
   }
 
-  function updateNode(id,changes={}){
+  function updateNode(id,changes={},options={}){
     const idx = state.nodes.findIndex(n=>n.id===id);
     if(idx===-1) throw new Error(`Nó não encontrado: ${id}`);
+    if(!options.skipHistory) recordHistory();
     if(changes.type     && !NODE_TYPES.includes(changes.type))  delete changes.type;
     if(changes.priority && !PRIORITIES.includes(changes.priority)) delete changes.priority;
     if(changes.title!==undefined){
@@ -71,10 +122,12 @@ const Store = (() => {
     save(); notify('node:update',state.nodes[idx]); return state.nodes[idx];
   }
 
-  function deleteNode(id){
+  function deleteNode(id,options={}){
     const before=state.nodes.length;
+    const targetNode = state.nodes.find(n=>n.id===id);
+    if(!targetNode) throw new Error(`Nó não encontrado: ${id}`);
+    if(!options.skipHistory) recordHistory();
     state.nodes=state.nodes.filter(n=>n.id!==id);
-    if(state.nodes.length===before) throw new Error(`Nó não encontrado: ${id}`);
     const removedEdges=state.edges.filter(e=>e.source===id||e.target===id);
     state.edges=state.edges.filter(e=>e.source!==id&&e.target!==id);
     if(state.selectedId===id) state.selectedId=null;
@@ -85,7 +138,7 @@ const Store = (() => {
   function getNodes(){ return [...state.nodes] }
 
   /* ── Edges ─────────────────────────────────────── */
-  function addEdge(partial={}){
+  function addEdge(partial={},options={}){
     const {source,target,edgeType='neutra',label,directed=true}=partial;
     if(!source||!target)               throw new Error('source e target obrigatórios');
     if(source===target)                throw new Error('Self-loop não permitido');
@@ -94,13 +147,15 @@ const Store = (() => {
     if(!getNode(target))               throw new Error(`Target não encontrado: ${target}`);
     const exists=state.edges.some(e=>e.source===source&&e.target===target&&e.edgeType===edgeType);
     if(exists) throw new Error('Aresta duplicada');
+    if(!options.skipHistory) recordHistory();
     const edge=edgeDefaults({source,target,edgeType,label: label ?? edgeType,directed});
     state.edges.push(edge); save(); notify('edge:add',edge); return edge;
   }
 
-  function updateEdge(id,changes={}){
+  function updateEdge(id,changes={},options={}){
     const idx = state.edges.findIndex(e=>e.id===id);
     if(idx===-1) throw new Error(`Aresta não encontrada: ${id}`);
+    if(!options.skipHistory) recordHistory();
     if(changes.edgeType && !EDGE_TYPES.includes(changes.edgeType)) delete changes.edgeType;
     if(changes.label !== undefined){
       changes.label = String(changes.label);
@@ -109,10 +164,11 @@ const Store = (() => {
     save(); notify('edge:update',state.edges[idx]); return state.edges[idx];
   }
 
-  function deleteEdge(id){
-    const before=state.edges.length;
+  function deleteEdge(id,options={}){
+    const targetEdge = state.edges.find(e=>e.id===id);
+    if(!targetEdge) throw new Error(`Aresta não encontrada: ${id}`);
+    if(!options.skipHistory) recordHistory();
     state.edges=state.edges.filter(e=>e.id!==id);
-    if(state.edges.length===before) throw new Error(`Aresta não encontrada: ${id}`);
     if(state.selectedEdgeId===id) state.selectedEdgeId=null;
     save(); notify('edge:delete',{id}); return id;
   }
@@ -255,6 +311,7 @@ const Store = (() => {
     setShowNodeMeta,getShowNodeMeta,
     save,load,exportJSON,importJSON,
     subscribe,getSnapshot,getAllTags,
+    undo,canUndo,recordHistory,batch,
     NODE_TYPES,EDGE_TYPES,PRIORITIES,
   };
 })();

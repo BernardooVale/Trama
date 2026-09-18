@@ -10,9 +10,12 @@ const App = (() => {
       'sb-priority-selector','tags-list','sb-tags',
       'search-input','search-clear','search-chips','search-dropdown',
       'btn-export','btn-import','btn-theme','icon-theme','btn-toggle-meta',
-      'btn-layout','toast','canvas-wrap','focus-hint',
+      'btn-layout','btn-undo','toast','canvas-wrap','focus-hint',
     ].forEach(id=>{ DOM[id]=document.getElementById(id) });
   }
+
+  /* ── Clipboard ─────────────────────────────────── */
+  let clipboard = null; // { nodes: [...], edges: [...] }
 
   /* ═══════════════════════════════════════════════
      TOAST
@@ -58,7 +61,11 @@ const App = (() => {
   /* ═══════════════════════════════════════════════
      SIDEBAR
   ════════════════════════════════════════════════ */
-  function openSidebar(nodeId){
+  let tTimer=null;
+  let elTimer=null;
+  let dTimer=null;
+
+  function openSidebar(nodeId, autoSelectText=false){
     const node=Store.getNode(nodeId);
     if(!node) return;
     DOM['sidebar-title'].textContent = 'Propriedades do Vértice';
@@ -66,9 +73,15 @@ const App = (() => {
     DOM['sb-edge-fields'].hidden = true;
     populateSidebar(node);
     DOM['sidebar'].classList.add('open');
+    if(autoSelectText){
+      setTimeout(() => {
+        DOM['sb-title'].focus();
+        DOM['sb-title'].select();
+      }, 50);
+    }
   }
 
-  function openEdgeSidebar(edgeId){
+  function openEdgeSidebar(edgeId, autoSelectText=false){
     const edge=Store.getEdge(edgeId);
     if(!edge) return;
     DOM['sidebar-title'].textContent = 'Propriedades da Aresta';
@@ -76,13 +89,34 @@ const App = (() => {
     DOM['sb-edge-fields'].hidden = false;
     populateEdgeSidebar(edge);
     DOM['sidebar'].classList.add('open');
-    setTimeout(() => {
-      DOM['sb-edge-label'].focus();
-      DOM['sb-edge-label'].select();
-    }, 50);
+    if(autoSelectText){
+      setTimeout(() => {
+        DOM['sb-edge-label'].focus();
+        DOM['sb-edge-label'].select();
+      }, 50);
+    }
   }
 
   function closeSidebar(){
+    // Salvar imediatamente qualquer digitação pendente no input antes de fechar
+    if(tTimer){
+      clearTimeout(tTimer);
+      tTimer=null;
+      const n=Store.getSelectedNode();
+      if(n) Store.updateNode(n.id,{title:DOM['sb-title'].value},{skipHistory:true});
+    }
+    if(elTimer){
+      clearTimeout(elTimer);
+      elTimer=null;
+      const ed=Store.getSelectedEdge();
+      if(ed) Store.updateEdge(ed.id,{label:DOM['sb-edge-label'].value},{skipHistory:true});
+    }
+    if(dTimer){
+      clearTimeout(dTimer);
+      dTimer=null;
+      const n=Store.getSelectedNode();
+      if(n) Store.updateNode(n.id,{description:DOM['sb-desc'].value},{skipHistory:true});
+    }
     DOM['sidebar'].classList.remove('open');
   }
 
@@ -91,10 +125,10 @@ const App = (() => {
     badge.textContent=node.type; badge.dataset.type=node.type;
     // Não sobrescrever o input se o usuário estiver ativamente digitando nele
     if(document.activeElement !== DOM['sb-title']){
-      DOM['sb-title'].value=node.title;
+      DOM['sb-title'].value=node.title ?? '';
     }
     if(document.activeElement !== DOM['sb-desc']){
-      DOM['sb-desc'].value=node.description;
+      DOM['sb-desc'].value=node.description ?? '';
     }
     DOM['sb-priority-selector'].querySelectorAll('.priority-btn')
       .forEach(b=>b.classList.toggle('active',b.dataset.priority===node.priority));
@@ -107,7 +141,7 @@ const App = (() => {
     const badge=DOM['sb-edge-type-badge'];
     badge.textContent=edge.edgeType; badge.dataset.type=edge.edgeType;
     if(document.activeElement !== DOM['sb-edge-label']){
-      DOM['sb-edge-label'].value = edge.label ?? edge.edgeType;
+      DOM['sb-edge-label'].value = edge.label !== undefined ? edge.label : (edge.edgeType ?? '');
     }
     const src = Store.getNode(edge.source)?.title ?? edge.source;
     const tgt = Store.getNode(edge.target)?.title ?? edge.target;
@@ -149,48 +183,76 @@ const App = (() => {
   }
 
   function bindSidebarInputs(){
-    let tTimer=null;
+    let tStarted = false;
     DOM['sb-title'].addEventListener('input',e=>{
+      if(!tStarted){
+        Store.recordHistory();
+        tStarted = true;
+      }
       clearTimeout(tTimer);
       tTimer=setTimeout(()=>{
+        tTimer=null;
         const n=Store.getSelectedNode(); if(!n) return;
-        Store.updateNode(n.id,{title:e.target.value});
+        Store.updateNode(n.id,{title:e.target.value},{skipHistory:true});
       },200);
     });
 
     DOM['sb-title'].addEventListener('blur',e=>{
-      const n=Store.getSelectedNode(); if(!n) return;
-      if(!e.target.value.trim()){
-        e.target.value = 'Sem título';
-        Store.updateNode(n.id,{title:'Sem título'});
+      if(tTimer){
+        clearTimeout(tTimer);
+        tTimer=null;
       }
+      tStarted = false;
+      const n=Store.getSelectedNode(); if(!n) return;
+      Store.updateNode(n.id,{title:e.target.value},{skipHistory:true});
     });
 
-    let elTimer=null;
+    let elStarted = false;
     DOM['sb-edge-label'].addEventListener('input',e=>{
+      if(!elStarted){
+        Store.recordHistory();
+        elStarted = true;
+      }
       clearTimeout(elTimer);
       elTimer=setTimeout(()=>{
+        elTimer=null;
         const ed=Store.getSelectedEdge(); if(!ed) return;
-        Store.updateEdge(ed.id,{label:e.target.value});
+        Store.updateEdge(ed.id,{label:e.target.value},{skipHistory:true});
       },200);
     });
 
     DOM['sb-edge-label'].addEventListener('blur',e=>{
-      const ed=Store.getSelectedEdge(); if(!ed) return;
-      if(!e.target.value.trim()){
-        const fallback = ed.edgeType;
-        e.target.value = fallback;
-        Store.updateEdge(ed.id,{label:fallback});
+      if(elTimer){
+        clearTimeout(elTimer);
+        elTimer=null;
       }
+      elStarted = false;
+      const ed=Store.getSelectedEdge(); if(!ed) return;
+      Store.updateEdge(ed.id,{label:e.target.value},{skipHistory:true});
     });
 
-    let dTimer=null;
+    let dStarted = false;
     DOM['sb-desc'].addEventListener('input',e=>{
+      if(!dStarted){
+        Store.recordHistory();
+        dStarted = true;
+      }
       clearTimeout(dTimer);
       dTimer=setTimeout(()=>{
+        dTimer=null;
         const n=Store.getSelectedNode(); if(!n) return;
-        Store.updateNode(n.id,{description:e.target.value});
+        Store.updateNode(n.id,{description:e.target.value},{skipHistory:true});
       },300);
+    });
+
+    DOM['sb-desc'].addEventListener('blur',e=>{
+      if(dTimer){
+        clearTimeout(dTimer);
+        dTimer=null;
+      }
+      dStarted = false;
+      const n=Store.getSelectedNode(); if(!n) return;
+      Store.updateNode(n.id,{description:e.target.value},{skipHistory:true});
     });
 
     DOM['sb-priority-selector'].addEventListener('click',e=>{
@@ -208,6 +270,156 @@ const App = (() => {
     });
 
     DOM['sidebar-close'].addEventListener('click',closeSidebar);
+  }
+
+  /* ── Clipboard & History Helpers ───────────────── */
+  function copySelection(){
+    const cy = Graph.getInstance();
+    const selNodes = cy ? cy.$('node:selected') : null;
+    let nodesToCopy = [];
+
+    if(selNodes && selNodes.length > 0){
+      nodesToCopy = selNodes.map(n => Store.getNode(n.id())).filter(Boolean);
+    } else {
+      const single = Store.getSelectedNode();
+      if(single) nodesToCopy = [single];
+    }
+
+    if(!nodesToCopy.length){
+      toast('Nenhum vértice selecionado para copiar');
+      return false;
+    }
+
+    const nodeIds = new Set(nodesToCopy.map(n => n.id));
+    // Copia arestas cujos dois extremos (origem e destino) estejam entre os nós copiados
+    const edgesToCopy = Store.getEdges().filter(e => nodeIds.has(e.source) && nodeIds.has(e.target));
+
+    clipboard = {
+      nodes: nodesToCopy.map(n => ({
+        type: n.type,
+        title: n.title,
+        description: n.description,
+        priority: n.priority,
+        tags: [...n.tags],
+        x: n.x,
+        y: n.y,
+        origId: n.id,
+      })),
+      edges: edgesToCopy.map(e => ({
+        sourceOrig: e.source,
+        targetOrig: e.target,
+        edgeType: e.edgeType,
+        label: e.label,
+        directed: e.directed,
+      })),
+    };
+
+    toast(nodesToCopy.length === 1 ? 'Vértice copiado (Ctrl+C)' : `${nodesToCopy.length} vértices copiados (Ctrl+C)`);
+    return true;
+  }
+
+  function pasteClipboard(targetPos = null){
+    if(!clipboard || !clipboard.nodes.length){
+      toast('Área de transferência vazia');
+      return false;
+    }
+
+    // Determina o centro de ancoragem dos nós originais
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    clipboard.nodes.forEach(n => {
+      if(n.x < minX) minX = n.x;
+      if(n.x > maxX) maxX = n.x;
+      if(n.y < minY) minY = n.y;
+      if(n.y > maxY) maxY = n.y;
+    });
+    const origCenterX = (minX + maxX) / 2;
+    const origCenterY = (minY + maxY) / 2;
+
+    // Destino: se fornecido ou cursor do mouse, centraliza no ponto; senão desloca +40px
+    let destX, destY;
+    if(targetPos){
+      destX = targetPos.x;
+      destY = targetPos.y;
+    } else {
+      const cursor = Graph.getCursorModelPos();
+      destX = cursor.x;
+      destY = cursor.y;
+    }
+
+    const dx = destX - origCenterX;
+    const dy = destY - origCenterY;
+
+    // Se o offset for muito próximo de 0 (colando exatamente sobre o mesmo nó original), desloca ligeiramente
+    const finalDx = Math.abs(dx) < 5 && Math.abs(dy) < 5 ? 40 : dx;
+    const finalDy = Math.abs(dx) < 5 && Math.abs(dy) < 5 ? 40 : dy;
+
+    const idMap = new Map();
+    const createdNodes = [];
+
+    Store.batch(() => {
+      // Adiciona nós
+      clipboard.nodes.forEach(n => {
+        const newNode = Store.addNode({
+          type: n.type,
+          title: n.title,
+          description: n.description,
+          priority: n.priority,
+          tags: [...n.tags],
+          x: Math.round(n.x + finalDx),
+          y: Math.round(n.y + finalDy),
+        });
+        idMap.set(n.origId, newNode.id);
+        createdNodes.push(newNode);
+      });
+
+      // Adiciona arestas correspondentes
+      clipboard.edges.forEach(e => {
+        const newSrc = idMap.get(e.sourceOrig);
+        const newTgt = idMap.get(e.targetOrig);
+        if(newSrc && newTgt){
+          try{
+            Store.addEdge({
+              source: newSrc,
+              target: newTgt,
+              edgeType: e.edgeType,
+              label: e.label,
+              directed: e.directed,
+            });
+          }catch(err){ console.warn(err) }
+        }
+      });
+    });
+
+    // Seleciona novos nós criados no Cytoscape
+    const cy = Graph.getInstance();
+    if(cy){
+      cy.elements().unselect();
+      createdNodes.forEach(n => {
+        cy.getElementById(n.id).select();
+      });
+    }
+
+    if(createdNodes.length === 1){
+      Store.selectNode(createdNodes[0].id);
+      openSidebar(createdNodes[0].id, false);
+      toast('Vértice colado');
+    } else {
+      toast(`${createdNodes.length} vértices colados`);
+    }
+
+    return true;
+  }
+
+  function undoAction(){
+    if(!Store.canUndo()){
+      toast('Nada para desfazer');
+      return false;
+    }
+    const success = Store.undo();
+    if(success){
+      toast('Ação desfeita (Ctrl+Z)');
+    }
+    return success;
   }
 
   /* ═══════════════════════════════════════════════
@@ -239,6 +451,7 @@ const App = (() => {
         <button class="cm-item" data-action="edge" data-edge="relaciona">Relaciona</button>
         <button class="cm-item" data-action="edge" data-edge="neutra">Neutra</button>
         <div class="cm-divider"></div>
+        <button class="cm-item" data-action="copy">Copiar Vértice <span style="margin-left:auto;font-size:11px;color:var(--text-muted)">Ctrl+C</span></button>
         <button class="cm-item" data-action="delete" style="color:var(--node-problema)">Excluir Vértice</button>
       `;
       position(cx, cy);
@@ -259,12 +472,20 @@ const App = (() => {
 
     function showCoreMenu(gx, gy, cx, cy){
       targetPos = { x: gx, y: gy };
+      const canPaste = clipboard && clipboard.nodes && clipboard.nodes.length > 0;
       el.innerHTML = `
         <div class="cm-item" style="font-size:10px;text-transform:uppercase;color:var(--text-muted);pointer-events:none">Novo Vértice</div>
         <button class="cm-item" data-action="add" data-type="problema"><span class="dot dot-problema"></span>Problema</button>
         <button class="cm-item" data-action="add" data-type="solucao"><span class="dot dot-solucao"></span>Solução</button>
         <button class="cm-item" data-action="add" data-type="agrupador"><span class="dot dot-agrupador"></span>Agrupador</button>
         <button class="cm-item" data-action="add" data-type="neutro"><span class="dot dot-neutro"></span>Neutro</button>
+        <div class="cm-divider"></div>
+        <button class="cm-item" data-action="paste" ${canPaste ? '' : 'disabled style="opacity:0.4;cursor:not-allowed"'}>
+          Colar Vértice <span style="margin-left:auto;font-size:11px;color:var(--text-muted)">Ctrl+V</span>
+        </button>
+        <button class="cm-item" data-action="undo" ${Store.canUndo() ? '' : 'disabled style="opacity:0.4;cursor:not-allowed"'}>
+          Desfazer <span style="margin-left:auto;font-size:11px;color:var(--text-muted)">Ctrl+Z</span>
+        </button>
       `;
       position(cx, cy);
     }
@@ -272,7 +493,7 @@ const App = (() => {
     function bind(){
       el.addEventListener('click', e => {
         const btn = e.target.closest('.cm-item');
-        if(!btn || btn.dataset.action === undefined) return;
+        if(!btn || btn.dataset.action === undefined || btn.disabled) return;
         
         const action = btn.dataset.action;
         const currentTargetId = targetId;
@@ -282,14 +503,22 @@ const App = (() => {
         if(action === 'add' && currentTargetPos){
           const node = Graph.addNodeAtPos(btn.dataset.type, currentTargetPos.x, currentTargetPos.y);
           Store.selectNode(node.id);
-          openSidebar(node.id);
-          setTimeout(() => {
-            DOM['sb-title'].focus();
-            DOM['sb-title'].select();
-          }, 50);
+          openSidebar(node.id, true);
         } 
         else if(action === 'edge' && currentTargetId){
           Graph.startEdgeModeFromContext(btn.dataset.edge, currentTargetId);
+        }
+        else if(action === 'copy'){
+          if(currentTargetId){
+            Store.selectNode(currentTargetId);
+          }
+          copySelection();
+        }
+        else if(action === 'paste' && currentTargetPos){
+          pasteClipboard(currentTargetPos);
+        }
+        else if(action === 'undo'){
+          undoAction();
         }
         else if(action === 'delete' && currentTargetId){
           Store.deleteNode(currentTargetId);
@@ -580,6 +809,16 @@ const App = (() => {
         case 'io:import':
           Graph.applyFilter(); break;
 
+        case 'store:restore':
+          if(!Store.getSelectedNode() && !Store.getSelectedEdge()){
+            closeSidebar();
+          } else if(Store.getSelectedNode()){
+            populateSidebar(Store.getSelectedNode());
+          } else if(Store.getSelectedEdge()){
+            populateEdgeSidebar(Store.getSelectedEdge());
+          }
+          break;
+
         case 'store:ready':
           toast(`Trama · ${payload.nodes.length} vértices carregados`,2000); break;
       }
@@ -593,11 +832,7 @@ const App = (() => {
     document.addEventListener('graph:openSidebar',()=>{
       const n=Store.getSelectedNode();
       if(n){
-        openSidebar(n.id);
-        setTimeout(() => {
-          DOM['sb-title'].focus();
-          DOM['sb-title'].select();
-        }, 50);
+        openSidebar(n.id, false);
       }
     });
 
@@ -607,7 +842,7 @@ const App = (() => {
       const edge=Store.getEdge(e.detail.edgeId);
       if(!edge) return;
       Store.selectEdge(edge.id);
-      openEdgeSidebar(edge.id);
+      openEdgeSidebar(edge.id, !!e.detail.isNew);
     });
 
     document.addEventListener('graph:contextNode', e => ContextMenu.showNodeMenu(e.detail.id, e.detail.x, e.detail.y));
@@ -642,8 +877,39 @@ const App = (() => {
     document.addEventListener('keydown',e=>{
       const tag=document.activeElement.tagName;
       const inInput=tag==='INPUT'||tag==='TEXTAREA';
-      if((e.ctrlKey||e.metaKey)&&e.key==='e'){ e.preventDefault(); Store.exportJSON(); toast('Exportado') }
-      if((e.ctrlKey||e.metaKey)&&e.key==='f'){ e.preventDefault(); DOM['search-input'].focus(); DOM['search-input'].select() }
+
+      // Atalhos com Ctrl / Cmd
+      if(e.ctrlKey||e.metaKey){
+        const key = e.key.toLowerCase();
+        if(key === 'z' && !inInput){
+          e.preventDefault();
+          undoAction();
+          return;
+        }
+        if(key === 'c' && !inInput){
+          e.preventDefault();
+          copySelection();
+          return;
+        }
+        if(key === 'v' && !inInput){
+          e.preventDefault();
+          pasteClipboard();
+          return;
+        }
+        if(key === 'e'){
+          e.preventDefault();
+          Store.exportJSON();
+          toast('Exportado');
+          return;
+        }
+        if(key === 'f'){
+          e.preventDefault();
+          DOM['search-input'].focus();
+          DOM['search-input'].select();
+          return;
+        }
+      }
+
       if(e.key==='/'&&!inInput){ e.preventDefault(); DOM['search-input'].focus() }
       if(e.key==='t'&&!inInput) toggleTheme();
       if(e.key==='l'&&!inInput){ Graph.runForceLayout(); toast('Organizando…') }
@@ -677,6 +943,7 @@ const App = (() => {
     bindKeyboard();
 
     DOM['btn-theme'].addEventListener('click',toggleTheme);
+    DOM['btn-undo']?.addEventListener('click', () => undoAction());
     DOM['btn-layout'].addEventListener('click',()=>{
       Graph.runForceLayout();
       toast('Organizando…');

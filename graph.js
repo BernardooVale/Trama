@@ -252,10 +252,10 @@ const Graph = (() => {
     };
   }
   function buildLabel(n){
-    const title = n.title;
+    const title = n.title ?? '';
     if(!Store.getShowNodeMeta()) return title;
     const pi = {alta:'↑',media:'·',baixa:'↓'}[n.priority] ?? '';
-    return `${pi} ${title}`;
+    return pi ? (title ? `${pi} ${title}` : pi) : title;
   }
 
   /* ═══════════════════════════════════════════════
@@ -392,8 +392,17 @@ const Graph = (() => {
     });
 
     /* ── Drag sync ──────────────────────────────── */
+    let _nodeGrabPos = null;
+    cy.on('grab', 'node', evt => {
+      _nodeGrabPos = { ...evt.target.position() };
+    });
+
     cy.on('dragfreeon','node', evt => {
       const p = evt.target.position();
+      if(_nodeGrabPos && (Math.round(_nodeGrabPos.x) !== Math.round(p.x) || Math.round(_nodeGrabPos.y) !== Math.round(p.y))){
+        Store.recordHistory();
+      }
+      _nodeGrabPos = null;
       Store.updateNodePosition(evt.target.id(), p.x, p.y);
     });
 
@@ -514,8 +523,11 @@ const Graph = (() => {
     const nodeIds  = selected.nodes().map(n => n.id());
     const edgeIds  = selected.edges().map(e => e.id());
     if(_selectedCyId && !nodeIds.includes(_selectedCyId)) nodeIds.push(_selectedCyId);
-    nodeIds.forEach(id => { try{ Store.deleteNode(id) }catch(e){ console.warn(e) } });
-    edgeIds.forEach(id => { try{ Store.deleteEdge(id) }catch(e){ console.warn(e) } });
+    if(!nodeIds.length && !edgeIds.length) return;
+    Store.batch(() => {
+      nodeIds.forEach(id => { try{ Store.deleteNode(id) }catch(e){ console.warn(e) } });
+      edgeIds.forEach(id => { try{ Store.deleteEdge(id) }catch(e){ console.warn(e) } });
+    });
     _selectedCyId = null;
   }
 
@@ -587,6 +599,14 @@ const Graph = (() => {
           break;
         }
 
+        case 'store:restore':{
+          cy.elements().remove();
+          const snap = Store.getSnapshot();
+          cy.add([...snap.nodes.map(nodeToEl), ...snap.edges.map(edgeToEl)]);
+          applyFilter();
+          break;
+        }
+
         case 'store:reset':
           cy.elements().remove(); break;
 
@@ -652,7 +672,7 @@ const Graph = (() => {
       const newEdge = Store.addEdge({source:edgeMode.sourceId, target:id, edgeType:edgeMode.edgeType, directed});
       if(newEdge){
         setTimeout(()=>{
-          document.dispatchEvent(new CustomEvent('graph:edgeSelected',{detail:{edgeId:newEdge.id}}));
+          document.dispatchEvent(new CustomEvent('graph:edgeSelected',{detail:{edgeId:newEdge.id, isNew:true}}));
         }, 60);
       }
     }
@@ -710,8 +730,33 @@ const Graph = (() => {
     _handleEdgeModeClick(sourceId);
   }
 
+  function getModelCenter(){
+    if(!cy) return { x: 300, y: 300 };
+    const e = cy.extent();
+    return { x: (e.x1 + e.x2) / 2, y: (e.y1 + e.y2) / 2 };
+  }
+
+  function getCursorModelPos(){
+    if(!cy) return getModelCenter();
+    const container = document.getElementById('cy');
+    if(!container) return getModelCenter();
+    const rect = container.getBoundingClientRect();
+    // Verifica se o mouse está dentro dos limites da janela/canvas
+    if(_lastMousePos.x < rect.left || _lastMousePos.x > rect.right ||
+       _lastMousePos.y < rect.top  || _lastMousePos.y > rect.bottom){
+      return getModelCenter();
+    }
+    const pan = cy.pan();
+    const zoom = cy.zoom();
+    return {
+      x: Math.round((_lastMousePos.x - rect.left - pan.x) / zoom),
+      y: Math.round((_lastMousePos.y - rect.top  - pan.y) / zoom),
+    };
+  }
+
   function runForceLayout(){
     if(!cy) return;
+    Store.recordHistory();
     const layout = cy.layout({
       name: 'cose',
       animate: true,
@@ -732,6 +777,6 @@ const Graph = (() => {
   return {
     init, addNodeAtCenter, addNodeAtPos, applyFilter,
     focusNode, syncTheme, cancelEdgeMode, getInstance, startEdgeModeFromContext,
-    runForceLayout
+    runForceLayout, getCursorModelPos, getModelCenter
   };
 })();
