@@ -43,7 +43,7 @@ Gerencia a barra de abas de grafos inspirada no CircuitVerse / navegadores web, 
 
 #### `showTabContextMenu(tabId, cx, cy)`
 - **Assinatura:** `showTabContextMenu(tabId: string, cx: number, cy: number): void`
-- **Descrição:** Abre menu de contexto posicionado em `(cx, cy)` com opções de renomear (`Ctrl+E`), criar nova aba (`Ctrl+T`) e fechar aba (`Ctrl+W`, desabilitado para a aba principal).
+- **Descrição:** Abre menu de contexto posicionado em `(cx, cy)` com opções de renomear (`Ctrl+E`), criar nova aba (`Ctrl+Shift+T`) e fechar aba (`Ctrl+Shift+W`, desabilitado para a aba principal).
 - **Retorno:** `undefined`.
 
 #### `bind()`

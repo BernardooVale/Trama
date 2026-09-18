@@ -402,14 +402,14 @@ const App = (() => {
       // Atalhos com Ctrl / Cmd
       if(e.ctrlKey||e.metaKey){
         const key = e.key.toLowerCase();
-        // Ctrl+T: Nova aba de grafo
-        if(key === 't' && !inInput){
+        // Ctrl+Shift+T: Nova aba de grafo
+        if(key === 't' && e.shiftKey && !inInput){
           e.preventDefault();
           Store.createTab();
           return;
         }
-        // Ctrl+W: Fechar aba de grafo ativa
-        if(key === 'w' && !inInput){
+        // Ctrl+Shift+W: Fechar aba de grafo ativa
+        if(key === 'w' && e.shiftKey && !inInput){
           e.preventDefault();
           TabsUI.deleteTabPrompt(Store.getActiveTabId());
           return;
@@ -509,7 +509,14 @@ const App = (() => {
       toast(!cur?'Metadados visíveis':'Metadados ocultos');
     });
 
-    setTimeout(()=>toast('Dica: Ctrl+T nova aba · Ctrl+W fechar · Ctrl+E renomear · Ctrl+Click pula pro subgrafo',4000),2200);
+    bindGlobalContextMenu();
+    setTimeout(()=>toast('Dica: Ctrl+Shift+T nova aba · Ctrl+Shift+W fechar · Ctrl+E renomear · Ctrl+Click pula pro subgrafo',4000),2200);
+  }
+
+  function bindGlobalContextMenu(){
+    document.addEventListener('contextmenu', e => {
+      e.preventDefault();
+    });
   }
 
   return {

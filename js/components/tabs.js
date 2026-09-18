@@ -53,7 +53,7 @@ const TabsUI = (() => {
       if(!tab.isMain){
         const closeBtn = document.createElement('button');
         closeBtn.className = 'tab-close';
-        closeBtn.title = 'Fechar aba (Ctrl+W)';
+        closeBtn.title = 'Fechar aba (Ctrl+Shift+W)';
         closeBtn.innerHTML = '✕';
         closeBtn.addEventListener('click', e => {
           e.stopPropagation();
@@ -159,10 +159,10 @@ const TabsUI = (() => {
     cm.innerHTML = `
       <div class="cm-item" style="font-size:10px;text-transform:uppercase;color:var(--text-muted);pointer-events:none">Aba: ${esc(tab.name)}${tab.isMain ? ' (Fixa)' : ''}</div>
       <button class="cm-item" data-action="tab-rename" data-tab-id="${tabId}">Renomear Aba <span style="margin-left:auto;font-size:11px;color:var(--text-muted)">Ctrl+E</span></button>
-      <button class="cm-item" data-action="tab-duplicate">Nova Aba <span style="margin-left:auto;font-size:11px;color:var(--text-muted)">Ctrl+T</span></button>
+      <button class="cm-item" data-action="tab-duplicate">Nova Aba <span style="margin-left:auto;font-size:11px;color:var(--text-muted)">Ctrl+Shift+T</span></button>
       ${!tab.isMain ? `
         <div class="cm-divider"></div>
-        <button class="cm-item" data-action="tab-delete" data-tab-id="${tabId}" style="color:var(--node-problema)">Fechar Aba <span style="margin-left:auto;font-size:11px;color:var(--text-muted)">Ctrl+W</span></button>
+        <button class="cm-item" data-action="tab-delete" data-tab-id="${tabId}" style="color:var(--node-problema)">Fechar Aba <span style="margin-left:auto;font-size:11px;color:var(--text-muted)">Ctrl+Shift+W</span></button>
       ` : ''}
     `;
 

@@ -512,7 +512,7 @@ Orquestrador geral enxuto da aplicação, responsável por integrar os component
 
 #### `bindKeyboard()`
 - **Assinatura:** `bindKeyboard(): void`
-- **Descrição:** Mapeia atalhos globais de teclado (`Ctrl+T` nova aba, `Ctrl+W` fechar aba ativa, `Ctrl+E` renomear aba ativa, `Ctrl+S` exportar JSON, `Ctrl+C` copiar, `Ctrl+V` colar, `Ctrl+Z` desfazer, `Ctrl+F` ou `/` buscar, `T` tema, `L` layout automático, `1-4` filtros), respeitando a digitação em inputs de texto.
+- **Descrição:** Mapeia atalhos globais de teclado (`Ctrl+Shift+T` nova aba, `Ctrl+Shift+W` fechar aba ativa, `Ctrl+E` renomear aba ativa, `Ctrl+S` exportar JSON, `Ctrl+C` copiar, `Ctrl+V` colar, `Ctrl+Z` desfazer, `Ctrl+F` ou `/` buscar, `T` tema, `L` layout automático, `1-4` filtros), respeitando a digitação em inputs de texto.
 - **Retorno:** `undefined`.
 
 #### `esc(s)`
