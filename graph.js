@@ -209,22 +209,30 @@ const Graph = (() => {
     }, { passive: true });
 
     document.addEventListener('keydown', e => {
-      if(e.key !== 'Shift') return;
-      window._shiftHeld = true;
-      cy.boxSelectionEnabled(true);
-      cy.selectionType('additive');
-      if(GraphFocus.isFocusActive() && GraphFocus.getFocusNodeId()){
-        GraphFocus.activate(cy, GraphFocus.getFocusNodeId(), true);
+      if(e.key === 'Shift'){
+        window._shiftHeld = true;
+        cy.boxSelectionEnabled(true);
+        cy.selectionType('additive');
+      }
+      if(e.key === 'Control' || e.key === 'Meta'){
+        window._ctrlHeld = true;
+      }
+      if((e.key === 'Shift' || e.key === 'Control' || e.key === 'Meta') && GraphFocus.isFocusActive() && GraphFocus.getFocusNodeId()){
+        GraphFocus.activate(cy, GraphFocus.getFocusNodeId(), !!window._shiftHeld, !!window._ctrlHeld);
       }
     });
 
     document.addEventListener('keyup', e => {
-      if(e.key !== 'Shift') return;
-      window._shiftHeld = false;
-      cy.boxSelectionEnabled(false);
-      cy.selectionType('single');
-      if(GraphFocus.isFocusActive() && GraphFocus.getFocusNodeId()){
-        GraphFocus.activate(cy, GraphFocus.getFocusNodeId(), false);
+      if(e.key === 'Shift'){
+        window._shiftHeld = false;
+        cy.boxSelectionEnabled(false);
+        cy.selectionType('single');
+      }
+      if(e.key === 'Control' || e.key === 'Meta'){
+        window._ctrlHeld = false;
+      }
+      if((e.key === 'Shift' || e.key === 'Control' || e.key === 'Meta') && GraphFocus.isFocusActive() && GraphFocus.getFocusNodeId()){
+        GraphFocus.activate(cy, GraphFocus.getFocusNodeId(), !!window._shiftHeld, !!window._ctrlHeld);
       }
     });
 

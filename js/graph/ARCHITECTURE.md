@@ -43,9 +43,9 @@ Controla o modo de foco do grafo ativado após repouso do cursor do mouse sobre 
 - **Descrição:** Inicializa os listeners de movimento do mouse na janela para calcular velocidade e inibir foco durante movimento contínuo.
 - **Retorno:** `undefined`.
 
-#### `activate(cy, nodeId, inbound)`
-- **Assinatura:** `activate(cy: cytoscape.Core, nodeId: string, inbound: boolean): void`
-- **Descrição:** Destaca o nó sob foco e seus vizinhos imediatos (entradas se `inbound === true`, saídas se `inbound === false`), esmaecendo o restante do grafo com `.focus-dim`.
+#### `activate(cy, nodeId, inbound, allPaths)`
+- **Assinatura:** `activate(cy: cytoscape.Core, nodeId: string, inbound: boolean, allPaths?: boolean): void`
+- **Descrição:** Destaca o nó sob foco e sua vizinhança ou todos os caminhos alcançáveis (diretos ou invertidos dependendo de `inbound`; se `allPaths === true`, percorre recursivamente via BFS todos os caminhos a partir do nó ou até ele), esmaecendo o restante do grafo com `.focus-dim`.
 - **Retorno:** `undefined`.
 
 #### `clearClasses(cy)`
