@@ -1,7 +1,7 @@
 {
   "version": 2,
-  "exportedAt": "2026-09-18T19:04:01.861Z",
-  "activeTabId": "tab_mu7bq3j1_bq9u",
+  "exportedAt": "2026-09-21T13:21:35.658Z",
+  "activeTabId": "tab_mu6zvo1r_ksye",
   "tabs": [
     {
       "id": "tab_mu6zvo1r_ksye",
@@ -58,12 +58,12 @@
         {
           "id": "n_mu799eds_lg9sh",
           "type": "solucao",
-          "title": "Gerenciar módulos",
+          "title": "Gerenciamento interno",
           "description": "",
           "priority": "media",
           "tags": [],
-          "x": 343,
-          "y": 190,
+          "x": 305,
+          "y": -69,
           "createdAt": 1789753898512,
           "subgraphTabId": null
         },
@@ -74,8 +74,8 @@
           "description": "",
           "priority": "media",
           "tags": [],
-          "x": 365,
-          "y": -6,
+          "x": 403,
+          "y": 59,
           "createdAt": 1789753898512,
           "subgraphTabId": null
         },
@@ -134,8 +134,8 @@
           "description": "",
           "priority": "media",
           "tags": [],
-          "x": 614,
-          "y": 0,
+          "x": 664,
+          "y": 57,
           "createdAt": 1789754176864,
           "subgraphTabId": "tab_mu79ausv_6rgr"
         },
@@ -174,18 +174,6 @@
           "y": -150,
           "createdAt": 1789754427615,
           "subgraphTabId": "tab_mu79hji8_h3ie"
-        },
-        {
-          "id": "n_mu79owg7_b7gbx",
-          "type": "problema",
-          "title": "Fim",
-          "description": "",
-          "priority": "media",
-          "tags": [],
-          "x": -671,
-          "y": -11,
-          "createdAt": 1789754621767,
-          "subgraphTabId": null
         },
         {
           "id": "n_mu79vla7_wynzf",
@@ -254,21 +242,9 @@
           "description": "",
           "priority": "media",
           "tags": [],
-          "x": 979,
-          "y": 342,
-          "createdAt": 1789757390867,
-          "subgraphTabId": null
-        },
-        {
-          "id": "n_mu7bcfjl_hd5cn",
-          "type": "problema",
-          "title": "Fim",
-          "description": "",
-          "priority": "media",
-          "tags": [],
-          "x": 968,
+          "x": 983,
           "y": 197,
-          "createdAt": 1789757399217,
+          "createdAt": 1789757390867,
           "subgraphTabId": null
         },
         {
@@ -278,10 +254,214 @@
           "description": "",
           "priority": "media",
           "tags": [],
-          "x": 123,
-          "y": 399,
+          "x": 121,
+          "y": 377,
           "createdAt": 1789758027757,
           "subgraphTabId": null
+        },
+        {
+          "id": "n_mub8qo5f_vc1n8",
+          "type": "solucao",
+          "title": "Automatizar tudo",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": 119,
+          "y": -20,
+          "createdAt": 1789994889411,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_mub8r1hf_bpeh9",
+          "type": "subgrafo",
+          "title": "iot",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": 119,
+          "y": -141,
+          "createdAt": 1789994906691,
+          "subgraphTabId": "tab_mu70ornh_kte4"
+        },
+        {
+          "id": "n_mub8rmfx_u408s",
+          "type": "subgrafo",
+          "title": "Monitorar equipamento",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": -84,
+          "y": -143,
+          "createdAt": 1789994933853,
+          "subgraphTabId": "tab_mu79hji8_h3ie"
+        },
+        {
+          "id": "n_mub8rxuj_05yid",
+          "type": "subgrafo",
+          "title": "Interesse automações",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": 118,
+          "y": -268,
+          "createdAt": 1789994948635,
+          "subgraphTabId": "tab_mu79y0rq_h6gq"
+        },
+        {
+          "id": "n_mub8tkcb_tj9pf",
+          "type": "problema",
+          "title": "Fim",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": 119,
+          "y": -405,
+          "createdAt": 1789995024443,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_mub8ucle_2bog4",
+          "type": "subgrafo",
+          "title": "Coleta de dados",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": 124,
+          "y": 534,
+          "createdAt": 1789995061058,
+          "subgraphTabId": "tab_mu7bq3j1_bq9u"
+        },
+        {
+          "id": "n_mub8urs2_wdctd",
+          "type": "subgrafo",
+          "title": "Painel solar",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": -85,
+          "y": 648,
+          "createdAt": 1789995080738,
+          "subgraphTabId": "tab_mu70olro_5x0r"
+        },
+        {
+          "id": "n_mub8vdq0_5oydb",
+          "type": "subgrafo",
+          "title": "Conta de energia",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": 356,
+          "y": 538,
+          "createdAt": 1789995109176,
+          "subgraphTabId": "tab_mu70oez7_w9t3"
+        },
+        {
+          "id": "n_mub8vriq_vkpt9",
+          "type": "subgrafo",
+          "title": "iot",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": 355,
+          "y": 645,
+          "createdAt": 1789995127058,
+          "subgraphTabId": "tab_mu70ornh_kte4"
+        },
+        {
+          "id": "n_mub8w7vm_bg02f",
+          "type": "subgrafo",
+          "title": "Baterias",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": 121,
+          "y": 657,
+          "createdAt": 1789995148258,
+          "subgraphTabId": "tab_mu7a2h9r_hl9f"
+        },
+        {
+          "id": "n_mub8yvn5_3dh2g",
+          "type": "problema",
+          "title": "Fim",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": 120,
+          "y": 791,
+          "createdAt": 1789995272369,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_mub8zp5t_rbit3",
+          "type": "problema",
+          "title": "Fim",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": -888,
+          "y": 182,
+          "createdAt": 1789995310625,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_mub90cb4_8ri8g",
+          "type": "problema",
+          "title": "Fim",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": 981,
+          "y": 54,
+          "createdAt": 1789995340624,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_mub929dm_g6u31",
+          "type": "solucao",
+          "title": "Gerenciar locais",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": 337,
+          "y": 199,
+          "createdAt": 1789995430138,
+          "subgraphTabId": null
+        },
+        {
+          "id": "n_mub92rzc_mzrai",
+          "type": "subgrafo",
+          "title": "Painel solar",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": 517,
+          "y": -66,
+          "createdAt": 1789995454248,
+          "subgraphTabId": "tab_mu70olro_5x0r"
+        },
+        {
+          "id": "n_mub92ych_ybs5l",
+          "type": "subgrafo",
+          "title": "Baterias",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": 669,
+          "y": -69,
+          "createdAt": 1789995462497,
+          "subgraphTabId": "tab_mu7a2h9r_hl9f"
+        },
+        {
+          "id": "n_mub93a1l_mzwel",
+          "type": "subgrafo",
+          "title": "iot",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "x": 804,
+          "y": -71,
+          "createdAt": 1789995477657,
+          "subgraphTabId": "tab_mu70ornh_kte4"
         }
       ],
       "edges": [
@@ -366,14 +546,6 @@
           "directed": true
         },
         {
-          "id": "e_mu79foaf_oameb",
-          "source": "n_mu799eds_lg9sh",
-          "target": "n_mu79fmm0_b0kun",
-          "edgeType": "neutra",
-          "label": "",
-          "directed": true
-        },
-        {
           "id": "e_mu79hcp3_nm2lo",
           "source": "n_mu79a1xs_5wz2m",
           "target": "n_mu79ha3t_3gexn",
@@ -390,26 +562,10 @@
           "directed": true
         },
         {
-          "id": "e_mu79p6fz_24b2i",
-          "source": "n_mu79ha3t_3gexn",
-          "target": "n_mu79owg7_b7gbx",
-          "edgeType": "dependencia",
-          "label": "",
-          "directed": true
-        },
-        {
           "id": "e_mu79vnsm_a1o7s",
           "source": "n_mu79adps_85023",
           "target": "n_mu79vla7_wynzf",
           "edgeType": "neutra",
-          "label": "",
-          "directed": true
-        },
-        {
-          "id": "e_mu7a50al_llq22",
-          "source": "n_mu79kqn3_r3ue3",
-          "target": "n_mu79owg7_b7gbx",
-          "edgeType": "dependencia",
           "label": "",
           "directed": true
         },
@@ -454,22 +610,6 @@
           "directed": true
         },
         {
-          "id": "e_mu7bch5s_qxz7s",
-          "source": "n_mu7b7z94_7cvee",
-          "target": "n_mu7bcfjl_hd5cn",
-          "edgeType": "dependencia",
-          "label": "",
-          "directed": true
-        },
-        {
-          "id": "e_mu7bcig0_fom2i",
-          "source": "n_mu7bc93n_9mfxk",
-          "target": "n_mu7bcfjl_hd5cn",
-          "edgeType": "dependencia",
-          "label": "",
-          "directed": true
-        },
-        {
           "id": "e_mu7bl1en_qf6s3",
           "source": "n_mu799eds_cs2do",
           "target": "n_mu79fmm0_b0kun",
@@ -482,6 +622,222 @@
           "source": "n_mu799edr_xymha",
           "target": "n_mu7bpwj1_3o2dz",
           "edgeType": "resolve",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mub8qz97_zjwxc",
+          "source": "n_mu799edr_xymha",
+          "target": "n_mub8qo5f_vc1n8",
+          "edgeType": "resolve",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mub8r52q_s0gu0",
+          "source": "n_mub8qo5f_vc1n8",
+          "target": "n_mub8r1hf_bpeh9",
+          "edgeType": "neutra",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mub8rper_qmmhn",
+          "source": "n_mub8r1hf_bpeh9",
+          "target": "n_mub8rmfx_u408s",
+          "edgeType": "resolve",
+          "label": "Sim",
+          "directed": true
+        },
+        {
+          "id": "e_mub8s09v_8rm60",
+          "source": "n_mub8r1hf_bpeh9",
+          "target": "n_mub8rxuj_05yid",
+          "edgeType": "dependencia",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mub8s1vv_v1m22",
+          "source": "n_mub8rmfx_u408s",
+          "target": "n_mub8rxuj_05yid",
+          "edgeType": "neutra",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mub8tp2z_49ilu",
+          "source": "n_mub8rxuj_05yid",
+          "target": "n_mub8tkcb_tj9pf",
+          "edgeType": "dependencia",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mub8uflg_1lztk",
+          "source": "n_mu7bpwj1_3o2dz",
+          "target": "n_mub8ucle_2bog4",
+          "edgeType": "neutra",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mub8uv5v_tfs3p",
+          "source": "n_mub8ucle_2bog4",
+          "target": "n_mub8urs2_wdctd",
+          "edgeType": "resolve",
+          "label": "Geração",
+          "directed": true
+        },
+        {
+          "id": "e_mub8vfy2_bpfin",
+          "source": "n_mub8ucle_2bog4",
+          "target": "n_mub8vdq0_5oydb",
+          "edgeType": "resolve",
+          "label": "Consumo",
+          "directed": true
+        },
+        {
+          "id": "e_mub8vtmt_p48ye",
+          "source": "n_mub8ucle_2bog4",
+          "target": "n_mub8vriq_vkpt9",
+          "edgeType": "resolve",
+          "label": "IoT",
+          "directed": true
+        },
+        {
+          "id": "e_mub8wbw1_arrce",
+          "source": "n_mub8ucle_2bog4",
+          "target": "n_mub8w7vm_bg02f",
+          "edgeType": "resolve",
+          "label": "Baterias",
+          "directed": true
+        },
+        {
+          "id": "e_mub8wwlt_nhowa",
+          "source": "n_mub8vdq0_5oydb",
+          "target": "n_mub8vriq_vkpt9",
+          "edgeType": "neutra",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mub8zf0w_29heb",
+          "source": "n_mub8vriq_vkpt9",
+          "target": "n_mub8yvn5_3dh2g",
+          "edgeType": "dependencia",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mub8zg8p_gaedr",
+          "source": "n_mub8w7vm_bg02f",
+          "target": "n_mub8yvn5_3dh2g",
+          "edgeType": "dependencia",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mub8zhhr_a0ffm",
+          "source": "n_mub8urs2_wdctd",
+          "target": "n_mub8yvn5_3dh2g",
+          "edgeType": "dependencia",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mub8zxd4_2ntg8",
+          "source": "n_mu79ha3t_3gexn",
+          "target": "n_mub8zp5t_rbit3",
+          "edgeType": "dependencia",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mub8zz21_jtqb0",
+          "source": "n_mu79adcp_xbk5o",
+          "target": "n_mub8zp5t_rbit3",
+          "edgeType": "dependencia",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mub905m1_fbwrk",
+          "source": "n_mu79vla7_wynzf",
+          "target": "n_mub8zp5t_rbit3",
+          "edgeType": "dependencia",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mub90jaq_me55g",
+          "source": "n_mu79fd5s_7f9qn",
+          "target": "n_mub90cb4_8ri8g",
+          "edgeType": "dependencia",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mub90mrc_m0en1",
+          "source": "n_mu7bc93n_9mfxk",
+          "target": "n_mub90cb4_8ri8g",
+          "edgeType": "dependencia",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mub92kk1_4ikzr",
+          "source": "n_mu799edr_xymha",
+          "target": "n_mub929dm_g6u31",
+          "edgeType": "resolve",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mub92lox_62xge",
+          "source": "n_mub929dm_g6u31",
+          "target": "n_mu79fmm0_b0kun",
+          "edgeType": "neutra",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mub92u7i_jle79",
+          "source": "n_mu799eds_lg9sh",
+          "target": "n_mub92rzc_mzrai",
+          "edgeType": "neutra",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mub930sw_k0cct",
+          "source": "n_mub92rzc_mzrai",
+          "target": "n_mub92ych_ybs5l",
+          "edgeType": "neutra",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mub93bah_30wvi",
+          "source": "n_mub92ych_ybs5l",
+          "target": "n_mub93a1l_mzwel",
+          "edgeType": "neutra",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mub93eaw_5cpoh",
+          "source": "n_mub93a1l_mzwel",
+          "target": "n_mub90cb4_8ri8g",
+          "edgeType": "dependencia",
+          "label": "",
+          "directed": true
+        },
+        {
+          "id": "e_mub9e6t2_mbr8g",
+          "source": "n_mu7b7z94_7cvee",
+          "target": "n_mu7bc93n_9mfxk",
+          "edgeType": "dependencia",
           "label": "",
           "directed": true
         }

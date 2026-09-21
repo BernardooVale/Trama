@@ -172,12 +172,18 @@ const Graph = (() => {
     const cyContainer = document.getElementById('cy');
 
     let _draggingNode = false;
-    cy.on('grab', 'node', () => { _draggingNode = true; });
+    cy.on('grab', 'node', () => {
+      _draggingNode = true;
+      GraphFocus.cancelTimer();
+      GraphFocus.clear(cy);
+    });
     cy.on('free', 'node', () => { _draggingNode = false; });
     cy.on('dragfree', 'node', () => { _draggingNode = false; });
 
     cyContainer.addEventListener('mousedown', e => {
       if(e.button !== 0) return;
+      GraphFocus.cancelTimer();
+      GraphFocus.clear(cy);
       _panMouseStart = { x: e.clientX, y: e.clientY };
       _panUnlocked = false;
       if(!_draggingNode) cy.userPanningEnabled(false);

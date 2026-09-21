@@ -8,19 +8,20 @@ const GraphFocus = (() => {
   let _focusNodeId = null;
   const FOCUS_DELAY = 750;
   let _lastMousePos = { x: 0, y: 0 };
-  let _mouseMoving = false;
-  let _moveCheckTimer = null;
+  let _mouseDown = false;
 
   function init(){
     document.addEventListener('mousemove', e => {
-      const dx = e.clientX - _lastMousePos.x;
-      const dy = e.clientY - _lastMousePos.y;
-      if(Math.hypot(dx, dy) > 2){
-        _mouseMoving = true;
-        clearTimeout(_moveCheckTimer);
-        _moveCheckTimer = setTimeout(() => { _mouseMoving = false; }, 120);
-      }
       _lastMousePos = { x: e.clientX, y: e.clientY };
+    }, { passive: true });
+
+    document.addEventListener('mousedown', () => {
+      _mouseDown = true;
+      clearTimeout(_focusTimer);
+    }, { passive: true });
+
+    document.addEventListener('mouseup', () => {
+      _mouseDown = false;
     }, { passive: true });
   }
 
@@ -94,7 +95,12 @@ const GraphFocus = (() => {
   function onNodeMouseOver(cy, nodeId, grabbed){
     clearTimeout(_focusTimer);
     _focusTimer = setTimeout(() => {
-      if(_mouseMoving || grabbed) return;
+      // Ignora foco se houver arrasto de nó, clique/botão pressionado ou modo de aresta ativo
+      if(grabbed || _mouseDown) return;
+      if(GraphEdgeMode && GraphEdgeMode.isActive()) return;
+      const node = cy.getElementById(nodeId);
+      if(!node.length || node.grabbed()) return;
+
       const inbound = window._shiftHeld === true;
       const allPaths = window._ctrlHeld === true;
       activate(cy, nodeId, inbound, allPaths);
@@ -106,9 +112,13 @@ const GraphFocus = (() => {
     clear(cy);
   }
 
+  function cancelTimer(){
+    clearTimeout(_focusTimer);
+  }
+
   function getLastMousePos(){ return { ..._lastMousePos }; }
   function isFocusActive(){ return _focusActive; }
   function getFocusNodeId(){ return _focusNodeId; }
 
-  return { init, activate, clear, clearClasses, onNodeMouseOver, onNodeMouseOut, getLastMousePos, isFocusActive, getFocusNodeId };
+  return { init, activate, clear, clearClasses, cancelTimer, onNodeMouseOver, onNodeMouseOut, getLastMousePos, isFocusActive, getFocusNodeId };
 })();

@@ -40,7 +40,7 @@ Controla o modo de foco do grafo ativado após repouso do cursor do mouse sobre 
 
 #### `init()`
 - **Assinatura:** `init(): void`
-- **Descrição:** Inicializa os listeners de movimento do mouse na janela para calcular velocidade e inibir foco durante movimento contínuo.
+- **Descrição:** Registra listeners globais para atualizar a posição do mouse e detectar estados de botões pressionados (`mousedown`/`mouseup`) para cancelar temporizadores de foco durante cliques ou arrastos.
 - **Retorno:** `undefined`.
 
 #### `activate(cy, nodeId, inbound, allPaths)`
@@ -58,9 +58,14 @@ Controla o modo de foco do grafo ativado após repouso do cursor do mouse sobre 
 - **Descrição:** Desativa o modo foco, limpa classes e oculta a dica flutuante de teclado.
 - **Retorno:** `undefined`.
 
+#### `cancelTimer()`
+- **Assinatura:** `cancelTimer(): void`
+- **Descrição:** Cancela o timer pendente de ativação do foco.
+- **Retorno:** `undefined`.
+
 #### `onNodeMouseOver(cy, nodeId, grabbed)`
 - **Assinatura:** `onNodeMouseOver(cy: cytoscape.Core, nodeId: string, grabbed: boolean): void`
-- **Descrição:** Agenda a ativação do foco após atraso de 750ms caso o mouse permaneça imóvel sobre o nó.
+- **Descrição:** Agenda a ativação do foco após 750ms caso o cursor permaneça sobre o vértice (evento nativo do Cytoscape) sem que nenhuma ação conflitante ocorra (ignora se houver clique, botão do mouse pressionado, nó agarrado/arrastado ou modo de aresta ativo).
 - **Retorno:** `undefined`.
 
 #### `onNodeMouseOut(cy)`
