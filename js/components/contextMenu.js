@@ -31,13 +31,31 @@ const ContextMenu = (() => {
     targetId = id;
     const el = getEl();
     if(!el) return;
+    const node = Store.getNode(id);
+    const hasParent = Boolean(node && node.parentId);
+    const isParent = Boolean(node && node.type === 'agrupador');
+
+    let compoundActions = '';
+    if(isParent){
+      compoundActions = `<button class="cm-item" data-action="ungroup-parent">Desagrupar Contêiner</button>`;
+    } else {
+      if(hasParent){
+        compoundActions = `<button class="cm-item" data-action="ungroup">Remover do Contêiner</button>`;
+      }
+      compoundActions += `<button class="cm-item" data-action="group">Agrupar em Contêiner</button>`;
+    }
+
     el.innerHTML = `
+      <div class="cm-item" style="font-size:10px;text-transform:uppercase;color:var(--text-muted);pointer-events:none">Ações Rápidas</div>
+      <button class="cm-item" data-action="quick-child">⚡ Criar Filho Conectado <span style="margin-left:auto;font-size:11px;color:var(--text-muted)">Tab</span></button>
+      <div class="cm-divider"></div>
       <div class="cm-item" style="font-size:10px;text-transform:uppercase;color:var(--text-muted);pointer-events:none">Nova Aresta</div>
       <button class="cm-item" data-action="edge" data-edge="dependencia">Dependência</button>
       <button class="cm-item" data-action="edge" data-edge="resolve">Resolve</button>
       <button class="cm-item" data-action="edge" data-edge="relaciona">Relaciona</button>
       <button class="cm-item" data-action="edge" data-edge="neutra">Neutra</button>
       <div class="cm-divider"></div>
+      ${compoundActions}
       <button class="cm-item" data-action="copy">Copiar Vértice <span style="margin-left:auto;font-size:11px;color:var(--text-muted)">Ctrl+C</span></button>
       <button class="cm-item" data-action="delete" style="color:var(--node-problema)">Excluir Vértice</button>
     `;
@@ -83,7 +101,7 @@ const ContextMenu = (() => {
       <div class="cm-item" style="font-size:10px;text-transform:uppercase;color:var(--text-muted);pointer-events:none">Novo Vértice</div>
       <button class="cm-item" data-action="add" data-type="problema"><span class="dd-dot dd-dot--problema"></span>Problema</button>
       <button class="cm-item" data-action="add" data-type="solucao"><span class="dd-dot dd-dot--solucao"></span>Solução</button>
-      <button class="cm-item" data-action="add" data-type="agrupador"><span class="dd-dot dd-dot--agrupador"></span>Agrupador</button>
+      <button class="cm-item" data-action="add" data-type="agrupador"><span class="dd-dot dd-dot--agrupador"></span>Contêiner / Agrupador</button>
       <button class="cm-item" data-action="add" data-type="neutro"><span class="dd-dot dd-dot--neutro"></span>Neutro</button>
       <button class="cm-item" data-action="add" data-type="texto"><span class="dd-dot dd-dot--texto"></span>Texto <span style="margin-left:auto;font-size:11px;color:var(--text-muted)">T</span></button>
       ${importTabsHtml}
@@ -94,6 +112,12 @@ const ContextMenu = (() => {
       <button class="cm-item" data-action="undo" ${Store.canUndo() ? '' : 'disabled style="opacity:0.4;cursor:not-allowed"'}>
         Desfazer <span style="margin-left:auto;font-size:11px;color:var(--text-muted)">Ctrl+Z</span>
       </button>
+      <button class="cm-item" data-action="redo" ${Store.canRedo() ? '' : 'disabled style="opacity:0.4;cursor:not-allowed"'}>
+        Refazer <span style="margin-left:auto;font-size:11px;color:var(--text-muted)">Ctrl+Y</span>
+      </button>
+      <div class="cm-divider"></div>
+      <button class="cm-item" data-action="diagnostics">Diagnóstico de Arquitetura 🩺</button>
+      <button class="cm-item" data-action="zen">Modo Zen <span style="margin-left:auto;font-size:11px;color:var(--text-muted)">Z</span></button>
     `;
     position(cx, cy);
   }
@@ -115,6 +139,27 @@ const ContextMenu = (() => {
         const node = Graph.addNodeAtPos(btn.dataset.type, currentTargetPos.x, currentTargetPos.y);
         Store.selectNode(node.id);
         Sidebar.open(node.id, true);
+      }
+      else if(action === 'quick-child' && currentTargetId){
+        Graph.createQuickChild(currentTargetId);
+      }
+      else if(action === 'group'){
+        const cy = Graph.getInstance();
+        const selectedIds = cy ? cy.$('node:selected').map(n => n.id()) : [];
+        const targetIds = selectedIds.length ? selectedIds : (currentTargetId ? [currentTargetId] : []);
+        if(targetIds.length){
+          const container = Store.groupNodes(targetIds);
+          if(container){
+            Store.selectNode(container.id);
+            Sidebar.open(container.id, true);
+          }
+        }
+      }
+      else if(action === 'ungroup' && currentTargetId){
+        Store.ungroupNode(currentTargetId);
+      }
+      else if(action === 'ungroup-parent' && currentTargetId){
+        Store.ungroupParent(currentTargetId);
       }
       else if(action === 'import-tab' && currentTargetPos){
         const tabId = btn.dataset.tabId;
@@ -143,6 +188,15 @@ const ContextMenu = (() => {
       }
       else if(action === 'undo'){
         App.undoAction();
+      }
+      else if(action === 'redo'){
+        App.redoAction();
+      }
+      else if(action === 'diagnostics'){
+        App.openDiagnostics();
+      }
+      else if(action === 'zen'){
+        App.toggleZenMode();
       }
       else if(action === 'delete' && currentTargetId){
         Store.deleteNode(currentTargetId);

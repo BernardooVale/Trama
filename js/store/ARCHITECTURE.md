@@ -40,6 +40,21 @@ Módulo responsável por gerenciar a pilha de estados anteriores (desfazer/undo)
 - **Descrição:** Verifica se existem snapshots salvos na pilha de desfazer.
 - **Retorno:** `true` se houver estados anteriores para restaurar; `false` se a pilha estiver vazia.
 
+#### `canRedo()`
+- **Assinatura:** `canRedo(): boolean`
+- **Descrição:** Verifica se existem snapshots salvos na pilha de refazer.
+- **Retorno:** `true` se houver estados para avançar/refazer; `false` caso contrário.
+
+#### `undo(activeTab)`
+- **Assinatura:** `undo(activeTab: Tab): Snapshot | null`
+- **Descrição:** Salva o estado atual na pilha de refazer (`redoStack`) e desempilha o snapshot anterior da pilha de desfazer (`undoStack`).
+- **Retorno:** Objeto de snapshot contendo `tabId`, `nodes` e `edges`, ou `null` se vazia.
+
+#### `redo(activeTab)`
+- **Assinatura:** `redo(activeTab: Tab): Snapshot | null`
+- **Descrição:** Salva o estado atual na pilha de desfazer (`undoStack`) e desempilha o snapshot da pilha de refazer (`redoStack`).
+- **Retorno:** Objeto de snapshot contendo `tabId`, `nodes` e `edges`, ou `null` se vazia.
+
 #### `pop()`
 - **Assinatura:** `pop(): Snapshot | null`
 - **Descrição:** Remove e retorna o último snapshot salvo da pilha de desfazer.
@@ -47,7 +62,7 @@ Módulo responsável por gerenciar a pilha de estados anteriores (desfazer/undo)
 
 #### `clear()`
 - **Assinatura:** `clear(): void`
-- **Descrição:** Limpa toda a pilha de histórico.
+- **Descrição:** Limpa as pilhas de desfazer e refazer.
 - **Retorno:** `undefined`.
 
 ---

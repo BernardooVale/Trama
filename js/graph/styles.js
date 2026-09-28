@@ -66,6 +66,37 @@ const GraphStyles = (() => {
         },
       },
       {
+        selector: 'node:parent',
+        style: {
+          'shape':            'round-rectangle',
+          'padding':          32,
+          'background-color': `${C.node.agrupador}0a`,
+          'border-color':     C.node.agrupador,
+          'border-width':     2,
+          'border-style':     'dashed',
+          'border-opacity':   0.85,
+          'text-valign':      'top',
+          'text-halign':      'center',
+          'text-margin-y':    -10,
+          'font-size':        '13px',
+          'font-weight':      '600',
+          'color':            C.text.primary,
+          'z-index':          0,
+        },
+      },
+      {
+        selector: 'node:parent:selected',
+        style: {
+          'border-color':     C.accent,
+          'border-width':     2.5,
+          'border-style':     'solid',
+          'background-color': `${C.accent}12`,
+          'shadow-blur':      14,
+          'shadow-color':     C.accent,
+          'shadow-opacity':   0.35,
+        },
+      },
+      {
         selector: 'node[type="neutro"]',
         style: {
           'border-color': C.node.neutro, 'border-width': 1.5,
@@ -105,6 +136,16 @@ const GraphStyles = (() => {
           'border-width':    2.5, 'border-color': C.accent,
           'shadow-blur':     14,  'shadow-color': C.accent,
           'shadow-opacity':  0.4, 'shadow-offset-x':0,'shadow-offset-y':0,
+        },
+      },
+      {
+        selector: 'node.pulse-highlight',
+        style: {
+          'border-color':   '#f59e0b',
+          'border-width':   3.5,
+          'shadow-blur':    25,
+          'shadow-color':   '#f59e0b',
+          'shadow-opacity': 0.85,
         },
       },
       {

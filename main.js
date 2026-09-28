@@ -12,7 +12,9 @@ const App = (() => {
       'sb-priority-selector','tags-list','sb-tags',
       'search-input','search-clear','search-chips','search-dropdown',
       'btn-save','btn-export','btn-import','btn-theme','icon-theme','btn-toggle-meta',
-      'btn-layout','btn-undo','toast','canvas-wrap','focus-hint',
+      'btn-layout','btn-undo','btn-redo','btn-zen','btn-zen-exit','btn-diagnostics','diag-badge',
+      'diagnostics-modal','diag-close',
+      'toast','canvas-wrap','focus-hint',
     ].forEach(id=>{ DOM[id]=document.getElementById(id) });
   }
 
@@ -214,7 +216,186 @@ const App = (() => {
     if(success){
       toast('Ação desfeita (Ctrl+Z)');
     }
+    updateUndoRedoUI();
     return success;
+  }
+
+  function redoAction(){
+    if(!Store.canRedo()){
+      toast('Nada para refazer');
+      return false;
+    }
+    const success = Store.redo();
+    if(success){
+      toast('Ação refeita (Ctrl+Y)');
+    }
+    updateUndoRedoUI();
+    return success;
+  }
+
+  function updateUndoRedoUI(){
+    if(DOM['btn-undo']) DOM['btn-undo'].style.opacity = Store.canUndo() ? '1' : '0.4';
+    if(DOM['btn-redo']) DOM['btn-redo'].style.opacity = Store.canRedo() ? '1' : '0.4';
+    updateDiagnosticsBadge();
+  }
+
+  /* ── Zen Mode ──────────────────────────────────── */
+  function toggleZenMode(){
+    const isZen = document.body.classList.toggle('zen-mode');
+    setTimeout(() => {
+      Graph.resize();
+    }, 60);
+    toast(isZen ? 'Modo Zen ativado (Esc ou Z para sair)' : 'Modo Zen desativado');
+  }
+
+  function isZenMode(){
+    return document.body.classList.contains('zen-mode');
+  }
+
+  /* ── Architecture Diagnostics ──────────────────── */
+  function updateDiagnosticsBadge(){
+    const badge = DOM['diag-badge'];
+    if(!badge) return;
+    const diag = Store.getDiagnostics();
+    const issueCount = diag.openProblems.length + diag.orphanSolutions.length + diag.isolatedNodes.length;
+    if(issueCount > 0){
+      badge.textContent = String(issueCount);
+      badge.hidden = false;
+    } else {
+      badge.hidden = true;
+    }
+  }
+
+  function openDiagnostics(){
+    const modal = document.getElementById('diagnostics-modal');
+    if(!modal) return;
+    const diag = Store.getDiagnostics();
+    const body = document.getElementById('diag-body');
+
+    const totalAlerts = diag.openProblems.length + diag.orphanSolutions.length + diag.isolatedNodes.length + diag.bottlenecks.length + diag.cycles.length;
+
+    let html = `
+      <div class="diag-summary">
+        <div class="diag-metric">
+          <div class="diag-metric-val">${diag.totalNodes}</div>
+          <div class="diag-metric-lbl">Total de Nós</div>
+        </div>
+        <div class="diag-metric">
+          <div class="diag-metric-val">${diag.totalEdges}</div>
+          <div class="diag-metric-lbl">Total de Arestas</div>
+        </div>
+        <div class="diag-metric ${totalAlerts > 0 ? 'diag-metric--alert' : 'diag-metric--ok'}">
+          <div class="diag-metric-val">${totalAlerts}</div>
+          <div class="diag-metric-lbl">${totalAlerts > 0 ? 'Pontos de Atenção' : 'Grafo Saudável'}</div>
+        </div>
+      </div>
+    `;
+
+    if(totalAlerts === 0){
+      html += `<div class="diag-empty">🎉 Parabéns! Sua arquitetura está totalmente conectada, sem problemas abertos ou soluções órfãs.</div>`;
+    } else {
+      if(diag.openProblems.length){
+        html += `
+          <div class="diag-section">
+            <h4 class="diag-section-title">⚠️ Problemas sem Solução (${diag.openProblems.length})</h4>
+            <div class="diag-list">
+              ${diag.openProblems.map(p => `
+                <div class="diag-item">
+                  <span class="dd-dot dd-dot--problema"></span>
+                  <span class="diag-item-name">${esc(p.title || 'Sem título')}</span>
+                  <button class="diag-item-btn" data-focus-id="${esc(p.id)}">Focar ↗</button>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      if(diag.orphanSolutions.length){
+        html += `
+          <div class="diag-section">
+            <h4 class="diag-section-title">🔍 Soluções Órfãs (${diag.orphanSolutions.length})</h4>
+            <div class="diag-list">
+              ${diag.orphanSolutions.map(s => `
+                <div class="diag-item">
+                  <span class="dd-dot dd-dot--solucao"></span>
+                  <span class="diag-item-name">${esc(s.title || 'Sem título')}</span>
+                  <button class="diag-item-btn" data-focus-id="${esc(s.id)}">Focar ↗</button>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      if(diag.bottlenecks.length){
+        html += `
+          <div class="diag-section">
+            <h4 class="diag-section-title">⚡ Gargalos de Dependência (${diag.bottlenecks.length})</h4>
+            <div class="diag-list">
+              ${diag.bottlenecks.map(b => `
+                <div class="diag-item">
+                  <span class="dd-dot" style="background:var(--edge-dependencia)"></span>
+                  <span class="diag-item-name">${esc(b.node.title || 'Sem título')} <small style="color:var(--text-muted)">(${b.count} dependências)</small></span>
+                  <button class="diag-item-btn" data-focus-id="${esc(b.node.id)}">Focar ↗</button>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      if(diag.isolatedNodes.length){
+        html += `
+          <div class="diag-section">
+            <h4 class="diag-section-title">🏝️ Nós Isolados (${diag.isolatedNodes.length})</h4>
+            <div class="diag-list">
+              ${diag.isolatedNodes.map(n => `
+                <div class="diag-item">
+                  <span class="dd-dot dd-dot--neutro"></span>
+                  <span class="diag-item-name">${esc(n.title || 'Sem título')}</span>
+                  <button class="diag-item-btn" data-focus-id="${esc(n.id)}">Focar ↗</button>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      if(diag.cycles.length){
+        html += `
+          <div class="diag-section">
+            <h4 class="diag-section-title">🔄 Ciclos de Dependência Encontrados (${diag.cycles.length})</h4>
+            <div class="diag-list">
+              ${diag.cycles.map(c => `
+                <div class="diag-item">
+                  <span class="diag-item-name">${c.map(node => esc(node.title || 'Nó')).join(' → ')}</span>
+                  <button class="diag-item-btn" data-focus-id="${esc(c[0]?.id)}">Focar ↗</button>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    body.innerHTML = html;
+    modal.hidden = false;
+
+    body.querySelectorAll('.diag-item-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.focusId;
+        if(id){
+          modal.hidden = true;
+          Graph.pulseNode(id);
+        }
+      });
+    });
+  }
+
+  function closeDiagnostics(){
+    const modal = document.getElementById('diagnostics-modal');
+    if(modal) modal.hidden = true;
   }
 
   function hasClipboard(){
@@ -289,6 +470,7 @@ const App = (() => {
           TabsUI.render();
           toast(`Trama · ${payload.nodes.length} vértices carregados`,2000); break;
       }
+      updateUndoRedoUI();
     });
   }
 
@@ -358,7 +540,7 @@ const App = (() => {
      DROPDOWNS
   ════════════════════════════════════════════════ */
   function bindDropdowns(){
-    ['type', 'priority'].forEach(name => {
+    ['type', 'priority', 'layout'].forEach(name => {
       const dd = document.getElementById(`dd-${name}`);
       const trigger = document.getElementById(`dd-${name}-trigger`);
       const menu = document.getElementById(`dd-${name}-menu`);
@@ -383,10 +565,14 @@ const App = (() => {
             Store.setFilter({ type: val });
             if(label) label.textContent = `Tipo: ${item.textContent.trim()}`;
             trigger.classList.toggle('active-filter', val !== 'all');
-          } else {
+          } else if(name === 'priority'){
             Store.setFilter({ priority: val });
             if(label) label.textContent = `Prioridade: ${item.textContent.trim()}`;
             trigger.classList.toggle('active-filter', val !== 'all');
+          } else if(name === 'layout'){
+            const lVal = item.dataset.layout;
+            Graph.runLayout(lVal);
+            toast(`Layout ${item.textContent.trim()} aplicado`);
           }
           dd.classList.remove('open');
         });
@@ -437,6 +623,13 @@ const App = (() => {
           });
           return;
         }
+        // Ctrl+Shift+Z ou Ctrl+Y: Refazer
+        if((key === 'y' || (key === 'z' && e.shiftKey)) && !inInput){
+          e.preventDefault();
+          redoAction();
+          return;
+        }
+        // Ctrl+Z: Desfazer
         if(key === 'z' && !inInput){
           e.preventDefault();
           undoAction();
@@ -460,14 +653,38 @@ const App = (() => {
         }
       }
 
+      if(e.key === 'Escape'){
+        if(isZenMode()){
+          e.preventDefault();
+          toggleZenMode();
+          return;
+        }
+        closeDiagnostics();
+      }
+
+      if(e.key === 'Tab' && !inInput){
+        const sel = Store.getSelectedNode();
+        if(sel){
+          e.preventDefault();
+          Graph.createQuickChild(sel.id);
+          return;
+        }
+      }
+
+      if((e.key === 'z' || e.key === 'Z') && !inInput && !e.ctrlKey && !e.metaKey){
+        e.preventDefault();
+        toggleZenMode();
+        return;
+      }
+
       if(e.key==='/'&&!inInput){ e.preventDefault(); DOM['search-input'].focus() }
-      if(e.key.toLowerCase()==='l'&&!inInput&&!e.ctrlKey&&!e.metaKey){ Graph.runForceLayout(); toast('Organizando…') }
+      if(e.key.toLowerCase()==='l'&&!inInput&&!e.ctrlKey&&!e.metaKey){ Graph.runLayout('hierarchical-vertical'); toast('Layout hierárquico aplicado') }
       if(!inInput&&!e.ctrlKey&&!e.metaKey){
         const k = e.key.toLowerCase();
         const typeMap = {
           'w': { type: 'problema',  label: 'Problema (W)' },
           's': { type: 'solucao',   label: 'Solução (S)' },
-          'a': { type: 'agrupador', label: 'Agrupador (A)' },
+          'a': { type: 'agrupador', label: 'Contêiner (A)' },
           'd': { type: 'neutro',    label: 'Neutro (D)' },
           't': { type: 'texto',     label: 'Campo de texto (T)' },
         };
@@ -511,13 +728,15 @@ const App = (() => {
     await Store.init();
     TabsUI.render();
     Graph.init();
+    updateUndoRedoUI();
 
     DOM['btn-theme'].addEventListener('click',toggleTheme);
     DOM['btn-undo']?.addEventListener('click', () => undoAction());
-    DOM['btn-layout'].addEventListener('click',()=>{
-      Graph.runForceLayout();
-      toast('Organizando…');
-    });
+    DOM['btn-redo']?.addEventListener('click', () => redoAction());
+    DOM['btn-zen']?.addEventListener('click', () => toggleZenMode());
+    DOM['btn-zen-exit']?.addEventListener('click', () => toggleZenMode());
+    DOM['btn-diagnostics']?.addEventListener('click', () => openDiagnostics());
+    DOM['diag-close']?.addEventListener('click', () => closeDiagnostics());
 
     // Botão pular para aba na sidebar
     DOM['btn-jump-tab']?.addEventListener('click', () => {
@@ -538,7 +757,7 @@ const App = (() => {
     });
 
     bindGlobalContextMenu();
-    setTimeout(()=>toast('Dica: Ctrl+Shift+T nova aba · Ctrl+Shift+W fechar · Ctrl+E renomear · Ctrl+Click pula pro subgrafo',4000),2200);
+    setTimeout(()=>toast('Dica: Tab cria filho · Z modo zen · L layout · Ctrl+Shift+T nova aba',4000),2200);
   }
 
   function bindGlobalContextMenu(){
@@ -549,7 +768,8 @@ const App = (() => {
 
   return {
     init, toast, openSidebar, closeSidebar,
-    copySelection, pasteClipboard, undoAction, hasClipboard
+    copySelection, pasteClipboard, undoAction, redoAction, hasClipboard,
+    toggleZenMode, isZenMode, openDiagnostics, closeDiagnostics
   };
 })();
 

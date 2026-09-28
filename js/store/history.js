@@ -5,6 +5,7 @@
 const StoreHistory = (() => {
   const MAX_UNDO = 50;
   const undoStack = [];
+  const redoStack = [];
   let _isBatching = false;
 
   function isBatching(){
@@ -20,6 +21,7 @@ const StoreHistory = (() => {
     };
     undoStack.push(snapshot);
     if(undoStack.length > MAX_UNDO) undoStack.shift();
+    redoStack.length = 0;
   }
 
   function batch(fn, activeTabGetter){
@@ -41,13 +43,42 @@ const StoreHistory = (() => {
     return undoStack.length > 0;
   }
 
+  function canRedo(){
+    return redoStack.length > 0;
+  }
+
+  function undo(activeTab){
+    if(!canUndo() || !activeTab) return null;
+    const currentSnapshot = {
+      tabId: activeTab.id,
+      nodes: activeTab.nodes.map(n => ({ ...n, tags: [...n.tags] })),
+      edges: activeTab.edges.map(e => ({ ...e })),
+    };
+    redoStack.push(currentSnapshot);
+    if(redoStack.length > MAX_UNDO) redoStack.shift();
+    return undoStack.pop() || null;
+  }
+
+  function redo(activeTab){
+    if(!canRedo() || !activeTab) return null;
+    const currentSnapshot = {
+      tabId: activeTab.id,
+      nodes: activeTab.nodes.map(n => ({ ...n, tags: [...n.tags] })),
+      edges: activeTab.edges.map(e => ({ ...e })),
+    };
+    undoStack.push(currentSnapshot);
+    if(undoStack.length > MAX_UNDO) undoStack.shift();
+    return redoStack.pop() || null;
+  }
+
   function pop(){
     return undoStack.pop() || null;
   }
 
   function clear(){
     undoStack.length = 0;
+    redoStack.length = 0;
   }
 
-  return { isBatching, record, batch, canUndo, pop, clear };
+  return { isBatching, record, batch, canUndo, canRedo, undo, redo, pop, clear };
 })();

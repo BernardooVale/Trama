@@ -113,9 +113,19 @@ Gerencia o campo de busca unificado para filtrar vértices por nome/descrição 
 
 ## 4. `sidebar.js` (`Sidebar`)
 
-Gerencia o painel lateral de propriedades e edição detalhada de nós e arestas.
+Gerencia o painel lateral de propriedades e edição detalhada de nós e arestas, incluindo visualização/edição Markdown e associação a contêineres e URLs externas.
 
 ### Funções Internas e Métodos Públicos
+
+#### `renderMarkdown(md)`
+- **Assinatura:** `renderMarkdown(md: string): string`
+- **Descrição:** Parser leve em expressões regulares para conversão de texto Markdown em HTML seguro (escapando caracteres maliciosos). Suporta títulos (`#`, `##`, `###`), checklists (`- [ ]`, `- [x]`), listas com marcadores (`-` ou `*`), negrito (`**`), itálico (`*`), código inline (`` ` ``) e hiperlinks (`[texto](url)`).
+- **Retorno:** String HTML formatada dentro de um container `<div class="md-content">`.
+
+#### `setDescMode(mode)`
+- **Assinatura:** `setDescMode(mode: 'edit' | 'preview'): void`
+- **Descrição:** Alterna a visualização da descrição do nó entre o campo de edição de texto multilinhas (`#sb-desc`) e a renderização interativa Markdown (`#sb-desc-preview`).
+- **Retorno:** `undefined`.
 
 #### `open(nodeId, autoSelectText = false)`
 - **Assinatura:** `open(nodeId: string, autoSelectText?: boolean): void`
@@ -129,12 +139,12 @@ Gerencia o painel lateral de propriedades e edição detalhada de nós e arestas
 
 #### `close()`
 - **Assinatura:** `close(): void`
-- **Descrição:** Salva imediatamente quaisquer alterações pendentes nos inputs e fecha o painel lateral.
+- **Descrição:** Salva imediatamente quaisquer alterações pendentes com debounce ativo nos inputs de título, descrição, URL externa e rótulo de aresta, fechando o painel lateral.
 - **Retorno:** `undefined`.
 
 #### `populate(node)`
 - **Assinatura:** `populate(node: Node): void`
-- **Descrição:** Preenche os campos do formulário lateral com título, descrição, tipo, prioridade e tags do nó selecionado. Para nós do tipo `subgrafo`, exibe campos de navegação para a aba associada.
+- **Descrição:** Preenche os campos do formulário lateral com título, descrição, tipo, prioridade, tags, contêiner pai (`#sb-container-select`) e URL externa (`#sb-url` com botão de acesso direto `↗`). Redefine o modo de descrição para `'edit'`. Para nós do tipo `subgrafo`, exibe campos de navegação para a aba associada.
 - **Retorno:** `undefined`.
 
 #### `populateEdge(edge)`
@@ -159,7 +169,7 @@ Gerencia o painel lateral de propriedades e edição detalhada de nós e arestas
 
 #### `bind()`
 - **Assinatura:** `bind(): void`
-- **Descrição:** Associa listeners de input com debounce de 200ms para título e descrição de nó e rótulo de aresta, salvando ao fechar e permitindo títulos nulos/vazios.
+- **Descrição:** Associa listeners de input com debounce para título (200ms), descrição (250ms), URL externa (250ms) e rótulo de aresta (200ms); vincula alternância de abas de descrição Editar/Visualizar Markdown; vincula seletor de contêiner pai para nós compostos; gerencia foco, salvamento ao fechar e atalhos de tag.
 - **Retorno:** `undefined`.
 
 ---
@@ -182,7 +192,7 @@ Controla menus de contexto flutuantes disparados pelo botão direito do mouse no
 
 #### `showNodeMenu(id, cx, cy)`
 - **Assinatura:** `showNodeMenu(id: string, cx: number, cy: number): void`
-- **Descrição:** Abre o menu de contexto do vértice com opções para criar arestas conectadas, copiar ou excluir o nó.
+- **Descrição:** Abre o menu de contexto do vértice com opções para criação de filho conectado (`⚡ Criar Filho Conectado - Tab`), novas arestas direcionadas, ações de contêiner composto (`Agrupar em Contêiner`, `Remover do Contêiner` ou `Desagrupar Contêiner`), cópia e exclusão.
 - **Retorno:** `undefined`.
 
 #### `showEdgeMenu(id, cx, cy)`
@@ -192,10 +202,10 @@ Controla menus de contexto flutuantes disparados pelo botão direito do mouse no
 
 #### `showCoreMenu(gx, gy, cx, cy)`
 - **Assinatura:** `showCoreMenu(gx: number, gy: number, cx: number, cy: number): void`
-- **Descrição:** Abre o menu de contexto do fundo do canvas com opções de criar vértices (Problema, Solução, Agrupador, Neutro), colar clipboard, desfazer e importar subgrafos de outras abas livres de ciclos.
+- **Descrição:** Abre o menu de contexto do fundo do canvas com opções de criar vértices (Problema, Solução, Contêiner / Agrupador, Neutro, Texto), colar clipboard (`Ctrl+V`), desfazer (`Ctrl+Z`), refazer (`Ctrl+Y`), abrir Diagnóstico de Arquitetura, alternar Modo Zen (`Z`) e importar subgrafos livres de ciclos.
 - **Retorno:** `undefined`.
 
 #### `bind()`
 - **Assinatura:** `bind(): void`
-- **Descrição:** Associa cliques nos botões do menu contextual e fecha o menu ao clicar fora.
+- **Descrição:** Associa cliques nos botões do menu contextual (criação rápida de filho, agrupamento e desagrupamento composto, importação de subgrafo, desfazer, refazer, diagnóstico e modo zen) e fecha o menu ao clicar fora.
 - **Retorno:** `undefined`.

@@ -6,10 +6,59 @@ const Sidebar = (() => {
   let tTimer = null;
   let elTimer = null;
   let dTimer = null;
+  let urlTimer = null;
 
   function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
   function getEl(id){ return document.getElementById(id); }
+
+  function renderMarkdown(md){
+    if(!md || !md.trim()) return '<p class="desc-empty">Nenhuma descrição informada. Alterne para <strong>Editar</strong> para escrever.</p>';
+    let html = esc(md);
+    // Headers
+    html = html.replace(/^### (.*$)/gim, '<h4 class="md-h4">$1</h4>');
+    html = html.replace(/^## (.*$)/gim, '<h3 class="md-h3">$1</h3>');
+    html = html.replace(/^# (.*$)/gim, '<h2 class="md-h2">$1</h2>');
+    // Checklists
+    html = html.replace(/^- \[x\] (.*$)/gim, '<div class="md-check-item is-checked"><span class="md-cb">✓</span> <span>$1</span></div>');
+    html = html.replace(/^- \[ \] (.*$)/gim, '<div class="md-check-item"><span class="md-cb">○</span> <span>$1</span></div>');
+    // Bullet lists
+    html = html.replace(/^\s*[-*]\s+(.*$)/gim, '<li>$1</li>');
+    html = html.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
+    // Bold & Italic
+    html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+    // Inline code
+    html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+    // Links [text](url)
+    html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1 ↗</a>');
+    // Line breaks
+    html = html.replace(/\n\n+/g, '</p><p>');
+    html = html.replace(/\n/g, '<br />');
+    return `<div class="md-content"><p>${html}</p></div>`;
+  }
+
+  function setDescMode(mode){
+    const editBtn = getEl('btn-desc-edit');
+    const prevBtn = getEl('btn-desc-preview');
+    const textarea = getEl('sb-desc');
+    const preview = getEl('sb-desc-preview');
+    if(!editBtn || !prevBtn || !textarea || !preview) return;
+
+    if(mode === 'preview'){
+      editBtn.classList.remove('active');
+      prevBtn.classList.add('active');
+      textarea.hidden = true;
+      preview.hidden = false;
+      const n = Store.getSelectedNode();
+      preview.innerHTML = renderMarkdown(textarea.value || (n ? n.description : ''));
+    } else {
+      prevBtn.classList.remove('active');
+      editBtn.classList.add('active');
+      preview.hidden = true;
+      textarea.hidden = false;
+    }
+  }
 
   function open(nodeId, autoSelectText = false){
     const node = Store.getNode(nodeId);
@@ -62,6 +111,12 @@ const Sidebar = (() => {
       const n = Store.getSelectedNode();
       if(n) Store.updateNode(n.id, { description: getEl('sb-desc').value }, { skipHistory: true });
     }
+    if(urlTimer){
+      clearTimeout(urlTimer);
+      urlTimer = null;
+      const n = Store.getSelectedNode();
+      if(n) Store.updateNode(n.id, { url: getEl('sb-url').value }, { skipHistory: true });
+    }
     getEl('sidebar')?.classList.remove('open');
   }
 
@@ -76,10 +131,37 @@ const Sidebar = (() => {
     if(document.activeElement !== getEl('sb-desc')){
       getEl('sb-desc').value = node.description ?? '';
     }
+    setDescMode('edit');
+
     getEl('sb-priority-selector').querySelectorAll('.priority-btn')
       .forEach(b => b.classList.toggle('active', b.dataset.priority === node.priority));
 
     renderTags(node.tags);
+
+    // Contêiner / Grupo
+    const cSelect = getEl('sb-container-select');
+    const cRow = getEl('sb-container-row');
+    if(cSelect && cRow){
+      if(node.type === 'agrupador'){
+        cRow.hidden = true;
+      } else {
+        cRow.hidden = false;
+        const containers = Store.getContainers().filter(c => c.id !== node.id);
+        cSelect.innerHTML = '<option value="">Nenhum (Livre)</option>' +
+          containers.map(c => `<option value="${esc(c.id)}">${esc(c.title || 'Contêiner')}</option>`).join('');
+        cSelect.value = node.parentId || '';
+      }
+    }
+
+    // Link Externo
+    const urlInput = getEl('sb-url');
+    const urlOpen = getEl('sb-url-open');
+    if(urlInput) urlInput.value = node.url || '';
+    if(urlOpen){
+      const hasUrl = Boolean(node.url);
+      urlOpen.hidden = !hasUrl;
+      if(hasUrl) urlOpen.href = node.url;
+    }
 
     const isTexto = node.type === 'texto';
     getEl('sb-priority-row').hidden = isTexto;
@@ -214,6 +296,45 @@ const Sidebar = (() => {
       dStarted = false;
       const n = Store.getSelectedNode(); if(!n) return;
       Store.updateNode(n.id, { description: e.target.value }, { skipHistory: true });
+    });
+
+    getEl('btn-desc-edit')?.addEventListener('click', () => setDescMode('edit'));
+    getEl('btn-desc-preview')?.addEventListener('click', () => setDescMode('preview'));
+
+    getEl('sb-container-select')?.addEventListener('change', e => {
+      const n = Store.getSelectedNode();
+      if(!n) return;
+      Store.updateNode(n.id, { parentId: e.target.value || null });
+    });
+
+    let urlStarted = false;
+    getEl('sb-url')?.addEventListener('input', e => {
+      if(!urlStarted){
+        Store.recordHistory();
+        urlStarted = true;
+      }
+      clearTimeout(urlTimer);
+      const val = e.target.value.trim();
+      const urlOpen = getEl('sb-url-open');
+      if(urlOpen){
+        urlOpen.hidden = !val;
+        urlOpen.href = val;
+      }
+      urlTimer = setTimeout(() => {
+        urlTimer = null;
+        const n = Store.getSelectedNode(); if(!n) return;
+        Store.updateNode(n.id, { url: val }, { skipHistory: true });
+      }, 300);
+    });
+
+    getEl('sb-url')?.addEventListener('blur', e => {
+      if(urlTimer){
+        clearTimeout(urlTimer);
+        urlTimer = null;
+      }
+      urlStarted = false;
+      const n = Store.getSelectedNode(); if(!n) return;
+      Store.updateNode(n.id, { url: e.target.value.trim() }, { skipHistory: true });
     });
 
     getEl('sb-priority-selector')?.addEventListener('click', e => {

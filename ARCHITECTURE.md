@@ -133,6 +133,26 @@ Gerencia os dados da aplicação e notifica os ouvintes sobre qualquer alteraç�
 - **Descrição:** Obtém cópia superficial de todos os nós.
 - **Retorno:** Array de objetos `Node`.
 
+#### `getContainers()`
+- **Assinatura:** `getContainers(): Node[]`
+- **Descrição:** Retorna a lista de nós do tipo `'agrupador'` existentes na aba ativa.
+- **Retorno:** Array de nós agrupadores.
+
+#### `groupNodes(nodeIds, parentTitle = 'Contêiner')`
+- **Assinatura:** `groupNodes(nodeIds: string[], parentTitle?: string): Node | null`
+- **Descrição:** Cria um novo nó composto (`agrupador`) na posição média dos nós selecionados e vincula todos os `nodeIds` a ele como filhos (`parentId`). Registra a operação atomicamente no histórico e atualiza a hierarquia no Cytoscape.
+- **Retorno:** O nó contêiner criado, ou `null` se nenhum nó foi fornecido.
+
+#### `ungroupNode(nodeId)`
+- **Assinatura:** `ungroupNode(nodeId: string): void`
+- **Descrição:** Desvincula o nó especificado do seu nó contêiner pai (`parentId = null`), atualizando o Cytoscape e o histórico.
+- **Retorno:** `undefined`.
+
+#### `ungroupParent(parentId)`
+- **Assinatura:** `ungroupParent(parentId: string): void`
+- **Descrição:** Remove o nó contêiner pai sem deletar os nós filhos; apenas desassocia todos os seus nós descendentes (`parentId = null`) e exclui o agrupador.
+- **Retorno:** `undefined`.
+
 #### `addEdge(partial = {})`
 - **Assinatura:** `addEdge(partial: { source: string, target: string, edgeType?: string, label?: string, directed?: boolean }): Edge`
 - **Descrição:** Valida a conexão (impede nós inexistentes, self-loops e arestas duplicadas do mesmo tipo), cria e salva a aresta, disparando `edge:add`.
@@ -278,6 +298,21 @@ Gerencia os dados da aplicação e notifica os ouvintes sobre qualquer alteraç�
 - **Descrição:** Desempilha o estado anterior, restaura a coleção de nós e arestas, persiste no `localStorage` e notifica o evento `store:restore`.
 - **Retorno:** `true` se desfez com sucesso, `false` se a pilha estava vazia.
 
+#### `canRedo()`
+- **Assinatura:** `canRedo(): boolean`
+- **Descrição:** Informa se existe algum estado na pilha de refazer (ações desfeitas que podem ser reaplicadas).
+- **Retorno:** `boolean`.
+
+#### `redo()`
+- **Assinatura:** `redo(): boolean`
+- **Descrição:** Desempilha o estado mais recente da pilha de refazer, restaura o snapshot no grafo da aba ativa, move o estado atual para o histórico de desfazer, persiste no storage e dispara `store:restore`.
+- **Retorno:** `true` se refez a ação com sucesso, `false` se não havia ações na pilha de refazer.
+
+#### `getDiagnostics()`
+- **Assinatura:** `getDiagnostics(): { openProblems: Node[], orphanSolutions: Node[], isolatedNodes: Node[], bottlenecks: Array<{ node: Node, count: number }>, cycles: string[][], totalNodes: number, totalEdges: number }`
+- **Descrição:** Linter e analisador de integridade arquitetural da aba ativa. Detecta problemas em aberto (sem aresta 'resolve'), soluções órfãs (sem aresta 'resolve'), nós desconectados/isolados, gargalos de dependência (nós receptores de 3+ dependências) e ciclos de dependências circulares via busca em profundidade (DFS).
+- **Retorno:** Objeto com métricas estruturais e coleções de nós anômalos.
+
 #### `init()`
 - **Assinatura:** `init(): void`
 - **Descrição:** Tenta carregar do Storage; se não houver dados, executa `seed()`. Notifica `store:ready`.
@@ -412,9 +447,29 @@ Controlador responsável pela renderização física com Cytoscape.js e tratamen
 - **Descrição:** Inicia criação de aresta tendo o nó de origem pré-definido via clique com botão direito.
 - **Retorno:** `undefined`.
 
+#### `createQuickChild(sourceId)`
+- **Assinatura:** `createQuickChild(sourceId: string): Node | null`
+- **Descrição:** Cria instantaneamente um nó filho conectado ao nó de origem especificado. Infere o tipo complementar (`problema` cria filho `solucao` com aresta `resolve`; qualquer outro tipo cria `problema` com aresta `dependencia`). Posiciona o nó novo a +200px no eixo X e seleciona o novo título para digitação imediata.
+- **Retorno:** Objeto `Node` recém-criado ou `null`.
+
+#### `runLayout(layoutName)`
+- **Assinatura:** `runLayout(layoutName?: 'hierarchical-vertical' | 'hierarchical-horizontal' | 'cose' | 'concentric' | 'grid'): void`
+- **Descrição:** Motor multi-layout da aplicação. Salva o snapshot atual no histórico de desfazer e recalcula a disposição geométrica dos nós. Suporta Hierárquico Vertical (DAG Top-Down), Hierárquico Horizontal (Left-to-Right), Orgânico / Física (`cose` com repulsão calibrada em 450.000 para rótulos largos), Concêntrico e Grade regular. Ao término da animação, sincroniza e persiste as novas coordenadas de todos os nós no `Store`.
+- **Retorno:** `undefined`.
+
 #### `runForceLayout()`
 - **Assinatura:** `runForceLayout(): void`
-- **Descrição:** Registra o estado anterior no histórico e executa algoritmo de física orgânica (`cose`) para desembaraçar e organizar nós automaticamente, persistindo as posições resultantes.
+- **Descrição:** Alias de conveniência que delega a execução para `runLayout('cose')`.
+- **Retorno:** `undefined`.
+
+#### `pulseNode(id)`
+- **Assinatura:** `pulseNode(id: string): void`
+- **Descrição:** Centraliza o viewport no nó especificado e dispara animação CSS com classe `.pulse-highlight` (borda pulsante de alta visibilidade durante 2,4s), usado principalmente para navegação direta a partir do relatório de diagnóstico.
+- **Retorno:** `undefined`.
+
+#### `resize()`
+- **Assinatura:** `resize(): void`
+- **Descrição:** Força o Cytoscape a recalcular as dimensões físicas do contêiner (`cy.resize()`), útil após redimensionamento da janela ou transições de entrada/saída do Modo Zen.
 - **Retorno:** `undefined`.
 
 #### `getCursorModelPos()`
@@ -492,7 +547,7 @@ Orquestrador geral enxuto da aplicação, responsável por integrar os component
 
 #### `bindDropdowns()`
 - **Assinatura:** `bindDropdowns(): void`
-- **Descrição:** Conecta os dropdowns customizados de filtro na barra de ferramentas superior (`#dd-type` para tipos de nó e `#dd-priority` para prioridades), configurando cliques de seleção e fechamento ao clicar fora.
+- **Descrição:** Conecta os dropdowns customizados na barra de ferramentas superior: filtro de tipos de nó (`#dd-type`), filtro de prioridades (`#dd-priority`) e seletor de layouts (`#dd-layout` com opções Hierárquico Vertical, Hierárquico Horizontal, Orgânico Cose, Concêntrico e Grade), configurando cliques de seleção e fechamento ao clicar fora.
 - **Retorno:** `undefined`.
 
 #### `copySelection()`
@@ -507,12 +562,42 @@ Orquestrador geral enxuto da aplicação, responsável por integrar os component
 
 #### `undoAction()`
 - **Assinatura:** `undoAction(): boolean`
-- **Descrição:** Reverte o grafo para o estado imediatamente anterior via `Store.undo()` e emite um alerta flutuante (toast).
+- **Descrição:** Reverte o grafo para o estado imediatamente anterior via `Store.undo()`, sincroniza os botões de desfazer/refazer e emite um alerta flutuante (toast).
 - **Retorno:** `true` se houve reversão, `false` caso contrário.
+
+#### `redoAction()`
+- **Assinatura:** `redoAction(): boolean`
+- **Descrição:** Reaplica a ação revertida mais recente via `Store.redo()`, sincroniza os botões de desfazer/refazer e emite um alerta flutuante (toast).
+- **Retorno:** `true` se houve reaplicação, `false` caso contrário.
+
+#### `updateUndoRedoUI()`
+- **Assinatura:** `updateUndoRedoUI(): void`
+- **Descrição:** Atualiza a propriedade `disabled` dos botões `#btn-undo` e `#btn-redo` na barra de ferramentas conforme a disponibilidade de snapshots nas pilhas do histórico.
+- **Retorno:** `undefined`.
+
+#### `toggleZenMode()`
+- **Assinatura:** `toggleZenMode(): void`
+- **Descrição:** Alterna o Modo Zen de foco e apresentação. Aplica ou remove a classe `.zen-mode` no `document.body`, exibe/oculta a pílula flutuante de saída (`#btn-zen-exit`), fecha barras laterais abertas e aciona `Graph.resize()` para preenchimento total do canvas na tela.
+- **Retorno:** `undefined`.
+
+#### `isZenMode()`
+- **Assinatura:** `isZenMode(): boolean`
+- **Descrição:** Verifica se o aplicativo está atualmente operando em tela cheia/Modo Zen.
+- **Retorno:** `boolean`.
+
+#### `openDiagnostics()`
+- **Assinatura:** `openDiagnostics(): void`
+- **Descrição:** Executa `Store.getDiagnostics()`, renderiza os cartões de métricas e as listas de ocorrências arquiteturais (problemas em aberto, soluções órfãs, nós isolados, gargalos de dependência e ciclos) dentro do modal `#diagnostics-modal` e exibe o modal com backdrop. Permite clicar em qualquer nó listado para navegar diretamente e pulsá-lo na tela.
+- **Retorno:** `undefined`.
+
+#### `closeDiagnostics()`
+- **Assinatura:** `closeDiagnostics(): void`
+- **Descrição:** Fecha o modal de diagnósticos e remove o backdrop.
+- **Retorno:** `undefined`.
 
 #### `bindKeyboard()`
 - **Assinatura:** `bindKeyboard(): void`
-- **Descrição:** Mapeia atalhos globais de teclado (`Ctrl+Shift+T` nova aba, `Ctrl+Shift+W` fechar aba ativa, `Ctrl+E` renomear aba ativa, `Ctrl+S` exportar JSON, `Ctrl+C` copiar, `Ctrl+V` colar, `Ctrl+Z` desfazer, `Ctrl+F` ou `/` buscar, `T` tema, `L` layout automático, `1-4` filtros), respeitando a digitação em inputs de texto.
+- **Descrição:** Mapeia atalhos globais de teclado (`Ctrl+Shift+T` nova aba, `Ctrl+Shift+W` fechar aba ativa, `Ctrl+E` renomear aba ativa, `Ctrl+S` exportar JSON, `Ctrl+C` copiar, `Ctrl+V` colar, `Ctrl+Z` desfazer, `Ctrl+Y` / `Ctrl+Shift+Z` refazer, `Tab` criar filho conectado, `Z` alternar Modo Zen, `Escape` sair do Modo Zen ou fechar diagnósticos, `Ctrl+F` ou `/` buscar, `T` alternar tema, `L` layout automático, `1-4` filtros), respeitando a digitação em inputs e textareas.
 - **Retorno:** `undefined`.
 
 #### `esc(s)`

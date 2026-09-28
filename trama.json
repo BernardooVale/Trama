@@ -1,7 +1,7 @@
 {
   "version": 2,
-  "exportedAt": "2026-09-21T13:21:35.658Z",
-  "activeTabId": "tab_mu6zvo1r_ksye",
+  "exportedAt": "2026-09-21T18:39:24.595Z",
+  "activeTabId": "tab_mu7bq3j1_bq9u",
   "tabs": [
     {
       "id": "tab_mu6zvo1r_ksye",
@@ -62,8 +62,8 @@
           "description": "",
           "priority": "media",
           "tags": [],
-          "x": 305,
-          "y": -69,
+          "x": 340,
+          "y": -64,
           "createdAt": 1789753898512,
           "subgraphTabId": null
         },

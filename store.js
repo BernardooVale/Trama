@@ -129,8 +129,12 @@ const Store = (() => {
     return StoreHistory.canUndo();
   }
 
+  function canRedo(){
+    return StoreHistory.canRedo();
+  }
+
   function undo(){
-    const prev = StoreHistory.pop();
+    const prev = StoreHistory.undo(getActiveTab());
     if(!prev) return false;
 
     let targetTab = state.tabs.find(t => t.id === prev.tabId);
@@ -153,6 +157,30 @@ const Store = (() => {
     return true;
   }
 
+  function redo(){
+    const next = StoreHistory.redo(getActiveTab());
+    if(!next) return false;
+
+    let targetTab = state.tabs.find(t => t.id === next.tabId);
+    if(!targetTab){
+      targetTab = getActiveTab();
+    } else if(state.activeTabId !== next.tabId){
+      switchTab(next.tabId);
+    }
+    targetTab.nodes = next.nodes.map(n => nodeDefaults(n));
+    targetTab.edges = (next.edges ?? []).filter(e => e.source && e.target).map(e => edgeDefaults(e));
+
+    if(state.selectedId && !targetTab.nodes.some(n => n.id === state.selectedId)){
+      state.selectedId = null;
+    }
+    if(state.selectedEdgeId && !targetTab.edges.some(e => e.id === state.selectedEdgeId)){
+      state.selectedEdgeId = null;
+    }
+    save();
+    notify('store:restore', getSnapshot());
+    return true;
+  }
+
   /* ── Defaults & IDs ────────────────────────────── */
   function uid(){ return `n_${Date.now().toString(36)}_${Math.random().toString(36).slice(2,7)}`; }
   function edgeUid(){ return `e_${Date.now().toString(36)}_${Math.random().toString(36).slice(2,7)}`; }
@@ -161,10 +189,12 @@ const Store = (() => {
     return {
       id:            p.id            ?? uid(),
       type:          p.type          ?? 'neutro',
-      title:         p.title !== undefined ? p.title : (p.type === 'subgrafo' && p.subgraphTabId ? (state.tabs.find(t => t.id === p.subgraphTabId)?.name || 'Subgrafo') : (p.type === 'texto' ? 'Texto' : 'Novo vértice')),
+      title:         p.title !== undefined ? p.title : (p.type === 'subgrafo' && p.subgraphTabId ? (state.tabs.find(t => t.id === p.subgraphTabId)?.name || 'Subgrafo') : (p.type === 'texto' ? 'Texto' : (p.type === 'agrupador' ? 'Contêiner' : 'Novo vértice'))),
       description:   p.description   ?? '',
       priority:      p.priority      ?? 'media',
       tags:          Array.isArray(p.tags) ? [...p.tags] : [],
+      url:           p.url           ?? '',
+      parentId:      p.parentId      ?? null,
       x:             p.x             ?? 300 + Math.random()*400,
       y:             p.y             ?? 200 + Math.random()*300,
       createdAt:     p.createdAt     ?? Date.now(),
@@ -212,6 +242,8 @@ const Store = (() => {
       changes.title = String(changes.title);
     }
     if(changes.tags !== undefined && !Array.isArray(changes.tags)) delete changes.tags;
+    if(changes.url !== undefined) changes.url = String(changes.url).trim();
+    if(changes.parentId !== undefined) changes.parentId = changes.parentId || null;
     tab.nodes[idx] = { ...tab.nodes[idx], ...changes };
     save();
     notify('node:update', tab.nodes[idx]);
@@ -224,6 +256,10 @@ const Store = (() => {
     const targetNode = tab.nodes.find(n => n.id === id);
     if(!targetNode) throw new Error(`Nó não encontrado: ${id}`);
     if(!options.skipHistory) recordHistory();
+    // Se era um contêiner, desassocia os nós filhos
+    tab.nodes.forEach(n => {
+      if(n.parentId === id) n.parentId = null;
+    });
     tab.nodes = tab.nodes.filter(n => n.id !== id);
     const removedEdges = tab.edges.filter(e => e.source === id || e.target === id);
     tab.edges = tab.edges.filter(e => e.source !== id && e.target !== id);
@@ -241,6 +277,56 @@ const Store = (() => {
   function getNodes(){
     const tab = getActiveTab();
     return tab ? [...tab.nodes] : [];
+  }
+
+  /* ── Compound / Containers ─────────────────────── */
+  function getContainers(){
+    const tab = getActiveTab();
+    if(!tab) return [];
+    return tab.nodes.filter(n => n.type === 'agrupador');
+  }
+
+  function groupNodes(nodeIds, parentTitle = 'Contêiner'){
+    const tab = getActiveTab();
+    if(!tab || !nodeIds || !nodeIds.length) return null;
+    return batch(() => {
+      const targetNodes = tab.nodes.filter(n => nodeIds.includes(n.id) && n.type !== 'agrupador');
+      if(!targetNodes.length) return null;
+
+      const minX = Math.min(...targetNodes.map(n => n.x));
+      const maxX = Math.max(...targetNodes.map(n => n.x));
+      const minY = Math.min(...targetNodes.map(n => n.y));
+      const maxY = Math.max(...targetNodes.map(n => n.y));
+
+      const container = addNode({
+        type: 'agrupador',
+        title: parentTitle,
+        x: Math.round((minX + maxX) / 2),
+        y: Math.round((minY + maxY) / 2),
+      });
+
+      targetNodes.forEach(n => {
+        updateNode(n.id, { parentId: container.id });
+      });
+
+      return container;
+    });
+  }
+
+  function ungroupNode(nodeId){
+    return updateNode(nodeId, { parentId: null });
+  }
+
+  function ungroupParent(parentId){
+    const tab = getActiveTab();
+    if(!tab) return;
+    batch(() => {
+      tab.nodes.forEach(n => {
+        if(n.parentId === parentId){
+          updateNode(n.id, { parentId: null });
+        }
+      });
+    });
   }
 
   /* ── Edges CRUD ────────────────────────────────── */
@@ -455,6 +541,95 @@ const Store = (() => {
     save();
   }
 
+  /* ── Architecture Diagnostics ────────────────── */
+  function getDiagnostics(){
+    const tab = getActiveTab();
+    if(!tab) return { openProblems: [], orphanSolutions: [], isolatedNodes: [], bottlenecks: [], cycles: [], totalNodes: 0, totalEdges: 0 };
+
+    const nodes = tab.nodes;
+    const edges = tab.edges;
+
+    // 1. Problemas abertos: nós 'problema' sem aresta 'resolve'
+    const openProblems = nodes.filter(n => {
+      if(n.type !== 'problema') return false;
+      return !edges.some(e => e.edgeType === 'resolve' && (e.source === n.id || e.target === n.id));
+    });
+
+    // 2. Soluções órfãs: nós 'solucao' sem aresta 'resolve'
+    const orphanSolutions = nodes.filter(n => {
+      if(n.type !== 'solucao') return false;
+      return !edges.some(e => e.edgeType === 'resolve' && (e.source === n.id || e.target === n.id));
+    });
+
+    // 3. Nós isolados: nós sem nenhuma aresta conectada (exceto contêineres e textos que podem ser autônomos)
+    const isolatedNodes = nodes.filter(n => {
+      if(n.type === 'agrupador' || n.type === 'texto') return false;
+      return !edges.some(e => e.source === n.id || e.target === n.id);
+    });
+
+    // 4. Gargalos: nós que recebem 3 ou mais dependências
+    const depCounts = {};
+    edges.forEach(e => {
+      if(e.edgeType === 'dependencia'){
+        depCounts[e.target] = (depCounts[e.target] || 0) + 1;
+      }
+    });
+    const bottlenecks = nodes.filter(n => (depCounts[n.id] || 0) >= 3)
+      .map(n => ({ node: n, count: depCounts[n.id] }));
+
+    // 5. Ciclos de dependência
+    const adj = new Map();
+    nodes.forEach(n => adj.set(n.id, []));
+    edges.forEach(e => {
+      if(e.edgeType === 'dependencia'){
+        if(adj.has(e.source)) adj.get(e.source).push(e.target);
+      }
+    });
+
+    const cycles = [];
+    const visited = new Set();
+    const recStack = new Set();
+    const path = [];
+
+    function dfs(u){
+      visited.add(u);
+      recStack.add(u);
+      path.push(u);
+
+      const neighbors = adj.get(u) || [];
+      for(const v of neighbors){
+        if(!visited.has(v)){
+          dfs(v);
+        } else if(recStack.has(v)){
+          const cycleStartIdx = path.indexOf(v);
+          if(cycleStartIdx !== -1){
+            const cyclePath = path.slice(cycleStartIdx).concat(v);
+            cycles.push(cyclePath.map(id => getNode(id)).filter(Boolean));
+          }
+        }
+      }
+
+      path.pop();
+      recStack.delete(u);
+    }
+
+    nodes.forEach(n => {
+      if(!visited.has(n.id)){
+        dfs(n.id);
+      }
+    });
+
+    return {
+      openProblems,
+      orphanSolutions,
+      isolatedNodes,
+      bottlenecks,
+      cycles,
+      totalNodes: nodes.length,
+      totalEdges: edges.length
+    };
+  }
+
   async function init(){
     let loadedFromJSON = false;
     try {
@@ -487,13 +662,15 @@ const Store = (() => {
     getTabs, getActiveTab, getActiveTabId, createTab, renameTab, switchTab, deleteTab,
     canImportTab, getImportableTabs,
     addNode, updateNode, deleteNode, getNode, getNodes, updateNodePosition,
+    getContainers, groupNodes, ungroupNode, ungroupParent,
     addEdge, updateEdge, deleteEdge, getEdge, getEdges,
     selectNode, selectEdge, clearSelection, getSelectedNode, getSelectedEdge,
     setFilter, getFilter, getVisibleNodeIds,
     setShowNodeMeta, getShowNodeMeta,
     save, load, exportJSON, importJSON,
     subscribe, getSnapshot, getAllTags,
-    undo, canUndo, recordHistory, batch,
+    undo, canUndo, redo, canRedo, recordHistory, batch,
+    getDiagnostics,
     NODE_TYPES, EDGE_TYPES, PRIORITIES,
   };
 })();
