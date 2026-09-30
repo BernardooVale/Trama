@@ -38,7 +38,7 @@ Gerencia a barra de abas de grafos inspirada no CircuitVerse / navegadores web, 
 
 #### `deleteTabPrompt(tabId)`
 - **Assinatura:** `deleteTabPrompt(tabId: string): void`
-- **Descrição:** Valida se a aba é a principal fixa (bloqueando a exclusão e exibindo aviso) ou pede confirmação do usuário antes de acionar `Store.deleteTab(tabId)`.
+- **Descrição:** Valida se a aba é a principal fixa (bloqueando a exclusão e exibindo aviso). Se a aba estiver vazia (sem vértices ou arestas), exclui-a diretamente sem exibir caixa de confirmação. Se contiver itens, solicita confirmação do usuário antes de acionar `Store.deleteTab(tabId)`.
 - **Retorno:** `undefined`.
 
 #### `showTabContextMenu(tabId, cx, cy)`

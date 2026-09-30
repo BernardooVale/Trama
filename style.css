@@ -55,7 +55,7 @@
 
   --header-h:   52px;
   --tabs-h:     38px;
-  --sidebar-w:  296px;
+  --sidebar-w:  324px;
   --toolbar-w:  196px;
 
   --t-fast:  90ms ease;
@@ -459,17 +459,25 @@ kbd{
 .sidebar-body{flex:1;overflow-y:auto;padding:var(--sp-4);
   display:flex;flex-direction:column;gap:var(--sp-4)}
 
+/* Section */
+.sidebar-section {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+}
+
 /* Fields */
-.field-row{display:flex;flex-direction:column;gap:5px}
+.field-row{display:flex;flex-direction:column;gap:6px}
 .field-row--meta{margin-top:auto;padding-top:var(--sp-4);border-top:1px solid var(--border-subtle)}
 .field-label{
-  font-size:9px;font-weight:700;color:var(--text-muted);
+  font-size:10px;font-weight:700;color:var(--text-muted);
   text-transform:uppercase;letter-spacing:.7px;
 }
 .field-input,.field-textarea{
   background:var(--bg-elevated);border:1px solid var(--border);
   border-radius:var(--r-md);padding:8px var(--sp-3);
   outline:none;line-height:1.55;color:var(--text-primary);
+  width:100%;
   transition:border-color var(--t-fast),box-shadow var(--t-fast);
 }
 .field-input:focus,.field-textarea:focus{
@@ -570,7 +578,7 @@ kbd{
   background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: var(--r-md);
-  padding: var(--sp-2) var(--sp-3);
+  padding: 8px var(--sp-3);
   color: var(--text-primary);
   font-size: var(--text-sm);
   outline: none;
@@ -585,12 +593,18 @@ kbd{
   display: flex;
   align-items: center;
   gap: var(--sp-2);
+  width: 100%;
+}
+.url-input-wrap .field-input {
+  flex: 1;
+  min-width: 0;
 }
 .btn-open-url {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 7px 10px;
+  width: 36px;
+  height: 36px;
   background: var(--accent-glow);
   border: 1px solid var(--accent-dim);
   border-radius: var(--r-md);
@@ -608,7 +622,8 @@ kbd{
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 4px;
+  gap: var(--sp-2);
+  width: 100%;
 }
 .desc-mode-toggle {
   display: inline-flex;
@@ -756,7 +771,11 @@ body.zen-mode .sidebar {
   display: none !important;
 }
 body.zen-mode .app-main {
-  height: 100vh;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  height: 100vh !important;
 }
 .zen-exit-pill {
   position: absolute;

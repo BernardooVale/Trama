@@ -93,6 +93,7 @@ const Graph = (() => {
     cy.on('mouseout', 'edge', evt => evt.target.removeClass('hover'));
 
     cy.on('tap', 'node', evt => {
+      _suppressQuickHandle = false;
       const id = evt.target.id();
       if(GraphEdgeMode.isActive()){
         GraphEdgeMode.handleClick(cy, id);
@@ -144,6 +145,7 @@ const Graph = (() => {
     });
 
     cy.on('tap', evt => {
+      _suppressQuickHandle = false;
       if(evt.target !== cy || GraphEdgeMode.isActive()) return;
       _selectedCyId = null;
       cy.elements().unselect();
@@ -341,7 +343,12 @@ const Graph = (() => {
 
         case 'node:delete':{
           const n = cy.getElementById(payload.id);
-          if(n && n.length) n.remove();
+          if(n && n.length){
+            if(n.isParent()){
+              n.children().move({ parent: null });
+            }
+            n.remove();
+          }
           payload.removedEdges.forEach(e => {
             const ce = cy.getElementById(e.id);
             if(ce && ce.length) ce.remove();
@@ -513,6 +520,7 @@ const Graph = (() => {
 
   /* ── Quick Connect Handle ──────────────────────── */
   let _quickHandleEl = null;
+  let _suppressQuickHandle = false;
 
   function _initQuickHandle(){
     _quickHandleEl = document.getElementById('quick-handle');
@@ -528,6 +536,10 @@ const Graph = (() => {
   function _updateQuickHandle(){
     if(!_quickHandleEl) _quickHandleEl = document.getElementById('quick-handle');
     if(!_quickHandleEl || !cy) return;
+    if(_suppressQuickHandle){
+      _quickHandleEl.hidden = true;
+      return;
+    }
     const selNode = Store.getSelectedNode();
     if(!selNode || GraphEdgeMode.isActive()){
       _quickHandleEl.hidden = true;
@@ -579,6 +591,8 @@ const Graph = (() => {
   }
 
   function createQuickChild(sourceId){
+    _suppressQuickHandle = true;
+    if(_quickHandleEl) _quickHandleEl.hidden = true;
     const sourceNode = Store.getNode(sourceId);
     if(!sourceNode) return;
 

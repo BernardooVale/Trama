@@ -144,6 +144,12 @@ const TabsUI = (() => {
       if(typeof App !== 'undefined' && App.toast) App.toast('A aba principal é fixa e não pode ser excluída.');
       return;
     }
+    const isEmpty = Store.isTabEmpty ? Store.isTabEmpty(tabId) : false;
+    if(isEmpty){
+      Store.deleteTab(tabId);
+      if(typeof App !== 'undefined' && App.toast) App.toast(`Aba "${targetTab.name}" excluída.`);
+      return;
+    }
     if(confirm(`Deseja fechar a aba "${targetTab.name}"? Subgrafos associados em outras abas serão removidos.`)){
       Store.deleteTab(tabId);
       if(typeof App !== 'undefined' && App.toast) App.toast(`Aba "${targetTab.name}" excluída.`);

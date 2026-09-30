@@ -108,6 +108,12 @@ const Store = (() => {
     notify('tabs:switch', { activeTabId: state.activeTabId, tab: getActiveTab() });
   }
 
+  function isTabEmpty(tabId){
+    const tab = state.tabs.find(t => t.id === tabId);
+    if(!tab) return true;
+    return (!tab.nodes || tab.nodes.length === 0) && (!tab.edges || tab.edges.length === 0);
+  }
+
   function canImportTab(targetTabId, candidateTabId){
     return TabsManager.canImportTab(state.tabs, targetTabId, candidateTabId);
   }
@@ -659,7 +665,7 @@ const Store = (() => {
 
   return {
     init, reset, seed,
-    getTabs, getActiveTab, getActiveTabId, createTab, renameTab, switchTab, deleteTab,
+    getTabs, getActiveTab, getActiveTabId, createTab, renameTab, switchTab, deleteTab, isTabEmpty,
     canImportTab, getImportableTabs,
     addNode, updateNode, deleteNode, getNode, getNodes, updateNodePosition,
     getContainers, groupNodes, ungroupNode, ungroupParent,

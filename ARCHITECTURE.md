@@ -68,6 +68,11 @@ Gerencia os dados da aplicação e notifica os ouvintes sobre qualquer alteraç�
 - **Descrição:** Exclui a aba informada (bloqueando e emitindo erro caso seja a aba fixa principal `idx === 0` ou a única existente). Executa **exclusão em cascata** removendo nós em outras abas que a importavam como subgrafo. Seleciona aba adjacente e notifica `tabs:change` e `tabs:switch`.
 - **Retorno:** `undefined`.
 
+#### `isTabEmpty(tabId)`
+- **Assinatura:** `isTabEmpty(tabId: string): boolean`
+- **Descrição:** Informa se uma aba está completamente vazia (sem vértices ou arestas cadastrados), permitindo exclusão direta sem prompt de confirmação.
+- **Retorno:** `true` se vazia ou inexistente; `false` se contiver itens.
+
 #### `canImportTab(targetTabId, candidateTabId)`
 - **Assinatura:** `canImportTab(targetTabId: string, candidateTabId: string): boolean`
 - **Descrição:** Executa algoritmo de detecção de ciclo / DAG para prevenir auto-importação ou dependência circular direta/indireta entre abas.
@@ -120,7 +125,7 @@ Gerencia os dados da aplicação e notifica os ouvintes sobre qualquer alteraç�
 
 #### `deleteNode(id)`
 - **Assinatura:** `deleteNode(id: string): string`
-- **Descrição:** Remove o nó especificado e todas as arestas conectadas a ele. Limpa seleção caso o nó estivesse selecionado. Salva e dispara `node:delete`.
+- **Descrição:** Remove o nó especificado e todas as arestas conectadas a ele. Se o nó for um contêiner/agrupador, preserva integralmente os nós filhos (desassociando-os com `parentId = null` no Store e Cytoscape), permitindo excluir o agrupador sem deletar os vértices contidos. Limpa a seleção caso estivesse selecionado. Salva e dispara `node:delete`.
 - **Retorno:** ID do nó removido (`string`).
 
 #### `getNode(id)`
@@ -449,7 +454,7 @@ Controlador responsável pela renderização física com Cytoscape.js e tratamen
 
 #### `createQuickChild(sourceId)`
 - **Assinatura:** `createQuickChild(sourceId: string): Node | null`
-- **Descrição:** Cria instantaneamente um nó filho conectado ao nó de origem especificado. Infere o tipo complementar (`problema` cria filho `solucao` com aresta `resolve`; qualquer outro tipo cria `problema` com aresta `dependencia`). Posiciona o nó novo a +200px no eixo X e seleciona o novo título para digitação imediata.
+- **Descrição:** Cria instantaneamente um nó filho conectado ao nó de origem especificado. Infere o tipo complementar (`problema` cria filho `solucao` com aresta `resolve`; qualquer outro tipo cria `problema` com aresta `dependencia`). Oculta e suspende a exibição da alça rápida para não atrapalhar a visualização/foco, posiciona o novo nó a +190px no eixo X e abre a sidebar selecionando o novo título para digitação imediata.
 - **Retorno:** Objeto `Node` recém-criado ou `null`.
 
 #### `runLayout(layoutName)`
