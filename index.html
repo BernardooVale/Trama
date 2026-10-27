@@ -8,11 +8,18 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=4" />
+  <link rel="stylesheet" href="style.css?v=5" />
 </head>
 <body>
 
   <header class="app-header">
+    <button class="btn-icon active" id="btn-toggle-explorer" title="Alternar Explorador de Pastas (Ctrl+B)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+        <line x1="9" y1="3" x2="9" y2="21"/>
+      </svg>
+    </button>
+
     <div class="header-brand">
       <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <circle cx="12" cy="5"  r="2.5"/>
@@ -206,6 +213,84 @@
   </nav>
 
   <main class="app-main">
+    <!-- Explorer Sidebar (VS Code style) -->
+    <aside class="explorer-sidebar" id="explorer-sidebar">
+      <div class="explorer-header">
+        <div class="dropdown explorer-project-dropdown" id="dd-project">
+          <button class="explorer-project-btn" id="btn-project-menu" title="Gerenciar e Alternar Projetos">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+            </svg>
+            <span class="explorer-project-name" id="explorer-project-title">PROJETO: Nobiu</span>
+            <svg class="dd-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="10" height="10">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </button>
+          <div class="dropdown-menu explorer-project-menu" id="dd-project-menu">
+            <!-- Renderizado dinamicamente pelo ExplorerUI -->
+          </div>
+        </div>
+        <div class="explorer-toolbar">
+          <button class="btn-icon-sm" id="btn-explorer-new-project" title="Criar Novo Projeto...">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+          </button>
+          <button class="btn-icon-sm" id="btn-explorer-new-file" title="Novo Grafo na Pasta Ativa">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="12" y1="18" x2="12" y2="12"/>
+              <line x1="9" y1="15" x2="15" y2="15"/>
+            </svg>
+          </button>
+          <button class="btn-icon-sm" id="btn-explorer-new-folder" title="Nova Pasta / Módulo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
+              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+              <line x1="12" y1="11" x2="12" y2="17"/>
+              <line x1="9" y1="14" x2="15" y2="14"/>
+            </svg>
+          </button>
+          <button class="btn-icon-sm" id="btn-explorer-collapse-all" title="Recolher Todas as Pastas">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
+              <polyline points="4 14 10 14 10 20"/>
+              <polyline points="20 10 14 10 14 4"/>
+              <line x1="14" y1="10" x2="21" y2="3"/>
+              <line x1="3" y1="21" x2="10" y2="14"/>
+            </svg>
+          </button>
+          <button class="btn-icon-sm" id="btn-explorer-close" title="Fechar Explorador (Ctrl+B)">✕</button>
+        </div>
+      </div>
+
+      <!-- Seção 1: Pastas e Grafos do Projeto -->
+      <div class="explorer-section">
+        <div class="explorer-section-header" data-target="explorer-tree-wrap">
+          <span class="section-chevron">▾</span>
+          <span class="section-title">PASTAS DO PROJETO</span>
+        </div>
+        <div class="explorer-section-body" id="explorer-tree-wrap">
+          <div class="explorer-tree" id="explorer-tree"></div>
+        </div>
+      </div>
+
+      <!-- Seção 2: Dados do Projeto (Entidades Únicas) -->
+      <div class="explorer-section">
+        <div class="explorer-section-header" data-target="explorer-entities-wrap" title="Dados únicos compartilhados entre as pastas deste projeto">
+          <span class="section-chevron">▾</span>
+          <span class="section-title">DADOS DO PROJETO</span>
+          <span class="section-badge" id="explorer-entities-count">0</span>
+        </div>
+        <div class="explorer-section-body" id="explorer-entities-wrap">
+          <div class="explorer-search-box">
+            <input type="text" id="explorer-entity-search" class="explorer-search-input" placeholder="Buscar dado deste projeto..." autocomplete="off" />
+          </div>
+          <div class="explorer-entities-list" id="explorer-entities-list"></div>
+        </div>
+      </div>
+    </aside>
+
     <div class="canvas-wrap" id="canvas-wrap">
       <div id="cy"></div>
 
@@ -374,24 +459,26 @@
   </div>
 
   <!-- Store modules -->
-  <script src="js/store/history.js?v=4"></script>
-  <script src="js/store/tabsManager.js?v=4"></script>
-  <script src="js/store/storage.js?v=4"></script>
-  <script src="store.js?v=4"></script>
+  <script src="js/store/history.js?v=5"></script>
+  <script src="js/store/tabsManager.js?v=5"></script>
+  <script src="js/store/explorerManager.js?v=5"></script>
+  <script src="js/store/storage.js?v=5"></script>
+  <script src="store.js?v=5"></script>
 
   <!-- Graph modules -->
-  <script src="js/graph/styles.js?v=4"></script>
-  <script src="js/graph/focus.js?v=4"></script>
-  <script src="js/graph/edgeMode.js?v=4"></script>
-  <script src="graph.js?v=4"></script>
+  <script src="js/graph/styles.js?v=5"></script>
+  <script src="js/graph/focus.js?v=5"></script>
+  <script src="js/graph/edgeMode.js?v=5"></script>
+  <script src="graph.js?v=5"></script>
 
   <!-- UI Components -->
-  <script src="js/components/search.js?v=4"></script>
-  <script src="js/components/tabs.js?v=4"></script>
-  <script src="js/components/sidebar.js?v=4"></script>
-  <script src="js/components/contextMenu.js?v=4"></script>
+  <script src="js/components/search.js?v=5"></script>
+  <script src="js/components/tabs.js?v=5"></script>
+  <script src="js/components/explorer.js?v=5"></script>
+  <script src="js/components/sidebar.js?v=5"></script>
+  <script src="js/components/contextMenu.js?v=5"></script>
 
   <!-- App Controller -->
-  <script src="main.js?v=4"></script>
+  <script src="main.js?v=5"></script>
 </body>
 </html>

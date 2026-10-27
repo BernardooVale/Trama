@@ -1,13 +1,14 @@
 /**
  * ContextMenu Component — Trama
  * Gerencia o menu de contexto flutuante para nós, arestas, tela (core) e abas.
+ * Suporta inserção de dados existentes do banco único e opções de remoção local vs global.
  */
 const ContextMenu = (() => {
   function getEl(){ return document.getElementById('context-menu'); }
   let targetId = null;
   let targetPos = null;
 
-  function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function esc(s){ return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
   function hide(){
     const el = getEl();
@@ -23,8 +24,8 @@ const ContextMenu = (() => {
     const rect = el.getBoundingClientRect();
     const left = (x + rect.width > window.innerWidth) ? window.innerWidth - rect.width - 10 : x;
     const top  = (y + rect.height > window.innerHeight) ? window.innerHeight - rect.height - 10 : y;
-    el.style.left = `${left}px`;
-    el.style.top  = `${top}px`;
+    el.style.left = `${Math.max(10, left)}px`;
+    el.style.top  = `${Math.max(10, top)}px`;
   }
 
   function showNodeMenu(id, cx, cy){
@@ -57,7 +58,8 @@ const ContextMenu = (() => {
       <div class="cm-divider"></div>
       ${compoundActions}
       <button class="cm-item" data-action="copy">Copiar Vértice <span style="margin-left:auto;font-size:11px;color:var(--text-muted)">Ctrl+C</span></button>
-      <button class="cm-item" data-action="delete" style="color:var(--node-problema)">Excluir Vértice</button>
+      <button class="cm-item" data-action="delete" style="color:var(--node-problema)">Remover deste Grafo</button>
+      <button class="cm-item" data-action="delete-global" style="color:var(--node-problema);font-size:11px">Excluir Globalmente do Banco</button>
     `;
     position(cx, cy);
   }
@@ -97,6 +99,24 @@ const ContextMenu = (() => {
       `;
     }
 
+    // Entidades do banco único disponíveis para inserir
+    const entities = (typeof Store.getEntitiesList === 'function') ? Store.getEntitiesList() : [];
+    const currentTabNodeIds = new Set((Store.getActiveTab()?.nodes || []).map(n => n.id));
+    const availableEntities = entities.filter(ent => !currentTabNodeIds.has(ent.id));
+
+    let availableEntitiesHtml = '';
+    if(availableEntities.length > 0){
+      availableEntitiesHtml = `
+        <div class="cm-divider"></div>
+        <div class="cm-item" style="font-size:10px;text-transform:uppercase;color:var(--text-muted);pointer-events:none">Inserir Nó do Banco Único</div>
+        ${availableEntities.slice(0, 6).map(ent => `
+          <button class="cm-item" data-action="insert-entity" data-entity-id="${esc(ent.id)}">
+            <span class="dot dot-${esc(ent.type)}"></span>${esc(ent.title || 'Sem título')}
+          </button>
+        `).join('')}
+      `;
+    }
+
     el.innerHTML = `
       <div class="cm-item" style="font-size:10px;text-transform:uppercase;color:var(--text-muted);pointer-events:none">Novo Vértice</div>
       <button class="cm-item" data-action="add" data-type="problema"><span class="dd-dot dd-dot--problema"></span>Problema</button>
@@ -104,6 +124,7 @@ const ContextMenu = (() => {
       <button class="cm-item" data-action="add" data-type="agrupador"><span class="dd-dot dd-dot--agrupador"></span>Contêiner / Agrupador</button>
       <button class="cm-item" data-action="add" data-type="neutro"><span class="dd-dot dd-dot--neutro"></span>Neutro</button>
       <button class="cm-item" data-action="add" data-type="texto"><span class="dd-dot dd-dot--texto"></span>Texto <span style="margin-left:auto;font-size:11px;color:var(--text-muted)">T</span></button>
+      ${availableEntitiesHtml}
       ${importTabsHtml}
       <div class="cm-divider"></div>
       <button class="cm-item" data-action="paste" ${canPaste ? '' : 'disabled style="opacity:0.4;cursor:not-allowed"'}>
@@ -139,6 +160,16 @@ const ContextMenu = (() => {
         const node = Graph.addNodeAtPos(btn.dataset.type, currentTargetPos.x, currentTargetPos.y);
         Store.selectNode(node.id);
         Sidebar.open(node.id, true);
+      }
+      else if(action === 'insert-entity' && currentTargetPos){
+        const entId = btn.dataset.entityId;
+        try {
+          const node = Store.addExistingEntityToTab(entId, { x: currentTargetPos.x, y: currentTargetPos.y });
+          Store.selectNode(node.id);
+          if(typeof App !== 'undefined' && App.toast) App.toast(`"${node.title}" inserido do banco!`);
+        } catch(err){
+          if(typeof App !== 'undefined' && App.toast) App.toast(err.message);
+        }
       }
       else if(action === 'quick-child' && currentTargetId){
         Graph.createQuickChild(currentTargetId);
@@ -201,12 +232,28 @@ const ContextMenu = (() => {
       else if(action === 'delete' && currentTargetId){
         Store.deleteNode(currentTargetId);
       }
+      else if(action === 'delete-global' && currentTargetId){
+        const node = Store.getNode(currentTargetId);
+        if(confirm(`Excluir permanentemente "${node?.title || 'este dado'}" de todas as bases e grafos?`)){
+          Store.deleteEntityGlobal(currentTargetId);
+          if(typeof App !== 'undefined' && App.toast) App.toast('Dado excluído globalmente');
+        }
+      }
       else if(action === 'edit-edge' && currentTargetId){
         Store.selectEdge(currentTargetId);
         Sidebar.openEdge(currentTargetId);
       }
       else if(action === 'delete-edge' && currentTargetId){
         Store.deleteEdge(currentTargetId);
+      }
+      else if(action === 'tab-close' && btn.dataset.tabId){
+        Store.closeTab(btn.dataset.tabId);
+      }
+      else if(action === 'tab-close-others' && btn.dataset.tabId){
+        Store.closeOtherTabs(btn.dataset.tabId);
+      }
+      else if(action === 'tab-close-all'){
+        Store.closeAllTabs();
       }
       else if(action === 'tab-rename' && btn.dataset.tabId){
         const tId = btn.dataset.tabId;

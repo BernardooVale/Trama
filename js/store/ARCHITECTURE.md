@@ -10,7 +10,8 @@ Este documento detalha o propósito, as responsabilidades e a especificação co
 | :--- | :--- |
 | `history.js` | Gerencia a pilha de estados anteriores (desfazer/undo), controle de snapshots profundos e suporte a operações em lote (`batch`). |
 | `tabsManager.js` | Gerencia modelo de múltiplas abas, algoritmo de prevenção de ciclos em DAG (`canImportTab`) e exclusão em cascata de subgrafos. |
-| `storage.js` | Gerencia a persistência no `localStorage`, migração retroativa e serialização/desserialização de arquivos `.json`. |
+| `explorerManager.js` | Gerencia a hierarquia de pastas (bases de dados/módulos), movimentação de itens e o pool central de entidades únicas ("o dado é único"). |
+| `storage.js` | Gerencia a persistência no `localStorage` de múltiplos projetos isolados, indexação de projetos, chave ativa e exportação/importação JSON. |
 
 ---
 
@@ -100,28 +101,121 @@ Gerencia o modelo de abas múltiplas, geração de identificadores de aba, detec
 
 ---
 
-## 4. `storage.js` (`StoreStorage`)
+## 4. `explorerManager.js` (`ExplorerManager`)
 
-Responsável pela persistência do estado no `localStorage` e pela serialização e desserialização de arquivos `.json`.
+Gerencia o esquema de pastas (bases de dados/módulos), árvore hierárquica e o pool central de entidades canônicas ("o dado é único").
 
 ### Funções Internas e Métodos Públicos
 
+#### `folderUid()`
+- **Assinatura:** `folderUid(): string`
+- **Descrição:** Gera um ID alfanumérico único para uma pasta com prefixo `fld_`.
+- **Retorno:** String com o identificador único.
+
+#### `syncEntitiesFromTabs(entitiesMap, tabs)`
+- **Assinatura:** `syncEntitiesFromTabs(entitiesMap: Record<string, Entity>, tabs: Tab[]): Record<string, Entity>`
+- **Descrição:** Itera sobre todos os nós de todas as abas e garante que cada nó único exista no pool central com suas propriedades canônicas (título, descrição, prioridade, tags, url).
+- **Retorno:** Objeto `entitiesMap` atualizado e indexado por ID.
+
+#### `mergeNodeWithEntity(entity, localNode)`
+- **Assinatura:** `mergeNodeWithEntity(entity: Entity, localNode?: Partial<Node>): Node`
+- **Descrição:** Mescla os metadados canônicos da entidade central com propriedades posicionais específicas do grafo (coordenadas x, y e contêiner pai).
+- **Retorno:** Objeto de nó completo normalizado.
+
+#### `getEntityUsage(tabs, entityId)`
+- **Assinatura:** `getEntityUsage(tabs: Tab[], entityId: string): Array<{ id: string, name: string }>`
+- **Descrição:** Identifica em quais grafos/abas uma entidade específica está instanciada.
+- **Retorno:** Array com o ID e o nome das abas que utilizam o dado.
+
+#### `ensureDefaultFolder(folders, tabs)`
+- **Assinatura:** `ensureDefaultFolder(folders: Folder[], tabs: Tab[]): Folder[]`
+- **Descrição:** Garante a existência de uma pasta raiz padrão caso o projeto ainda não possua nenhuma e associa abas órfãs a ela.
+- **Retorno:** Array de pastas atualizado.
+
+#### `createFolder(folders, name, parentId)`
+- **Assinatura:** `createFolder(folders: Folder[], name?: string, parentId?: string | null): Folder`
+- **Descrição:** Cria uma nova pasta com nome personalizado ou padrão, vinculando-a a uma pasta pai opcional (subpasta).
+- **Retorno:** O novo objeto `Folder`.
+
+#### `renameFolder(folders, folderId, newName)`
+- **Assinatura:** `renameFolder(folders: Folder[], folderId: string, newName: string): Folder`
+- **Descrição:** Renomeia uma pasta existente.
+- **Retorno:** Objeto `Folder` atualizado.
+
+#### `deleteFolder(folders, tabs, folderId)`
+- **Assinatura:** `deleteFolder(folders: Folder[], tabs: Tab[], folderId: string): void`
+- **Descrição:** Exclui uma pasta realocando suas subpastas e grafos para o nível imediatamente superior (ou raiz) sem perda de dados.
+- **Retorno:** `undefined`.
+
+#### `buildTree(folders, tabs)`
+- **Assinatura:** `buildTree(folders: Folder[], tabs: Tab[]): { rootFolders: FolderTreeItem[], rootTabs: TabTreeItem[], allFolders: FolderTreeItem[] }`
+- **Descrição:** Constrói a estrutura hierárquica em árvore contendo pastas aninhadas e arquivos de grafos para renderização no Explorer estilo VS Code.
+- **Retorno:** Objeto com raízes e listagem completa.
+
+#### `moveItem(folders, tabs, itemType, itemId, targetFolderId)`
+- **Assinatura:** `moveItem(folders: Folder[], tabs: Tab[], itemType: 'tab' | 'folder', itemId: string, targetFolderId: string | null): boolean`
+- **Descrição:** Move uma aba ou subpasta para uma nova pasta de destino, prevenindo ciclos de aninhamento.
+- **Retorno:** `true` se movido com sucesso; `false` se inválido ou ciclo detectado.
+
+---
+
+## 5. `storage.js` (`StoreStorage`)
+
+Responsável pela persistência e indexação de múltiplos projetos isolados no `localStorage` (`trama_projects_index`, `trama_active_project_id`, `trama_proj_<id>` e espelhamento em `trama_v1`) e pela serialização/desserialização de arquivos `.json`.
+
+### Funções Internas e Métodos Públicos
+
+#### `getProjectsList()`
+- **Assinatura:** `getProjectsList(): Array<{ id: string, name: string, updatedAt: number, tabCount: number, entityCount: number }>`
+- **Descrição:** Retorna a listagem de projetos salvos no navegador a partir do índice `trama_projects_index`. Caso o índice não exista, inicializa automaticamente registrando o projeto default ativo do storage.
+- **Retorno:** Array de metadados dos projetos cadastrados.
+
+#### `saveProjectsList(list)`
+- **Assinatura:** `saveProjectsList(list: ProjectMeta[]): void`
+- **Descrição:** Persiste o índice de projetos no `localStorage`.
+- **Retorno:** `undefined`.
+
+#### `getActiveProjectId()`
+- **Assinatura:** `getActiveProjectId(): string`
+- **Descrição:** Retorna o ID do projeto atualmente ativo no navegador ou o primeiro projeto da lista.
+- **Retorno:** String com o identificador do projeto ativo.
+
+#### `setActiveProjectId(id)`
+- **Assinatura:** `setActiveProjectId(id: string): void`
+- **Descrição:** Grava no `localStorage` o identificador do projeto ativo.
+- **Retorno:** `undefined`.
+
 #### `save(state)`
 - **Assinatura:** `save(state: State): void`
-- **Descrição:** Serializa as abas e o estado da aplicação e grava sob a chave `'trama_v1'` do `localStorage`.
+- **Descrição:** Serializa o projeto ativo sob a chave `trama_proj_<projectId>`, atualiza o índice de projetos e espelha o snapshot em `trama_v1` para retrocompatibilidade.
 - **Retorno:** `undefined`.
+
+#### `loadProject(projectId, nodeDefaultsFn, edgeDefaultsFn)`
+- **Assinatura:** `loadProject(projectId: string, nodeDefaultsFn: Function, edgeDefaultsFn: Function): ProjectState | null`
+- **Descrição:** Carrega o snapshot isolado de um projeto específico a partir de sua chave no `localStorage`.
+- **Retorno:** Objeto de estado do projeto ou `null`.
 
 #### `load(nodeDefaultsFn, edgeDefaultsFn)`
-- **Assinatura:** `load(nodeDefaultsFn: Function, edgeDefaultsFn: Function): { tabs: Tab[], activeTabId: string } | null`
-- **Descrição:** Lê o `localStorage`, aplicando normalização através das funções de fallback e garantindo compatibilidade retroativa com esquemas v1.
-- **Retorno:** Objeto com array de abas e ID da aba ativa, ou `null` se vazio ou inválido.
+- **Assinatura:** `load(nodeDefaultsFn: Function, edgeDefaultsFn: Function): ProjectState | null`
+- **Descrição:** Carrega o projeto atualmente ativo registrado em `trama_active_project_id`.
+- **Retorno:** Objeto com estado carregado ou `null`.
 
-#### `exportJSON(state)`
-- **Assinatura:** `exportJSON(state: State): void`
-- **Descrição:** Empacota o projeto em formato JSON v2 e inicia o download do arquivo no navegador com carimbo de data/hora.
-- **Retorno:** `undefined`.
+#### `deleteProject(projectId)`
+- **Assinatura:** `deleteProject(projectId: string): boolean`
+- **Descrição:** Exclui um projeto salvo e seu registro no índice de projetos.
+- **Retorno:** `true` se excluído com sucesso; `false` caso contrário.
+
+#### `exportJSON(state, filename)`
+- **Assinatura:** `exportJSON(state: State, filename?: string): Promise<boolean>`
+- **Descrição:** Exporta o estado do projeto ativo utilizando a File System Access API ou acionando download via Blob.
+- **Retorno:** `Promise<boolean>` indicando se a exportação foi bem-sucedida.
+
+#### `parseJSONContent(snap, nodeDefaultsFn, edgeDefaultsFn)`
+- **Assinatura:** `parseJSONContent(snap: any, nodeDefaultsFn: Function, edgeDefaultsFn: Function): ProjectState | null`
+- **Descrição:** Processa um objeto JSON em formato v1, v2 ou v3, extraindo abas, pastas e populando o pool central de entidades únicas.
+- **Retorno:** Objeto normalizado com abas, pastas e entidades.
 
 #### `parseImportFile(file, nodeDefaultsFn, edgeDefaultsFn)`
-- **Assinatura:** `parseImportFile(file: File, nodeDefaultsFn: Function, edgeDefaultsFn: Function): Promise<{ tabs: Tab[], activeTabId: string }>`
-- **Descrição:** Lê assincronamente um arquivo `.json` via `FileReader`, validando o formato (v1 ou v2) e instanciando o estado das abas.
-- **Retorno:** `Promise` que resolve com as abas importadas ou rejeita com erro descritivo.
+- **Assinatura:** `parseImportFile(file: File, nodeDefaultsFn: Function, edgeDefaultsFn: Function): Promise<ProjectState>`
+- **Descrição:** Lê assincronamente um arquivo `.json` via `FileReader`, validando e instanciando o estado do projeto importado.
+- **Retorno:** `Promise` que resolve com os dados importados ou rejeita com erro descritivo.

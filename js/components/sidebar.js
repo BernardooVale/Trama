@@ -174,7 +174,14 @@ const Sidebar = (() => {
     }
 
     const d = new Date(node.createdAt).toLocaleDateString('pt-BR');
-    getEl('sb-meta').textContent = `ID: ${node.id} · ${d}`;
+    let usageStr = '';
+    if(typeof Store.getTabs === 'function' && typeof ExplorerManager !== 'undefined'){
+      const usage = ExplorerManager.getEntityUsage(Store.getTabs(), node.id);
+      if(usage.length > 1){
+        usageStr = ` · Usado em ${usage.length} bases/grafos`;
+      }
+    }
+    getEl('sb-meta').textContent = `ID: ${node.id} · ${d}${usageStr}`;
   }
 
   function populateEdge(edge){

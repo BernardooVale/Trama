@@ -1,21 +1,22 @@
 /**
  * TabsUI Component — Trama
- * Gerencia a barra de abas de grafos, renomeação inline, menu de contexto de abas e atalhos.
+ * Gerencia a barra de abas de arquivos abertos (estilo VS Code / navegadores),
+ * alternância, fechamento de aba (sem deletar arquivo), renomeação inline e menu contextual.
  */
 const TabsUI = (() => {
   function getListEl(){ return document.getElementById('tabs-list'); }
-  function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function esc(s){ return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
   function render(){
     const listEl = getListEl();
     if(!listEl) return;
-    const tabs = Store.getTabs();
+    const openTabs = (typeof Store.getOpenTabs === 'function') ? Store.getOpenTabs() : Store.getTabs();
     const activeId = Store.getActiveTabId();
 
     listEl.innerHTML = '';
-    tabs.forEach((tab, index) => {
-      // Separador visual após a primeira aba (aba fixa principal)
-      if(index === 1){
+    openTabs.forEach((tab, index) => {
+      // Separador visual após a primeira aba se for principal
+      if(index === 1 && openTabs[0].isMain){
         const sep = document.createElement('div');
         sep.className = 'tab-separator';
         listEl.appendChild(sep);
@@ -24,15 +25,13 @@ const TabsUI = (() => {
       const item = document.createElement('div');
       item.className = `tab-item${tab.id === activeId ? ' active' : ''}${tab.isMain ? ' tab-item--main' : ''}`;
       item.dataset.tabId = tab.id;
-      item.title = tab.isMain 
-        ? `${tab.name} (Aba Fixa · Duplo-clique para renomear)` 
-        : `${tab.name} (Duplo-clique para renomear)`;
+      item.title = `${tab.name} (Duplo-clique para renomear)`;
 
       if(tab.isMain){
         const lockIcon = document.createElement('span');
         lockIcon.className = 'tab-main-icon';
         lockIcon.innerHTML = '★';
-        lockIcon.title = 'Aba Principal (Fixa)';
+        lockIcon.title = 'Arquivo Principal do Projeto';
         item.appendChild(lockIcon);
       }
 
@@ -41,26 +40,19 @@ const TabsUI = (() => {
       titleSpan.textContent = tab.name;
       item.appendChild(titleSpan);
 
-      if(tab.isMain){
-        const badge = document.createElement('span');
-        badge.className = 'tab-main-badge';
-        badge.textContent = 'Fixa';
-        badge.title = 'Aba fixa permanente do projeto';
-        item.appendChild(badge);
-      }
-
-      // Botão de fechar (somente em abas secundárias)
-      if(!tab.isMain){
-        const closeBtn = document.createElement('button');
-        closeBtn.className = 'tab-close';
-        closeBtn.title = 'Fechar aba (Ctrl+Shift+W)';
-        closeBtn.innerHTML = '✕';
-        closeBtn.addEventListener('click', e => {
-          e.stopPropagation();
-          deleteTabPrompt(tab.id);
-        });
-        item.appendChild(closeBtn);
-      }
+      // Botão de fechar aba (apenas fecha a aba no topo, NÃO exclui o arquivo!)
+      const closeBtn = document.createElement('button');
+      closeBtn.className = 'tab-close';
+      closeBtn.title = 'Fechar aba (Ctrl+W) — O arquivo continua no Explorador';
+      closeBtn.innerHTML = '✕';
+      closeBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        Store.closeTab(tab.id);
+        if(typeof App !== 'undefined' && App.toast){
+          App.toast(`Aba "${tab.name}" fechada (arquivo preservado no Explorador)`);
+        }
+      });
+      item.appendChild(closeBtn);
 
       // Clique para alternar aba
       item.addEventListener('click', () => {
@@ -129,7 +121,7 @@ const TabsUI = (() => {
     if(activeItem){
       startInlineRename(activeTab.id, activeItem);
     } else {
-      const newName = prompt('Novo nome da aba:', activeTab.name);
+      const newName = prompt('Novo nome do grafo:', activeTab.name);
       if(newName && newName.trim()){
         Store.renameTab(activeTab.id, newName.trim());
       }
@@ -141,18 +133,13 @@ const TabsUI = (() => {
     const targetTab = tabs.find(t => t.id === tabId);
     if(!targetTab) return;
     if(targetTab.isMain){
-      if(typeof App !== 'undefined' && App.toast) App.toast('A aba principal é fixa e não pode ser excluída.');
+      if(typeof App !== 'undefined' && App.toast) App.toast('O arquivo principal é fixo e não pode ser excluído.');
       return;
     }
     const isEmpty = Store.isTabEmpty ? Store.isTabEmpty(tabId) : false;
-    if(isEmpty){
+    if(isEmpty || confirm(`Deseja excluir permanentemente o arquivo "${targetTab.name}" do projeto?\n(Subgrafos associados em outras telas serão removidos).`)){
       Store.deleteTab(tabId);
-      if(typeof App !== 'undefined' && App.toast) App.toast(`Aba "${targetTab.name}" excluída.`);
-      return;
-    }
-    if(confirm(`Deseja fechar a aba "${targetTab.name}"? Subgrafos associados em outras abas serão removidos.`)){
-      Store.deleteTab(tabId);
-      if(typeof App !== 'undefined' && App.toast) App.toast(`Aba "${targetTab.name}" excluída.`);
+      if(typeof App !== 'undefined' && App.toast) App.toast(`Arquivo "${targetTab.name}" excluído do projeto.`);
     }
   }
 
@@ -163,12 +150,16 @@ const TabsUI = (() => {
     if(!tab) return;
 
     cm.innerHTML = `
-      <div class="cm-item" style="font-size:10px;text-transform:uppercase;color:var(--text-muted);pointer-events:none">Aba: ${esc(tab.name)}${tab.isMain ? ' (Fixa)' : ''}</div>
-      <button class="cm-item" data-action="tab-rename" data-tab-id="${tabId}">Renomear Aba <span style="margin-left:auto;font-size:11px;color:var(--text-muted)">Ctrl+E</span></button>
-      <button class="cm-item" data-action="tab-duplicate">Nova Aba <span style="margin-left:auto;font-size:11px;color:var(--text-muted)">Ctrl+Shift+T</span></button>
+      <div class="cm-item" style="font-size:10px;text-transform:uppercase;color:var(--text-muted);pointer-events:none">Aba: ${esc(tab.name)}${tab.isMain ? ' (Principal)' : ''}</div>
+      <button class="cm-item" data-action="tab-close" data-tab-id="${tabId}">Fechar Aba <span style="margin-left:auto;font-size:11px;color:var(--text-muted)">Ctrl+W</span></button>
+      <button class="cm-item" data-action="tab-close-others" data-tab-id="${tabId}">Fechar Outras Abas</button>
+      <button class="cm-item" data-action="tab-close-all">Fechar Todas as Abas</button>
+      <div class="cm-divider"></div>
+      <button class="cm-item" data-action="tab-rename" data-tab-id="${tabId}">Renomear Arquivo <span style="margin-left:auto;font-size:11px;color:var(--text-muted)">Ctrl+E</span></button>
+      <button class="cm-item" data-action="tab-duplicate">Novo Arquivo de Grafo <span style="margin-left:auto;font-size:11px;color:var(--text-muted)">Ctrl+Shift+T</span></button>
       ${!tab.isMain ? `
         <div class="cm-divider"></div>
-        <button class="cm-item" data-action="tab-delete" data-tab-id="${tabId}" style="color:var(--node-problema)">Fechar Aba <span style="margin-left:auto;font-size:11px;color:var(--text-muted)">Ctrl+Shift+W</span></button>
+        <button class="cm-item cm-item--danger" data-action="tab-delete" data-tab-id="${tabId}">Excluir Arquivo Definitivamente</button>
       ` : ''}
     `;
 
@@ -176,8 +167,8 @@ const TabsUI = (() => {
     const rect = cm.getBoundingClientRect();
     const left = (cx + rect.width > window.innerWidth) ? window.innerWidth - rect.width - 10 : cx;
     const top  = (cy + rect.height > window.innerHeight) ? window.innerHeight - rect.height - 10 : cy;
-    cm.style.left = `${left}px`;
-    cm.style.top  = `${top}px`;
+    cm.style.left = `${Math.max(10, left)}px`;
+    cm.style.top  = `${Math.max(10, top)}px`;
   }
 
   function bind(){

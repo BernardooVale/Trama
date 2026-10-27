@@ -8,14 +8,98 @@ Este documento detalha o propósito, as responsabilidades e a especificação co
 
 | Arquivo | Função Principal / Responsabilidade |
 | :--- | :--- |
+| `explorer.js` | Barra lateral esquerda retrátil estilo VS Code Explorer: árvore hierárquica de pastas (bases de dados) e grafos, além do painel de entidades únicas ("o dado é único"). |
 | `tabs.js` | Renderização da barra de abas de grafos, aba fixa permanente (`Principal`), renomeação inline, menu contextual e atalhos. |
 | `search.js` | Busca unificada por texto e etiquetas (`#tags`), chips de filtros ativos e lista suspensa com navegação por teclado. |
 | `sidebar.js` | Painel lateral de propriedades e edição detalhada de vértices e arestas, debounce de digitação e gerenciamento de tags. |
-| `contextMenu.js` | Menus contextuais acionados pelo botão direito do mouse no canvas, nós ou arestas (criação rápida, cópia, colagem e importação). |
+| `contextMenu.js` | Menus contextuais acionados pelo botão direito do mouse no canvas, nós ou arestas (criação rápida, cópia, colagem, importação de subgrafo e inserção de dados do banco). |
 
 ---
 
-## 2. `tabs.js` (`TabsUI`)
+## 2. `explorer.js` (`ExplorerUI`)
+
+Gerencia o explorador lateral estilo VS Code (`#explorer-sidebar`), renderizando o seletor de projetos com dropdown interativo, criação, alternância e exclusão de projetos, árvore hierárquica de pastas e grafos, ações de criação/renomeação/exclusão e o painel de entidades únicas do projeto ativo.
+
+### Funções Internas e Métodos Públicos
+
+#### `toggleSidebar(forceState)`
+- **Assinatura:** `toggleSidebar(forceState?: boolean): void`
+- **Descrição:** Alterna o estado de visibilidade da barra lateral esquerda do explorador (adicionando/removendo a classe `.collapsed` e redimensionando o Cytoscape). Pode ser disparado por `Ctrl+B`.
+- **Retorno:** `undefined`.
+
+#### `openSidebar()`
+- **Assinatura:** `openSidebar(): void`
+- **Descrição:** Força a abertura da barra lateral do explorador.
+- **Retorno:** `undefined`.
+
+#### `closeSidebar()`
+- **Assinatura:** `closeSidebar(): void`
+- **Descrição:** Recolhe a barra lateral do explorador.
+- **Retorno:** `undefined`.
+
+#### `renderProjectName()`
+- **Assinatura:** `renderProjectName(): void`
+- **Descrição:** Atualiza o rótulo do projeto ativo exibido no cabeçalho do explorador.
+- **Retorno:** `undefined`.
+
+#### `toggleProjectDropdown(forceOpen)`
+- **Assinatura:** `toggleProjectDropdown(forceOpen?: boolean): void`
+- **Descrição:** Abre ou fecha o menu dropdown do projeto, renderizando a lista de projetos salvos e ações disponíveis.
+- **Retorno:** `undefined`.
+
+#### `renderProjectDropdown()`
+- **Assinatura:** `renderProjectDropdown(): void`
+- **Descrição:** Constrói as opções do menu dropdown de projetos: botão "+ Novo Projeto...", listagem dos projetos existentes no navegador com número de grafos e dados, indicador visual do projeto ativo (`✓`) e ações de importar, exportar, renomear e excluir projeto.
+- **Retorno:** `undefined`.
+
+#### `promptCreateProject()`
+- **Assinatura:** `promptCreateProject(): void`
+- **Descrição:** Solicita o nome do novo projeto ao usuário e cria uma nova estrutura de projeto completamente isolada com sua pasta inicial, grafo principal e pool de dados vazio.
+- **Retorno:** `undefined`.
+
+#### `promptRenameProject()`
+- **Assinatura:** `promptRenameProject(): void`
+- **Descrição:** Abre diálogo para renomear o projeto ativo.
+- **Retorno:** `undefined`.
+
+#### `promptDeleteCurrentProject()`
+- **Assinatura:** `promptDeleteCurrentProject(): void`
+- **Descrição:** Solicita confirmação e remove o projeto ativo, alternando automaticamente para outro projeto disponível.
+- **Retorno:** `undefined`.
+
+#### `promptImportProject()`
+- **Assinatura:** `promptImportProject(): void`
+- **Descrição:** Permite selecionar um arquivo `.json` exportado e escolher se deseja importá-lo como um novo projeto separado ou sobrepor o projeto ativo.
+- **Retorno:** `undefined`.
+
+#### `renderTree()`
+- **Assinatura:** `renderTree(): void`
+- **Descrição:** Reconstrói o DOM da árvore de pastas e arquivos de grafos no contêiner `#explorer-tree`, destacando o grafo ativo e associando botões de ação e listeners de duplo-clique para renomeação inline.
+- **Retorno:** `undefined`.
+
+#### `renderEntities()`
+- **Assinatura:** `renderEntities(): void`
+- **Descrição:** Renderiza a lista de entidades únicas cadastradas no pool central deste projeto com indicador de cor, contagem de usos em grafos e botão `+` para inserção direta no grafo atualmente ativo.
+- **Retorno:** `undefined`.
+
+#### `promptCreateFolder(parentId)`
+- **Assinatura:** `promptCreateFolder(parentId?: string | null): void`
+- **Descrição:** Abre prompt para criar uma nova pasta raiz ou subpasta de base de dados.
+- **Retorno:** `undefined`.
+
+#### `promptCreateGraph(folderId)`
+- **Assinatura:** `promptCreateGraph(folderId?: string | null): void`
+- **Descrição:** Abre prompt para criar um novo arquivo de grafo vinculado à pasta especificada.
+- **Retorno:** `undefined`.
+
+#### `bind()`
+- **Assinatura:** `bind(): void`
+- **Descrição:** Registra os ouvintes do botão de novo projeto, seletor de projeto, botões do topo do explorador, seções colapsáveis, busca de entidades únicas e inscrição aos eventos do `Store`.
+- **Retorno:** `undefined`.
+
+---
+
+## 3. `tabs.js` (`TabsUI`)
 
 Gerencia a barra de abas de grafos inspirada no CircuitVerse / navegadores web, incluindo a aba fixa principal, alternância, renomeação inline, menu de contexto e remoção.
 
@@ -53,7 +137,7 @@ Gerencia a barra de abas de grafos inspirada no CircuitVerse / navegadores web, 
 
 ---
 
-## 3. `search.js` (`Search`)
+## 4. `search.js` (`Search`)
 
 Gerencia o campo de busca unificado para filtrar vértices por nome/descrição e etiquetas (`#tags`).
 
@@ -111,7 +195,7 @@ Gerencia o campo de busca unificado para filtrar vértices por nome/descrição 
 
 ---
 
-## 4. `sidebar.js` (`Sidebar`)
+## 5. `sidebar.js` (`Sidebar`)
 
 Gerencia o painel lateral de propriedades e edição detalhada de nós e arestas, incluindo visualização/edição Markdown e associação a contêineres e URLs externas.
 
@@ -144,68 +228,63 @@ Gerencia o painel lateral de propriedades e edição detalhada de nós e arestas
 
 #### `populate(node)`
 - **Assinatura:** `populate(node: Node): void`
-- **Descrição:** Preenche os campos do formulário lateral com título, descrição, tipo, prioridade, tags, contêiner pai (`#sb-container-select`) e URL externa (`#sb-url` com botão de acesso direto `↗`). Redefine o modo de descrição para `'edit'`. Para nós do tipo `subgrafo`, exibe campos de navegação para a aba associada.
+- **Descrição:** Preenche os campos do formulário lateral com título, descrição, tipo, prioridade, tags, contêiner pai (`#sb-container-select`) e URL externa (`#sb-url` com botão de acesso direto `↗`). Exibe contagem de usos em bases/grafos caso o dado pertença a mais de um grafo. Redefine o modo de descrição para `'edit'`. Para nós do tipo `subgrafo`, exibe campos de navegação para a aba associada.
 - **Retorno:** `undefined`.
 
 #### `populateEdge(edge)`
 - **Assinatura:** `populateEdge(edge: Edge): void`
-- **Descrição:** Preenche os campos de rótulo, tipo de aresta e endpoints (origem → destino).
+- **Descrição:** Preenche os campos do formulário lateral da aresta (`#sb-edge-fields`) com tipo, rótulo e endpoints.
 - **Retorno:** `undefined`.
 
 #### `renderTags(tags)`
 - **Assinatura:** `renderTags(tags: string[]): void`
-- **Descrição:** Renderiza chips visuais de tags com botões de exclusão individual.
+- **Descrição:** Renderiza chips visuais interativos para as tags atribuídas ao nó atualmente aberto.
 - **Retorno:** `undefined`.
 
-#### `addTag(raw)`
-- **Assinatura:** `addTag(raw: string): void`
-- **Descrição:** Higieniza e inclui uma nova tag no nó selecionado.
+#### `addTag(tag)`
+- **Assinatura:** `addTag(tag: string): void`
+- **Descrição:** Normaliza e adiciona uma nova etiqueta ao nó selecionado, salvando e atualizando a interface.
 - **Retorno:** `undefined`.
 
 #### `removeTag(tag)`
 - **Assinatura:** `removeTag(tag: string): void`
-- **Descrição:** Remove a tag indicada do nó ativo.
+- **Descrição:** Remove a etiqueta informada do nó selecionado.
 - **Retorno:** `undefined`.
 
 #### `bind()`
 - **Assinatura:** `bind(): void`
-- **Descrição:** Associa listeners de input com debounce para título (200ms), descrição (250ms), URL externa (250ms) e rótulo de aresta (200ms); vincula alternância de abas de descrição Editar/Visualizar Markdown; vincula seletor de contêiner pai para nós compostos; gerencia foco, salvamento ao fechar e atalhos de tag.
+- **Descrição:** Inicializa os listeners de debounce nos inputs, alternância de preview de descrição e seletor de prioridade.
 - **Retorno:** `undefined`.
 
 ---
 
-## 5. `contextMenu.js` (`ContextMenu`)
+## 6. `contextMenu.js` (`ContextMenu`)
 
-Controla menus de contexto flutuantes disparados pelo botão direito do mouse no canvas, nós ou arestas.
+Gerencia menus contextuais acionados com botão direito no canvas, vértices e arestas, oferecendo criação rápida, agrupamento, cópia/cola, diagnóstico e inserção de dados a partir do banco de dados global.
 
 ### Funções Internas e Métodos Públicos
 
-#### `hide()`
-- **Assinatura:** `hide(): void`
-- **Descrição:** Oculta e limpa o menu de contexto.
-- **Retorno:** `undefined`.
-
-#### `position(x, y)`
-- **Assinatura:** `position(x: number, y: number): void`
-- **Descrição:** Posiciona o menu no ponto indicado ajustando para não ultrapassar as bordas da viewport.
-- **Retorno:** `undefined`.
-
 #### `showNodeMenu(id, cx, cy)`
 - **Assinatura:** `showNodeMenu(id: string, cx: number, cy: number): void`
-- **Descrição:** Abre o menu de contexto do vértice com opções para criação de filho conectado (`⚡ Criar Filho Conectado - Tab`), novas arestas direcionadas, ações de contêiner composto (`Agrupar em Contêiner`, `Remover do Contêiner` ou `Desagrupar Contêiner`), cópia e exclusão.
+- **Descrição:** Abre o menu de contexto de nó em `(cx, cy)` oferecendo ações rápidas (criar filho conectado, arestas, agrupamento em contêiner, copiar, remoção do grafo atual e exclusão permanente global).
 - **Retorno:** `undefined`.
 
 #### `showEdgeMenu(id, cx, cy)`
 - **Assinatura:** `showEdgeMenu(id: string, cx: number, cy: number): void`
-- **Descrição:** Abre o menu de contexto da aresta com opções de editar propriedades ou excluir aresta.
+- **Descrição:** Abre o menu de contexto de aresta em `(cx, cy)` permitindo edição de propriedades e exclusão.
 - **Retorno:** `undefined`.
 
 #### `showCoreMenu(gx, gy, cx, cy)`
 - **Assinatura:** `showCoreMenu(gx: number, gy: number, cx: number, cy: number): void`
-- **Descrição:** Abre o menu de contexto do fundo do canvas com opções de criar vértices (Problema, Solução, Contêiner / Agrupador, Neutro, Texto), colar clipboard (`Ctrl+V`), desfazer (`Ctrl+Z`), refazer (`Ctrl+Y`), abrir Diagnóstico de Arquitetura, alternar Modo Zen (`Z`) e importar subgrafos livres de ciclos.
+- **Descrição:** Abre menu de contexto na tela limpa em `(cx, cy)` com criação rápida de nós, colagem, importação de subgrafos e inserção de nós disponíveis do banco único nas coordenadas `(gx, gy)`.
+- **Retorno:** `undefined`.
+
+#### `hide()`
+- **Assinatura:** `hide(): void`
+- **Descrição:** Oculta o menu de contexto flutuante.
 - **Retorno:** `undefined`.
 
 #### `bind()`
 - **Assinatura:** `bind(): void`
-- **Descrição:** Associa cliques nos botões do menu contextual (criação rápida de filho, agrupamento e desagrupamento composto, importação de subgrafo, desfazer, refazer, diagnóstico e modo zen) e fecha o menu ao clicar fora.
+- **Descrição:** Conecta a captura de cliques nos botões do menu e fecha o menu ao clicar fora.
 - **Retorno:** `undefined`.

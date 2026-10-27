@@ -8,15 +8,15 @@ Este documento serve como mapa de engenharia do repositório **Trama**, detalhan
 
 | Arquivo / Diretório | Função Principal / Responsabilidade |
 | :--- | :--- |
-| `index.html` | Estrutura de interface da aplicação: barra de ferramentas superior, container Cytoscape, sidebar de propriedades, banner de criação de arestas, controle de zoom e containers de menu de contexto e toast. |
-| `style.css` | Folha de estilos: variáveis de tema (dark/light), layout flex/grid, abas de grafos com destaque para aba fixa principal, componentes de formulário, animações e regras visuais do canvas e sidebar. |
-| `store.js` | **Camada de Estado Central (Model)**: módulo Singleton `Store` enxuto. Orquestra nós, arestas, filtros e pub/sub de eventos delegando responsabilidades para submódulos especializados em `js/store/`. |
+| `index.html` | Estrutura de interface da aplicação: barra de ferramentas superior, explorador retrátil de pastas estilo VS Code, container Cytoscape, barra de abas, sidebar de propriedades, banner de criação de arestas, controle de zoom e containers de menu de contexto e toast. |
+| `style.css` | Folha de estilos: variáveis de tema (dark/light), layout flex/grid, explorador estilo VS Code com árvore de pastas e lista de dados únicos, abas de grafos com destaque para aba fixa principal, componentes de formulário, animações e regras visuais do canvas e sidebar. |
+| `store.js` | **Camada de Estado Central (Model)**: módulo Singleton `Store` enxuto. Orquestra pastas (bases de dados), pool central de entidades únicas ("o dado é único"), abas/grafos, nós, arestas, filtros e pub/sub de eventos delegando responsabilidades para submódulos especializados em `js/store/`. |
 | `graph.js` | **Camada do Grafo Central (Cytoscape Controller)**: módulo Singleton `Graph` enxuto. Inicializa e gerencia a instância do Cytoscape.js, interações com a tela e eventos delegando estilos, foco e desenho de arestas para submódulos em `js/graph/`. |
-| `main.js` | **Camada de UI & Aplicação (App Controller)**: módulo Singleton `App`. Orquestrador enxuto que integra os componentes modulares, alternância de temas, atalhos de teclado, clipboard e sincronização com `Store` e `Graph`. |
+| `main.js` | **Camada de UI & Aplicação (App Controller)**: módulo Singleton `App`. Orquestrador enxuto que integra o explorador lateral, alternância de temas, atalhos de teclado (ex: `Ctrl+B`), clipboard e sincronização com `Store` e `Graph`. |
 | `js/` | Diretório contendo todos os submódulos desacoplados do sistema. Possui seu próprio documento detalhado de arquitetura em [`js/ARCHITECTURE.md`](file:///c:/Users/Bernardo/Documents/GitHub/Trama/js/ARCHITECTURE.md). |
-| `js/store/` | Submódulos da camada de dados: histórico atômico (`history.js`), DAG e abas (`tabsManager.js`) e persistência (`storage.js`). |
+| `js/store/` | Submódulos da camada de dados: histórico atômico (`history.js`), DAG e abas (`tabsManager.js`), hierarquia de pastas e pool de entidades (`explorerManager.js`) e persistência (`storage.js`). |
 | `js/graph/` | Submódulos de renderização visual: folha de estilos Cytoscape (`styles.js`), modo foco dinâmico (`focus.js`) e modo interativo de arestas (`edgeMode.js`). |
-| `js/components/` | Componentes de interface desacoplados: abas (`tabs.js`), busca (`search.js`), sidebar (`sidebar.js`) e menus de contexto (`contextMenu.js`). |
+| `js/components/` | Componentes de interface desacoplados: explorador estilo VS Code (`explorer.js`), abas (`tabs.js`), busca (`search.js`), sidebar (`sidebar.js`) e menus de contexto (`contextMenu.js`). |
 
 ---
 
@@ -29,14 +29,74 @@ Gerencia os dados da aplicação e notifica os ouvintes sobre qualquer alteraç�
 - `NODE_TYPES`: Tipos de nós permitidos (`['problema', 'solucao', 'agrupador', 'neutro', 'subgrafo', 'texto']`).
 - `EDGE_TYPES`: Tipos de arestas permitidas (`['dependencia', 'resolve', 'relaciona', 'neutra']`).
 - `PRIORITIES`: Prioridades válidas (`['alta', 'media', 'baixa']`).
-- `state`: Objeto de estado contendo `version` (2), `activeTabId`, `tabs` (Array<{ id, name, nodes, edges }>), `selectedId`, `selectedEdgeId`, `showNodeMeta` e `filter`.
+- `state`: Objeto de estado contendo `version` (3), `projectName` ('Nobiu'), `activeTabId`, `openTabIds` (Array<string> com as abas abertas no topo), `folders` (Array<{ id, name, parentId, isExpanded, createdAt }>), `entities` (Record<string, Entity> representando o pool único do projeto), `tabs` (Array<{ id, name, folderId, nodes, edges }>), `selectedId`, `selectedEdgeId`, `showNodeMeta` e `filter`.
 
 ### Funções Internas e Métodos Públicos
 
+#### `getProjectId()`
+- **Assinatura:** `getProjectId(): string`
+- **Descrição:** Retorna o identificador único do projeto ativo no momento.
+- **Retorno:** String com o ID do projeto (ex.: `'proj_nobiu'`).
+
+#### `getProjectName()`
+- **Assinatura:** `getProjectName(): string`
+- **Descrição:** Retorna o nome do projeto ativo.
+- **Retorno:** String com o nome do projeto.
+
+#### `setProjectName(name)`
+- **Assinatura:** `setProjectName(name: string): string`
+- **Descrição:** Atualiza o nome do projeto ativo, persiste as alterações, atualiza o índice no `localStorage` e notifica `project:change` e `project:listChange`.
+- **Retorno:** Nome atualizado do projeto.
+
+#### `getProjectsList()`
+- **Assinatura:** `getProjectsList(): Array<{ id: string, name: string, updatedAt: number, tabCount: number, entityCount: number }>`
+- **Descrição:** Retorna a listagem de todos os projetos salvos no navegador a partir do storage.
+- **Retorno:** Array com metadados dos projetos cadastrados.
+
+#### `createProject(name)`
+- **Assinatura:** `createProject(name?: string): string`
+- **Descrição:** Salva o projeto ativo atual, cria um novo projeto isolado com pasta inicial ("Arquitetura"), grafo principal ("Principal") e pool de dados vazio. Define-o como ativo, persiste e notifica `project:switch`, `store:restore`, `tabs:change`, `explorer:change` e `entities:change`.
+- **Retorno:** ID do novo projeto criado.
+
+#### `switchProject(targetProjectId)`
+- **Assinatura:** `switchProject(targetProjectId: string): boolean`
+- **Descrição:** Salva o projeto ativo e alterna imediatamente para outro projeto salvo pelo seu ID, restaurando seu grafo, pastas e pool de entidades exclusivas.
+- **Retorno:** `true` se alternado com sucesso; `false` se não encontrado.
+
+#### `deleteProject(targetProjectId)`
+- **Assinatura:** `deleteProject(targetProjectId: string): boolean`
+- **Descrição:** Exclui um projeto e seu armazenamento. Se o projeto excluído for o ativo, alterna automaticamente para outro projeto existente antes da remoção. Bloqueia exclusão caso seja o único projeto cadastrado.
+- **Retorno:** `true` se excluído com sucesso.
+
 #### `getTabs()`
 - **Assinatura:** `getTabs(): Array<{ id: string, name: string, isMain: boolean }>`
-- **Descrição:** Retorna lista de todas as abas cadastradas no projeto. A primeira aba (`idx === 0`) possui a flag `isMain: true`, designando-a como a aba fixa principal.
+- **Descrição:** Retorna lista de todos os arquivos de grafos cadastrados no projeto.
 - **Retorno:** Array de objetos com `id`, `name` e `isMain`.
+
+#### `getOpenTabs()`
+- **Assinatura:** `getOpenTabs(): Array<{ id: string, name: string, isMain: boolean }>`
+- **Descrição:** Retorna a lista de abas abertas na barra superior (estilo abas abertas de editores no VS Code).
+- **Retorno:** Array de objetos de abas abertas.
+
+#### `openTab(tabId)`
+- **Assinatura:** `openTab(tabId: string): void`
+- **Descrição:** Abre o arquivo de grafo na barra de abas superior (se ainda não estiver aberto) e torna-o ativo no canvas. Dispara `tabs:change` e `tabs:switch`.
+- **Retorno:** `undefined`.
+
+#### `closeTab(tabId)`
+- **Assinatura:** `closeTab(tabId: string): void`
+- **Descrição:** Fecha a aba na barra superior **sem excluir o arquivo do projeto** (o arquivo permanece acessível no Explorador). Alterna para a aba adjacente e dispara `tabs:change` e `tabs:switch`.
+- **Retorno:** `undefined`.
+
+#### `closeOtherTabs(keepTabId)`
+- **Assinatura:** `closeOtherTabs(keepTabId: string): void`
+- **Descrição:** Fecha todas as abas da barra superior exceto a aba informada.
+- **Retorno:** `undefined`.
+
+#### `closeAllTabs()`
+- **Assinatura:** `closeAllTabs(): void`
+- **Descrição:** Fecha as abas secundárias, mantendo a aba principal aberta.
+- **Retorno:** `undefined`.
 
 #### `getActiveTab()`
 - **Assinatura:** `getActiveTab(): Tab | null`
@@ -82,6 +142,71 @@ Gerencia os dados da aplicação e notifica os ouvintes sobre qualquer alteraç�
 - **Assinatura:** `getImportableTabs(targetTabId?: string): Array<{ id: string, name: string }>`
 - **Descrição:** Retorna a lista de abas que podem ser importadas como subgrafo na aba de destino especificada.
 - **Retorno:** Array de abas importáveis.
+
+#### `getFolders()`
+- **Assinatura:** `getFolders(): Folder[]`
+- **Descrição:** Retorna a lista de pastas (bases de dados/módulos) cadastradas.
+- **Retorno:** Array de objetos `Folder`.
+
+#### `getFolder(folderId)`
+- **Assinatura:** `getFolder(folderId: string): Folder | null`
+- **Descrição:** Obtém uma pasta pelo seu identificador único.
+- **Retorno:** Objeto `Folder` ou `null`.
+
+#### `createFolder(name, parentId)`
+- **Assinatura:** `createFolder(name?: string, parentId?: string | null): Folder`
+- **Descrição:** Cria uma nova pasta/base de dados na raiz ou aninhada como subpasta, salva e dispara `explorer:change`.
+- **Retorno:** Novo objeto `Folder` criado.
+
+#### `renameFolder(folderId, newName)`
+- **Assinatura:** `renameFolder(folderId: string, newName: string): Folder`
+- **Descrição:** Renomeia uma pasta existente, persiste e notifica `explorer:change`.
+- **Retorno:** Objeto `Folder` atualizado.
+
+#### `deleteFolder(folderId)`
+- **Assinatura:** `deleteFolder(folderId: string): void`
+- **Descrição:** Remove a pasta especificada realocando suas subpastas e grafos para o nível superior sem perda de dados. Dispara `explorer:change` e `tabs:change`.
+- **Retorno:** `undefined`.
+
+#### `toggleFolderExpand(folderId)`
+- **Assinatura:** `toggleFolderExpand(folderId: string): void`
+- **Descrição:** Alterna a propriedade `isExpanded` da pasta na árvore do Explorer, persiste e dispara `explorer:change`.
+- **Retorno:** `undefined`.
+
+#### `moveItem(itemType, itemId, targetFolderId)`
+- **Assinatura:** `moveItem(itemType: 'tab' | 'folder', itemId: string, targetFolderId: string | null): boolean`
+- **Descrição:** Move um grafo ou pasta para dentro de outra pasta de destino prevenindo ciclos. Dispara `explorer:change` e `tabs:change`.
+- **Retorno:** `true` se a movimentação foi bem-sucedida; `false` caso contrário.
+
+#### `getExplorerTree()`
+- **Assinatura:** `getExplorerTree(): { rootFolders: any[], rootTabs: any[], allFolders: any[] }`
+- **Descrição:** Retorna a árvore hierárquica organizada para renderização no Explorer estilo VS Code.
+- **Retorno:** Objeto com raízes e listas.
+
+#### `getEntities()`
+- **Assinatura:** `getEntities(): Record<string, Entity>`
+- **Descrição:** Retorna o dicionário canônico de todas as entidades únicas do banco de dados ("o dado é único").
+- **Retorno:** Objeto mapeando ID para a entidade canônica.
+
+#### `getEntity(id)`
+- **Assinatura:** `getEntity(id: string): Entity | null`
+- **Descrição:** Localiza uma entidade canônica pelo seu ID.
+- **Retorno:** Objeto `Entity` ou `null`.
+
+#### `getEntitiesList()`
+- **Assinatura:** `getEntitiesList(): Array<Entity & { usedIn: Array<{ id: string, name: string }> }>`
+- **Descrição:** Retorna a listagem de entidades únicas enriquecida com a relação de grafos/bases em que cada entidade está inserida.
+- **Retorno:** Array de entidades com informações de uso.
+
+#### `addExistingEntityToTab(entityId, coords)`
+- **Assinatura:** `addExistingEntityToTab(entityId: string, coords?: { x?: number, y?: number, parentId?: string | null }): Node`
+- **Descrição:** Reutiliza uma entidade já existente no banco de dados e insere uma nova instância visual dela no grafo ativo nas coordenadas especificadas, garantindo que alterações no conteúdo reflitam em todos os grafos. Dispara `node:add` e `entities:change`.
+- **Retorno:** Instância de nó recém-inserida no grafo.
+
+#### `deleteEntityGlobal(id)`
+- **Assinatura:** `deleteEntityGlobal(id: string): string`
+- **Descrição:** Exclui permanentemente a entidade de todas as bases, grafos e do pool central de dados. Dispara `node:delete` e `entities:change`.
+- **Retorno:** ID da entidade excluída.
 
 #### `subscribe(fn)`
 - **Assinatura:** `subscribe(fn: Function): Function`

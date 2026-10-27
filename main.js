@@ -7,7 +7,7 @@ const App = (() => {
       'sb-node-fields','sb-edge-fields',
       'sb-type-badge','sb-title','sb-desc','sb-meta',
       'sb-priority-row','sb-tags-row','sb-subgraph-fields','btn-jump-tab',
-      'tabs-bar','tabs-list','btn-tab-add',
+      'tabs-bar','tabs-list','btn-tab-add','btn-toggle-explorer',
       'sb-edge-type-badge','sb-edge-label','sb-edge-endpoints',
       'sb-priority-selector','tags-list','sb-tags',
       'search-input','search-clear','search-chips','search-dropdown',
@@ -597,16 +597,22 @@ const App = (() => {
       // Atalhos com Ctrl / Cmd
       if(e.ctrlKey||e.metaKey){
         const key = e.key.toLowerCase();
+        // Ctrl+B: Alternar explorador de pastas (VS Code style)
+        if(key === 'b' && !inInput){
+          e.preventDefault();
+          ExplorerUI.toggleSidebar();
+          return;
+        }
         // Ctrl+Shift+T: Nova aba de grafo
         if(key === 't' && e.shiftKey && !inInput){
           e.preventDefault();
           Store.createTab();
           return;
         }
-        // Ctrl+Shift+W: Fechar aba de grafo ativa
-        if(key === 'w' && e.shiftKey && !inInput){
+        // Ctrl+W ou Ctrl+Shift+W: Fechar aba ativa (sem deletar o arquivo do projeto)
+        if(key === 'w' && !inInput){
           e.preventDefault();
-          TabsUI.deleteTabPrompt(Store.getActiveTabId());
+          Store.closeTab(Store.getActiveTabId());
           return;
         }
         // Ctrl+E: Renomear aba de grafo ativa
@@ -718,6 +724,7 @@ const App = (() => {
     initTheme();
     Sidebar.bind();
     TabsUI.bind();
+    ExplorerUI.bind();
     bindStoreObserver();
     bindGraphEvents();
     ContextMenu.bind();
@@ -727,8 +734,14 @@ const App = (() => {
     bindKeyboard();
     await Store.init();
     TabsUI.render();
+    ExplorerUI.renderTree();
+    ExplorerUI.renderEntities();
     Graph.init();
     updateUndoRedoUI();
+
+    DOM['btn-toggle-explorer']?.addEventListener('click', () => {
+      ExplorerUI.toggleSidebar();
+    });
 
     DOM['btn-theme'].addEventListener('click',toggleTheme);
     DOM['btn-undo']?.addEventListener('click', () => undoAction());
@@ -757,7 +770,7 @@ const App = (() => {
     });
 
     bindGlobalContextMenu();
-    setTimeout(()=>toast('Dica: Tab cria filho · Z modo zen · L layout · Ctrl+Shift+T nova aba',4000),2200);
+    setTimeout(()=>toast('Dica: Ctrl+B explorador · Tab cria filho · Z modo zen · L layout',4000),2200);
   }
 
   function bindGlobalContextMenu(){
