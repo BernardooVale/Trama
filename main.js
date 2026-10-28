@@ -657,9 +657,19 @@ const App = (() => {
           DOM['search-input'].select();
           return;
         }
+        if((key === 'j' || e.key === '`') && typeof TerminalUI !== 'undefined'){
+          e.preventDefault();
+          TerminalUI.toggle();
+          return;
+        }
       }
 
       if(e.key === 'Escape'){
+        if(typeof TerminalUI !== 'undefined' && TerminalUI.isOpen()){
+          e.preventDefault();
+          TerminalUI.close();
+          return;
+        }
         if(isZenMode()){
           e.preventDefault();
           toggleZenMode();
@@ -730,6 +740,7 @@ const App = (() => {
     ContextMenu.bind();
     bindDropdowns();
     Search.bind();
+    TerminalUI.bind();
     bindIO();
     bindKeyboard();
     await Store.init();
@@ -770,7 +781,7 @@ const App = (() => {
     });
 
     bindGlobalContextMenu();
-    setTimeout(()=>toast('Dica: Ctrl+B explorador · Tab cria filho · Z modo zen · L layout',4000),2200);
+    setTimeout(()=>toast('Dica: Ctrl+B explorador · Ctrl+J terminal IA · Tab cria filho · Z modo zen',4000),2200);
   }
 
   function bindGlobalContextMenu(){
@@ -782,7 +793,7 @@ const App = (() => {
   return {
     init, toast, openSidebar, closeSidebar,
     copySelection, pasteClipboard, undoAction, redoAction, hasClipboard,
-    toggleZenMode, isZenMode, openDiagnostics, closeDiagnostics
+    toggleZenMode, isZenMode, openDiagnostics, closeDiagnostics, updateUndoRedoUI, TerminalUI
   };
 })();
 

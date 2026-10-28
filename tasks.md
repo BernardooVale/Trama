@@ -31,7 +31,7 @@ Legenda: [ ] aberta | [~] aguardando verificação | [x] verificada | [!] falhou
 - Notas do verificador:
 
 ## T3 — Estrutura HTML e Estilização do Painel Inferior do Terminal (`index.html`, `style.css`)
-- [ ] Status
+- [~] Status
 - Arquivos: `index.html`, `style.css`
 - Descrição: Adicionar botões de acesso rápido no cabeçalho superior e construir o painel retrátil inferior estilo terminal integrado do VS Code com editor de comandos, console de saída colorido e barra de ações.
 - Check rápido: `python -c "import pathlib; h=pathlib.Path('index.html').read_text('utf-8'); c=pathlib.Path('style.css').read_text('utf-8'); assert 'terminal-panel' in h and 'btn-copy-ai-prompt' in h and '.terminal-panel' in c"`
@@ -39,7 +39,7 @@ Legenda: [ ] aberta | [~] aguardando verificação | [x] verificada | [!] falhou
   - `index.html` contém na `.header-actions` o botão `#btn-copy-ai-prompt` ("Copiar Contexto para IA") e o botão `#btn-toggle-terminal` ("Terminal de Comandos").
   - `index.html` contém o painel `#terminal-panel` (inicialmente oculto/recolhido) com cabeçalho, alça de redimensionamento (`#terminal-resize-handle`), área de entrada (`#terminal-input`), painel de logs (`#terminal-output`) e botões `#btn-terminal-run`, `#btn-terminal-copy-prompt`, `#btn-terminal-clear` e `#btn-terminal-close`.
   - `style.css` define os estilos do `.terminal-panel` integrado ao layout flex/grid, suportando tanto `[data-theme="dark"]` quanto `[data-theme="light"]`, ocultação automática em `.zen-mode` e cores semânticas para logs de sucesso, aviso e erro.
-- Notas do executor:
+- Notas do executor: Adicionados botões no header e estrutura do painel inferior retrátil com resize handle, textarea e log; estilos adicionados em style.css com suporte a temas, zen-mode e feedback cromático.
 - Notas do verificador:
 
 ## T4 — Controlador de Interface do Terminal e Integração Global (`terminal.js`, `main.js`)
