@@ -13,6 +13,9 @@ Este documento detalha o propósito, as responsabilidades e a especificação co
 | `search.js` | Busca unificada por texto e etiquetas (`#tags`), chips de filtros ativos e lista suspensa com navegação por teclado. |
 | `sidebar.js` | Painel lateral de propriedades e edição detalhada de vértices e arestas, debounce de digitação e gerenciamento de tags. |
 | `contextMenu.js` | Menus contextuais acionados pelo botão direito do mouse no canvas, nós ou arestas (criação rápida, cópia, colagem, importação de subgrafo e inserção de dados do banco). |
+| `terminalPrompt.js` | Gerador de documentação da DSL e montagem de snapshot contextual em Markdown para IA com cópia para a área de transferência. |
+| `terminalEngine.js` | Interpretador e motor de execução da DSL do Trama com resolução de referências, cálculo geométrico híbrido e transações em lote. |
+| `terminal.js` | Controlador de interface do terminal inferior retrátil estilo VS Code, console de logs, redimensionamento por arraste e atalhos. |
 
 ---
 
@@ -288,3 +291,128 @@ Gerencia menus contextuais acionados com botão direito no canvas, vértices e a
 - **Assinatura:** `bind(): void`
 - **Descrição:** Conecta a captura de cliques nos botões do menu (incluindo alteração atômica de tipos de nó e aresta em lote para seleções múltiplas) e fecha o menu ao clicar fora.
 - **Retorno:** `undefined`.
+
+---
+
+## 7. `terminalPrompt.js` (`TerminalPrompt`)
+
+Módulo gerador da especificação da DSL e do snapshot em Markdown com o estado do projeto (pastas, abas/grafos, nós, arestas e banco de dados único) para envio a qualquer LLM.
+
+### Funções Internas e Métodos Públicos
+
+#### `buildPrompt()`
+- **Assinatura:** `buildPrompt(): string`
+- **Descrição:** Extrai metadados do projeto ativo (`Store.getProjectName()`), lista de pastas, abas, nós e arestas da aba ativa, além de entidades cadastradas no pool de dados únicos, concatenando-os com as regras sintáticas e catálogo de comandos da DSL em formato Markdown.
+- **Retorno:** String Markdown estruturada e pronta para área de transferência.
+
+#### `copyToClipboard()`
+- **Assinatura:** `copyToClipboard(): Promise<boolean>`
+- **Descrição:** Executa a geração do prompt via `buildPrompt()` e copia o texto gerado para a área de transferência do sistema através da API `navigator.clipboard.writeText()`, recorrendo a um elemento `textarea` temporário invisível em ambientes com restrições de permissão.
+- **Retorno:** Promessa resolvida com `true` se copiado com sucesso; `false` em caso de falha.
+
+---
+
+## 8. `terminalEngine.js` (`TerminalEngine`)
+
+Motor de interpretação e execução de scripts da DSL do Trama. Processa lotes de comandos com resolução de referências, cálculo geométrico híbrido sem sobreposição de nós e execução atômica em transações do histórico.
+
+### Funções Internas e Métodos Públicos
+
+#### `parseAttributes(text)`
+- **Assinatura:** `parseAttributes(text: string): Record<string, string>`
+- **Descrição:** Extrai pares chave-valor a partir de strings de argumentos com suporte a aspas duplas (`key="valor"`), aspas simples e valores literais.
+- **Retorno:** Objeto com propriedades e valores normalizados em minúsculas para as chaves.
+
+#### `parse(scriptText)`
+- **Assinatura:** `parse(scriptText: string): Array<{ lineIndex: number, raw: string, cmd: string, argsText: string, attrs: Record<string, string> }>`
+- **Descrição:** Analisa linha a linha um script em texto bruto, filtrando comentários (`#` ou `//`), cercas de código Markdown (```` ``` ````) e linhas vazias, tokenizando o comando e extraindo atributos.
+- **Retorno:** Array de objetos com comandos parseados e metadados de linha.
+
+#### `resolveNodeId(ref, aliasMap)`
+- **Assinatura:** `resolveNodeId(ref: string, aliasMap?: Map<string, string>): string | null`
+- **Descrição:** Localiza o ID de um nó avaliando sucessivamente o mapa de aliases da sessão, o repositório central (`Store.getNode()`) e a busca por correspondência exata de título na aba ativa.
+- **Retorno:** String com ID do nó ou `null` se não encontrado.
+
+#### `resolveFolderId(ref)`
+- **Assinatura:** `resolveFolderId(ref: string): string | null`
+- **Descrição:** Localiza uma pasta por correspondência de ID ou por nome.
+- **Retorno:** String com ID da pasta ou `null`.
+
+#### `resolveTabId(ref)`
+- **Assinatura:** `resolveTabId(ref: string): string | null`
+- **Descrição:** Localiza uma aba por correspondência de ID ou por nome.
+- **Retorno:** String com ID da aba ou `null`.
+
+#### `computePosition(refNodeId, spawnIndex)`
+- **Assinatura:** `computePosition(refNodeId: string | null, spawnIndex: number): { x: number, y: number }`
+- **Descrição:** Calcula as coordenadas cartesianas para inserção de um nó novo. Se houver um nó de referência (`near` ou nó pai), posiciona ao redor dele em raio proporcional; caso contrário, posiciona em espiral no centro do modelo do viewport (`Graph.getModelCenter()`).
+- **Retorno:** Coordenadas `{ x, y }`.
+
+#### `execute(scriptText)`
+- **Assinatura:** `execute(scriptText: string): { total: number, successCount: number, errorCount: number, logs: Array<{ line: number, status: 'ok' | 'warn' | 'error', message: string }> }`
+- **Descrição:** Executa a lista de comandos dentro de uma transação atômica `Store.batch()`, suportando `NODE`, `UPDATE_NODE`, `DELETE_NODE`, `CONNECT`, `DELETE_EDGE`, `GROUP`, `UNGROUP`, `FOLDER`, `TAB`, `USE_TAB`, `USE_ENTITY` e `LAYOUT`. Se houver layout agendado, aciona `Graph.runLayout()`.
+- **Retorno:** Relatório detalhado com contadores e logs de execução por linha.
+
+---
+
+## 9. `terminal.js` (`TerminalUI`)
+
+Controlador de interface do terminal inferior retrátil. Gerencia o redimensionamento por arraste de mouse, comandos de teclado, console de logs e integração com o orquestrador `App`.
+
+### Funções Internas e Métodos Públicos
+
+#### `cacheElements()`
+- **Assinatura:** `cacheElements(): void`
+- **Descrição:** Mapeia e armazena em variáveis de módulo as referências do painel, inputs, área de log, badge de status e botões de controle.
+- **Retorno:** `undefined`.
+
+#### `isOpen()`
+- **Assinatura:** `isOpen(): boolean`
+- **Descrição:** Verifica se o painel do terminal está atualmente aberto e visível no DOM.
+- **Retorno:** `boolean`.
+
+#### `open()`
+- **Assinatura:** `open(): void`
+- **Descrição:** Exibe o painel do terminal (`#terminal-panel`), adiciona estado visual ativo no botão superior `#btn-toggle-terminal`, aciona `Graph.resize()` para recalcular o viewport do Cytoscape e foca no campo de texto de comandos.
+- **Retorno:** `undefined`.
+
+#### `close()`
+- **Assinatura:** `close(): void`
+- **Descrição:** Oculta o painel do terminal (`#terminal-panel`), remove classe `.active` do botão no cabeçalho e aciona `Graph.resize()` para expandir o canvas para a altura total.
+- **Retorno:** `undefined`.
+
+#### `toggle(forceState)`
+- **Assinatura:** `toggle(forceState?: boolean): void`
+- **Descrição:** Alterna ou força o estado de exibição do painel do terminal.
+- **Retorno:** `undefined`.
+
+#### `copyPrompt()`
+- **Assinatura:** `copyPrompt(): Promise<void>`
+- **Descrição:** Dispara a cópia do prompt de contexto para a área de transferência via `TerminalPrompt.copyToClipboard()` e exibe alerta de confirmação em `App.toast()`.
+- **Retorno:** `Promise<void>`.
+
+#### `clear()`
+- **Assinatura:** `clear(): void`
+- **Descrição:** Limpa o campo de entrada de texto e redefine o container de logs de saída para o estado inicial.
+- **Retorno:** `undefined`.
+
+#### `renderLogs(logs, summary)`
+- **Assinatura:** `renderLogs(logs: Array<{ status: string, message: string }>, summary: { successCount: number, errorCount: number }): void`
+- **Descrição:** Constrói os elementos HTML dos logs com badges semânticas coloridas (`OK`, `AVISO`, `ERRO`), rola a saída até o final e atualiza a badge de status no cabeçalho do terminal.
+- **Retorno:** `undefined`.
+
+#### `run()`
+- **Assinatura:** `run(): void`
+- **Descrição:** Lê o texto do script em `#terminal-input`, executa os comandos via `TerminalEngine.execute()`, renderiza os logs, atualiza os botões de Undo/Redo no `App` e emite mensagem de resumo em toast.
+- **Retorno:** `undefined`.
+
+#### `initResizeHandle()`
+- **Assinatura:** `initResizeHandle(): void`
+- **Descrição:** Conecta listeners de mouse na alça `#terminal-resize-handle` para permitir redimensionar verticalmente a altura do painel com limitação entre 120px e 75vh e atualização contínua do Cytoscape via `Graph.resize()`.
+- **Retorno:** `undefined`.
+
+#### `bind()`
+- **Assinatura:** `bind(): void`
+- **Descrição:** Inicializa referências DOM, listeners de redimensionamento, cliques de botões do cabeçalho e do terminal, além do atalho `Ctrl+Enter` para execução direta no textarea.
+- **Retorno:** `undefined`.
+

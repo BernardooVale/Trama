@@ -43,7 +43,7 @@ Legenda: [ ] aberta | [~] aguardando verificação | [x] verificada | [!] falhou
 - Notas do verificador:
 
 ## T4 — Controlador de Interface do Terminal e Integração Global (`terminal.js`, `main.js`)
-- [ ] Status
+- [~] Status
 - Arquivos: `js/components/terminal.js`, `main.js`, `index.html`
 - Descrição: Implementar o módulo `TerminalUI` para controlar a abertura/fechamento, redimensionamento vertical por arraste, execução de lotes via `Ctrl+Enter`, renderização do histórico de logs e integração com `App` e atalhos globais de teclado.
 - Check rápido: `python -c "import pathlib; p=pathlib.Path('js/components/terminal.js'); m=pathlib.Path('main.js').read_text('utf-8'); assert p.exists() and 'TerminalUI' in p.read_text('utf-8') and 'TerminalUI' in m"`
@@ -52,7 +52,7 @@ Legenda: [ ] aberta | [~] aguardando verificação | [x] verificada | [!] falhou
   - Clicar em `#btn-copy-ai-prompt` (no header) ou `#btn-terminal-copy-prompt` (no terminal) aciona `TerminalPrompt.copyToClipboard()` e exibe confirmação via `App.toast()`.
   - Pressionar `Ctrl+Enter` dentro de `#terminal-input` ou clicar em `#btn-terminal-run` executa o script via `TerminalEngine.execute()`, exibe os resultados linha a linha em `#terminal-output`, atualiza o estado dos botões Undo/Redo (`App.updateUndoRedoUI()`) e exibe resumo em toast.
   - O atalho global `Ctrl+J` (ou `` Ctrl+` ``) alterna a visibilidade do painel do terminal a partir de qualquer lugar da aplicação.
-- Notas do executor:
+- Notas do executor: Criado TerminalUI com redimensionamento vertical por arraste, execução com Ctrl+Enter, log de resultados e feedback em toast; integrado em main.js com atalho global Ctrl+J/Ctrl+` e Esc.
 - Notas do verificador:
 
 ## T5 — Atualização da Documentação de Arquitetura (`ARCHITECTURE.md`)

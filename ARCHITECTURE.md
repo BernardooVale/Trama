@@ -8,15 +8,15 @@ Este documento serve como mapa de engenharia do repositório **Trama**, detalhan
 
 | Arquivo / Diretório | Função Principal / Responsabilidade |
 | :--- | :--- |
-| `index.html` | Estrutura de interface da aplicação: barra de ferramentas superior, explorador retrátil de pastas estilo VS Code, container Cytoscape, barra de abas, sidebar de propriedades, banner de criação de arestas, controle de zoom e containers de menu de contexto e toast. |
-| `style.css` | Folha de estilos: variáveis de tema (dark/light), layout flex/grid, explorador estilo VS Code com árvore de pastas e lista de dados únicos, abas de grafos com destaque para aba fixa principal, componentes de formulário, animações e regras visuais do canvas e sidebar. |
+| `index.html` | Estrutura de interface da aplicação: barra de ferramentas superior com botões de contexto IA e terminal, explorador retrátil de pastas estilo VS Code, container Cytoscape, painel inferior retrátil do terminal integrado com alça de redimensionamento e logs, barra de abas, sidebar de propriedades, banner de criação de arestas, controle de zoom e containers de menu de contexto e toast. |
+| `style.css` | Folha de estilos: variáveis de tema (dark/light), layout flex/grid, explorador estilo VS Code com árvore de pastas e lista de dados únicos, abas de grafos com destaque para aba fixa principal, painel de terminal integrado retrátil com console de logs cromático e redimensionamento por arraste, componentes de formulário, animações e regras visuais do canvas e sidebar. |
 | `store.js` | **Camada de Estado Central (Model)**: módulo Singleton `Store` enxuto. Orquestra pastas (bases de dados), pool central de entidades únicas ("o dado é único"), abas/grafos, nós, arestas, filtros e pub/sub de eventos delegando responsabilidades para submódulos especializados em `js/store/`. |
 | `graph.js` | **Camada do Grafo Central (Cytoscape Controller)**: módulo Singleton `Graph` enxuto. Inicializa e gerencia a instância do Cytoscape.js, interações com a tela e eventos delegando estilos, foco e desenho de arestas para submódulos em `js/graph/`. |
-| `main.js` | **Camada de UI & Aplicação (App Controller)**: módulo Singleton `App`. Orquestrador enxuto que integra o explorador lateral, alternância de temas, atalhos de teclado (ex: `Ctrl+B`), clipboard e sincronização com `Store` e `Graph`. |
+| `main.js` | **Camada de UI & Aplicação (App Controller)**: módulo Singleton `App`. Orquestrador enxuto que integra o explorador lateral, alternância de temas, terminal integrado de comandos, atalhos de teclado (ex: `Ctrl+B`, `Ctrl+J`), clipboard e sincronização com `Store` e `Graph`. |
 | `js/` | Diretório contendo todos os submódulos desacoplados do sistema. Possui seu próprio documento detalhado de arquitetura em [`js/ARCHITECTURE.md`](file:///c:/Users/Bernardo/Documents/GitHub/Trama/js/ARCHITECTURE.md). |
 | `js/store/` | Submódulos da camada de dados: histórico atômico (`history.js`), DAG e abas (`tabsManager.js`), hierarquia de pastas e pool de entidades (`explorerManager.js`) e persistência (`storage.js`). |
 | `js/graph/` | Submódulos de renderização visual: folha de estilos Cytoscape (`styles.js`), modo foco dinâmico (`focus.js`), modo interativo de arestas (`edgeMode.js`) e alça de manipulação de ponto de inflexão/curva (`edgeHandle.js`). |
-| `js/components/` | Componentes de interface desacoplados: explorador estilo VS Code (`explorer.js`), abas (`tabs.js`), busca (`search.js`), sidebar (`sidebar.js`) e menus de contexto (`contextMenu.js`). |
+| `js/components/` | Componentes de interface desacoplados: explorador estilo VS Code (`explorer.js`), abas (`tabs.js`), busca (`search.js`), sidebar (`sidebar.js`), menus de contexto (`contextMenu.js`), gerador de prompt para IA (`terminalPrompt.js`), motor executor da DSL (`terminalEngine.js`) e terminal integrado (`terminal.js`). |
 
 ---
 
@@ -731,7 +731,7 @@ Orquestrador geral enxuto da aplicação, responsável por integrar os component
 
 #### `bindKeyboard()`
 - **Assinatura:** `bindKeyboard(): void`
-- **Descrição:** Mapeia atalhos globais de teclado (`Ctrl+Shift+T` nova aba, `Ctrl+Shift+W` fechar aba ativa, `Ctrl+E` renomear aba ativa, `Ctrl+S` exportar JSON, `Ctrl+C` copiar, `Ctrl+V` colar, `Ctrl+Z` desfazer, `Ctrl+Y` / `Ctrl+Shift+Z` refazer, `Tab` criar filho conectado, `Z` alternar Modo Zen, `Escape` sair do Modo Zen ou fechar diagnósticos, `Ctrl+F` ou `/` buscar, `T` alternar tema, `L` layout automático, `1-4` filtros), respeitando a digitação em inputs e textareas.
+- **Descrição:** Mapeia atalhos globais de teclado (`Ctrl+Shift+T` nova aba, `Ctrl+Shift+W` fechar aba ativa, `Ctrl+E` renomear aba ativa, `Ctrl+S` exportar JSON, `Ctrl+C` copiar, `Ctrl+V` colar, `Ctrl+Z` desfazer, `Ctrl+Y` / `Ctrl+Shift+Z` refazer, `Ctrl+J` ou `` Ctrl+` `` alternar terminal de comandos, `Tab` criar filho conectado, `Z` alternar Modo Zen, `Escape` fechar terminal/diagnósticos ou sair do Modo Zen, `Ctrl+F` ou `/` buscar, `T` alternar tema, `L` layout automático, `1-4` filtros), respeitando a digitação em inputs e textareas.
 - **Retorno:** `undefined`.
 
 #### `esc(s)`
@@ -741,5 +741,5 @@ Orquestrador geral enxuto da aplicação, responsável por integrar os component
 
 #### `init()`
 - **Assinatura:** `init(): void`
-- **Descrição:** Ponto de entrada do sistema: executa cache de elementos, tema, Store, Graph, observers e todos os binds de interface.
+- **Descrição:** Ponto de entrada do sistema: executa cache de elementos, tema, inicialização de componentes (`Sidebar`, `TabsUI`, `ExplorerUI`, `Search`, `TerminalUI`, `ContextMenu`), Store, Graph, observers e todos os binds de interface.
 - **Retorno:** Objeto com a interface pública do `App`.
