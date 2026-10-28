@@ -146,6 +146,24 @@
         </div>
       </div>
 
+      <!-- Copiar Prompt para IA -->
+      <button class="btn-icon" id="btn-copy-ai-prompt" title="Copiar Contexto e Prompt para IA">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+          <path d="M12 2a4 4 0 0 1 4 4c0 1.95-1.4 3.58-3.25 3.93L12 10a1 1 0 0 0-1 1v1h2v-1"/>
+          <path d="M9 18h6"/>
+          <path d="M10 22h4"/>
+          <rect x="3" y="4" width="18" height="14" rx="2"/>
+        </svg>
+      </button>
+
+      <!-- Terminal de Comandos -->
+      <button class="btn-icon" id="btn-toggle-terminal" title="Terminal de Comandos (Ctrl+J)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+          <polyline points="4 17 10 11 4 5"/>
+          <line x1="12" y1="19" x2="20" y2="19"/>
+        </svg>
+      </button>
+
       <!-- Diagnóstico de Arquitetura -->
       <button class="btn-icon btn-icon--diag" id="btn-diagnostics" title="Diagnóstico de Arquitetura">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -291,55 +309,107 @@
       </div>
     </aside>
 
-    <div class="canvas-wrap" id="canvas-wrap">
-      <div id="cy"></div>
+    <div class="center-stage" id="center-stage">
+      <div class="canvas-wrap" id="canvas-wrap">
+        <div id="cy"></div>
 
-      <!-- Quick Connect Handle -->
-      <div class="quick-handle" id="quick-handle" hidden></div>
+        <!-- Quick Connect Handle -->
+        <div class="quick-handle" id="quick-handle" hidden></div>
 
-      <!-- SVG Guide for Edge Inflection -->
-      <svg class="edge-guide-svg" id="edge-guide-svg" hidden>
-        <line id="edge-guide-line" x1="0" y1="0" x2="0" y2="0" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="3,3" opacity="0.75"/>
-      </svg>
+        <!-- SVG Guide for Edge Inflection -->
+        <svg class="edge-guide-svg" id="edge-guide-svg" hidden>
+          <line id="edge-guide-line" x1="0" y1="0" x2="0" y2="0" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="3,3" opacity="0.75"/>
+        </svg>
 
-      <!-- On-Edge Inflection & Turn Handle -->
-      <div class="edge-handle" id="edge-handle" hidden>
-        <div class="edge-handle-grip" id="edge-handle-grip" title="Clique e arraste para modificar o ponto de inflexão">
-          <svg id="edge-handle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="13" height="13">
-            <path d="M4 12c4-8 12-8 16 0"/>
-            <circle cx="12" cy="8" r="2.2" fill="currentColor"/>
-          </svg>
+        <!-- On-Edge Inflection & Turn Handle -->
+        <div class="edge-handle" id="edge-handle" hidden>
+          <div class="edge-handle-grip" id="edge-handle-grip" title="Clique e arraste para modificar o ponto de inflexão">
+            <svg id="edge-handle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="13" height="13">
+              <path d="M4 12c4-8 12-8 16 0"/>
+              <circle cx="12" cy="8" r="2.2" fill="currentColor"/>
+            </svg>
+          </div>
+          <div class="edge-handle-tooltip" id="edge-handle-tooltip" hidden>+40px</div>
         </div>
-        <div class="edge-handle-tooltip" id="edge-handle-tooltip" hidden>+40px</div>
+
+        <!-- Zen mode exit pill -->
+        <button class="zen-exit-pill" id="btn-zen-exit" title="Sair do Modo Zen">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+          <span>Sair do Modo Zen (Esc)</span>
+        </button>
+
+        <!-- Edge mode banner -->
+        <div class="edge-mode-banner" id="edge-mode-banner" hidden>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+          <span id="edge-mode-label">Clique no vértice de <strong>origem</strong></span>
+          <button id="cancel-edge">Cancelar</button>
+        </div>
+
+        <!-- Zoom -->
+        <div class="zoom-controls">
+          <button class="btn-zoom" id="zoom-in"  title="Zoom in">+</button>
+          <button class="btn-zoom" id="zoom-fit" title="Fit">⊡</button>
+          <button class="btn-zoom" id="zoom-out" title="Zoom out">−</button>
+        </div>
+
+        <!-- Focus mode hint -->
+        <div class="focus-hint" id="focus-hint" hidden>
+          <kbd>Shift</kbd> inverte &nbsp;·&nbsp; <kbd>Ctrl</kbd> caminho &nbsp;·&nbsp; <kbd>Shift</kbd>+<kbd>Ctrl</kbd> caminho inverso &nbsp;·&nbsp; mova o mouse para sair
+        </div>
       </div>
 
-      <!-- Zen mode exit pill -->
-      <button class="zen-exit-pill" id="btn-zen-exit" title="Sair do Modo Zen">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
-          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-        </svg>
-        <span>Sair do Modo Zen (Esc)</span>
-      </button>
-
-      <!-- Edge mode banner -->
-      <div class="edge-mode-banner" id="edge-mode-banner" hidden>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15">
-          <path d="M5 12h14M12 5l7 7-7 7"/>
-        </svg>
-        <span id="edge-mode-label">Clique no vértice de <strong>origem</strong></span>
-        <button id="cancel-edge">Cancelar</button>
-      </div>
-
-      <!-- Zoom -->
-      <div class="zoom-controls">
-        <button class="btn-zoom" id="zoom-in"  title="Zoom in">+</button>
-        <button class="btn-zoom" id="zoom-fit" title="Fit">⊡</button>
-        <button class="btn-zoom" id="zoom-out" title="Zoom out">−</button>
-      </div>
-
-      <!-- Focus mode hint -->
-      <div class="focus-hint" id="focus-hint" hidden>
-        <kbd>Shift</kbd> inverte &nbsp;·&nbsp; <kbd>Ctrl</kbd> caminho &nbsp;·&nbsp; <kbd>Shift</kbd>+<kbd>Ctrl</kbd> caminho inverso &nbsp;·&nbsp; mova o mouse para sair
+      <!-- Painel Inferior: Terminal Integrado de Comandos -->
+      <div class="terminal-panel" id="terminal-panel" hidden>
+        <div class="terminal-resize-handle" id="terminal-resize-handle" title="Arraste para redimensionar o terminal"></div>
+        <div class="terminal-header">
+          <div class="terminal-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+              <polyline points="4 17 10 11 4 5"/>
+              <line x1="12" y1="19" x2="20" y2="19"/>
+            </svg>
+            <span>TERMINAL DE COMANDOS</span>
+            <span class="terminal-badge" id="terminal-status-badge">Pronto</span>
+          </div>
+          <div class="terminal-actions">
+            <button class="btn-terminal-action" id="btn-terminal-copy-prompt" title="Copiar Contexto e Regras para IA">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+              </svg>
+              <span>Copiar Prompt IA</span>
+            </button>
+            <button class="btn-terminal-action btn-terminal-action--primary" id="btn-terminal-run" title="Executar Comandos (Ctrl+Enter)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
+                <polygon points="5 3 19 12 5 21 5 3"/>
+              </svg>
+              <span>Executar (Ctrl+Enter)</span>
+            </button>
+            <button class="btn-terminal-action" id="btn-terminal-clear" title="Limpar Entrada e Logs">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
+                <polyline points="3 6 5 6 21 6"/>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+              </svg>
+              <span>Limpar</span>
+            </button>
+            <button class="btn-terminal-close" id="btn-terminal-close" title="Fechar Terminal (Ctrl+J ou Esc)">✕</button>
+          </div>
+        </div>
+        <div class="terminal-body">
+          <div class="terminal-editor-wrap">
+            <div class="terminal-section-label">Script / Comandos:</div>
+            <textarea id="terminal-input" class="terminal-input" spellcheck="false" placeholder="Cole aqui os comandos gerados pela LLM ou digite (ex: NODE problem &quot;Falha de Login&quot; id=p1)&#10;Pressione Ctrl+Enter para executar..."></textarea>
+          </div>
+          <div class="terminal-output-wrap">
+            <div class="terminal-section-label">Log de Execução:</div>
+            <div id="terminal-output" class="terminal-output">
+              <div class="terminal-log-empty">Nenhum comando executado nesta sessão.</div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 

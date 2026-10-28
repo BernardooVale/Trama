@@ -678,12 +678,23 @@ textarea { resize: vertical; }
   overflow: hidden;
 }
 
+.center-stage {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+}
+
 /* ═══════════════════════════════════════════════════
    CANVAS
 ════════════════════════════════════════════════════ */
 .canvas-wrap {
   position: relative;
   flex: 1;
+  min-height: 0;
   overflow: hidden;
   background: var(--bg-base);
   background-image: radial-gradient(circle, var(--grid-dot) 1px, transparent 1px);
@@ -2174,3 +2185,271 @@ body.zen-mode .zen-exit-pill { display: flex; }
   pointer-events: none;
   box-shadow: var(--shadow-sm);
 }
+
+/* ═══════════════════════════════════════════════════
+   TERMINAL INTEGRADO DE COMANDOS (ESTILO VS CODE)
+════════════════════════════════════════════════════ */
+.terminal-panel {
+  position: relative;
+  height: var(--terminal-height, 250px);
+  min-height: 120px;
+  max-height: 75vh;
+  background: var(--bg-surface);
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  z-index: 85;
+  box-shadow: 0 -3px 14px rgba(0, 0, 0, 0.12);
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.terminal-panel[hidden] {
+  display: none !important;
+}
+
+body.zen-mode .terminal-panel {
+  display: none !important;
+}
+
+.terminal-resize-handle {
+  position: absolute;
+  top: -3px;
+  left: 0;
+  right: 0;
+  height: 6px;
+  cursor: row-resize;
+  z-index: 10;
+  transition: background var(--t-fast);
+}
+
+.terminal-resize-handle:hover,
+.terminal-resize-handle.active {
+  background: var(--accent);
+}
+
+.terminal-header {
+  height: 36px;
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--sp-3);
+  flex-shrink: 0;
+}
+
+.terminal-title {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.terminal-title svg {
+  color: var(--accent);
+}
+
+.terminal-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 7px;
+  border-radius: 99px;
+  background: var(--accent-subtle);
+  color: var(--accent);
+  border: 1px solid var(--accent-dim);
+}
+
+.terminal-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.btn-terminal-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  font-size: 11px;
+  font-weight: 500;
+  border-radius: var(--r-sm);
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all var(--t-fast);
+}
+
+.btn-terminal-action:hover {
+  background: var(--bg-hover);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.btn-terminal-action--primary {
+  background: var(--accent);
+  border-color: var(--accent-dim);
+  color: #fff;
+  font-weight: 600;
+}
+
+.btn-terminal-action--primary:hover {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.btn-terminal-close {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--r-sm);
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all var(--t-fast);
+  margin-left: 4px;
+}
+
+.btn-terminal-close:hover {
+  background: rgba(207, 102, 96, 0.15);
+  color: var(--node-problema);
+}
+
+.terminal-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  background: var(--border);
+  gap: 1px;
+  user-select: auto;
+}
+
+.terminal-editor-wrap {
+  flex: 1.1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-surface);
+  padding: var(--sp-2) var(--sp-3);
+}
+
+.terminal-output-wrap {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-surface);
+  padding: var(--sp-2) var(--sp-3);
+}
+
+.terminal-section-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.terminal-input {
+  flex: 1;
+  width: 100%;
+  resize: none;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 12px;
+  line-height: 1.45;
+  padding: 8px 10px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color var(--t-fast);
+  white-space: pre;
+  tab-size: 2;
+}
+
+.terminal-input:focus {
+  border-color: var(--accent);
+}
+
+.terminal-output {
+  flex: 1;
+  overflow-y: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 11px;
+  line-height: 1.45;
+  padding: 8px 10px;
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.terminal-log-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  word-break: break-word;
+}
+
+.terminal-log-badge {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 0 4px;
+  border-radius: 3px;
+  text-transform: uppercase;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.terminal-log--ok .terminal-log-badge {
+  background: var(--node-solucao-bg, rgba(39, 111, 82, 0.15));
+  color: var(--node-solucao, #276f52);
+  border: 1px solid var(--node-solucao);
+}
+
+.terminal-log--ok .terminal-log-msg {
+  color: var(--text-primary);
+}
+
+.terminal-log--warn .terminal-log-badge {
+  background: rgba(153, 94, 30, 0.15);
+  color: var(--priority-media, #995e1e);
+  border: 1px solid var(--priority-media);
+}
+
+.terminal-log--warn .terminal-log-msg {
+  color: var(--priority-media, #995e1e);
+}
+
+.terminal-log--error .terminal-log-badge {
+  background: var(--node-problema-bg, rgba(185, 56, 51, 0.15));
+  color: var(--node-problema, #b93833);
+  border: 1px solid var(--node-problema);
+}
+
+.terminal-log--error .terminal-log-msg {
+  color: var(--node-problema, #b93833);
+}
+
+.terminal-log-empty {
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 4px 0;
+}
+

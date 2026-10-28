@@ -18,7 +18,7 @@ Legenda: [ ] aberta | [~] aguardando verificação | [x] verificada | [!] falhou
 - Notas do verificador:
 
 ## T2 — Parser e Motor de Execução da DSL com Posicionamento Híbrido (`terminalEngine.js`)
-- [ ] Status
+- [~] Status
 - Arquivos: `js/components/terminalEngine.js`, `index.html`
 - Descrição: Criar o módulo `TerminalEngine` que interpreta scripts de comandos linha a linha, resolve referências por alias criado no lote, ID real ou título exato do nó, calcula posições relativas (próximo ao nó pai/origem ou em espiral no centro do viewport sem sobrepor nós existentes) e executa todas as operações dentro de um único `Store.batch()`.
 - Check rápido: `python -c "import pathlib; p=pathlib.Path('js/components/terminalEngine.js'); assert p.exists() and 'TerminalEngine' in p.read_text('utf-8')"`
@@ -27,7 +27,7 @@ Legenda: [ ] aberta | [~] aguardando verificação | [x] verificada | [!] falhou
   - `TerminalEngine.execute(scriptText)` executa em `Store.batch()` os comandos de nós (`NODE`, `UPDATE_NODE`, `DELETE_NODE`, `USE_ENTITY`), arestas (`CONNECT`, `DELETE_EDGE`), contêineres (`GROUP`, `UNGROUP`), estrutura (`FOLDER`, `TAB`, `USE_TAB`) e organização (`LAYOUT`), permitindo desfazer toda a execução com um único `Ctrl+Z`.
   - Novos nós sem coordenadas explícitas são posicionados de forma híbrida: num raio deslocado ao redor do nó de referência (`near`, `parent` ou nó de origem na conexão) ou em grade/espiral no centro do viewport atual (`Graph.getModelCenter()`), sem alterar a posição dos nós já existentes a menos que o comando `LAYOUT` seja executado.
   - Retorna objeto `{ total, successCount, errorCount, logs: Array<{ line, status, message }> }` detalhando o resultado de cada comando processado.
-- Notas do executor:
+- Notas do executor: Criado TerminalEngine com parse de chave-valor e sintaxe com seta, resolução de nós por alias/ID/título, cálculo geométrico híbrido sem sobreposição, execução em Store.batch() e suporte a NODE, CONNECT, GROUP, FOLDER, TAB, USE_ENTITY e LAYOUT.
 - Notas do verificador:
 
 ## T3 — Estrutura HTML e Estilização do Painel Inferior do Terminal (`index.html`, `style.css`)
