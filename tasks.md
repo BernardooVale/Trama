@@ -56,12 +56,12 @@ Legenda: [ ] aberta | [~] aguardando verificação | [x] verificada | [!] falhou
 - Notas do verificador:
 
 ## T5 — Atualização da Documentação de Arquitetura (`ARCHITECTURE.md`)
-- [ ] Status
+- [~] Status
 - Arquivos: `ARCHITECTURE.md`, `js/ARCHITECTURE.md`, `js/components/ARCHITECTURE.md`
 - Descrição: Documentar os novos componentes (`terminalPrompt.js`, `terminalEngine.js`, `terminal.js`) e os novos métodos/atalhos em `main.js` seguindo o padrão da documentação técnica hierárquica do repositório.
 - Check rápido: `python -c "import pathlib; c=pathlib.Path('js/components/ARCHITECTURE.md').read_text('utf-8'); assert 'terminalPrompt.js' in c and 'terminalEngine.js' in c and 'terminal.js' in c"`
 - Critérios:
   - `js/components/ARCHITECTURE.md` inclui na tabela de visão geral e nas seções detalhadas todas as funções públicas e internas de `terminalPrompt.js`, `terminalEngine.js` e `terminal.js` com assinatura, descrição e retorno.
   - `js/ARCHITECTURE.md` e `ARCHITECTURE.md` refletem os novos arquivos de componente e os novos binds/atalhos no módulo `App` (`main.js`).
-- Notas do executor:
+- Notas do executor: Documentadas todas as funções públicas e internas dos 3 módulos em js/components/ARCHITECTURE.md; atualizadas as tabelas e referências em ARCHITECTURE.md e js/ARCHITECTURE.md.
 - Notas do verificador:
