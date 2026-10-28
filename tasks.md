@@ -6,7 +6,7 @@ Branch: tasks/terminal-ia
 Legenda: [ ] aberta | [~] aguardando verificação | [x] verificada | [!] falhou
 
 ## T1 — Gerador de Prompt e Especificação da DSL (`terminalPrompt.js`)
-- [ ] Status
+- [~] Status
 - Arquivos: `js/components/terminalPrompt.js`, `index.html`
 - Descrição: Criar o módulo `TerminalPrompt` responsável por gerar o documento Markdown completo (manual de sintaxe da DSL + snapshot resumido do estado atual do projeto com pastas, abas, IDs, títulos e tipos dos nós/arestas da aba ativa) e copiá-lo para a área de transferência para uso em qualquer LLM.
 - Check rápido: `python -c "import pathlib; p=pathlib.Path('js/components/terminalPrompt.js'); assert p.exists() and 'TerminalPrompt' in p.read_text('utf-8')"`
@@ -14,7 +14,7 @@ Legenda: [ ] aberta | [~] aguardando verificação | [x] verificada | [!] falhou
   - `TerminalPrompt.buildPrompt()` retorna uma string Markdown contendo a especificação dos comandos (`NODE`, `UPDATE_NODE`, `DELETE_NODE`, `CONNECT`, `DELETE_EDGE`, `GROUP`, `UNGROUP`, `FOLDER`, `TAB`, `USE_TAB`, `USE_ENTITY`, `LAYOUT`), regras de uso de aliases/IDs e a listagem dos elementos atuais do projeto e da aba ativa.
   - `TerminalPrompt.copyToClipboard()` copia o Markdown gerado para `navigator.clipboard` (com fallback para `textarea` temporário) e retorna `Promise<boolean>`.
   - O script `js/components/terminalPrompt.js` está referenciado em `index.html` antes de `main.js`.
-- Notas do executor:
+- Notas do executor: Criado módulo TerminalPrompt com buildPrompt() gerando Markdown contextual completo (regras da DSL, pastas, abas, nós, conexões e entidades) e copyToClipboard() com fallback; incluído no index.html.
 - Notas do verificador:
 
 ## T2 — Parser e Motor de Execução da DSL com Posicionamento Híbrido (`terminalEngine.js`)
