@@ -213,6 +213,11 @@ textarea{resize:vertical}
 .dd-dot--agrupador{background:var(--node-agrupador)}
 .dd-dot--neutro{background:var(--node-neutro)}
 .dd-dot--texto{background:var(--node-texto)}
+.dd-dot--subgrafo{background:var(--node-subgrafo)}
+.dd-dot--edge-dependencia{background:var(--edge-dependencia)}
+.dd-dot--edge-resolve{background:var(--edge-resolve)}
+.dd-dot--edge-relaciona{background:var(--edge-relaciona)}
+.dd-dot--edge-neutra{background:var(--edge-neutra)}
 
 /* ── Header actions ──────────────────────────────── */
 .header-actions{display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0}
@@ -378,6 +383,8 @@ textarea{resize:vertical}
 .dot-solucao { background: var(--node-solucao); }
 .dot-agrupador { background: var(--node-agrupador); }
 .dot-neutro { background: var(--node-neutro); }
+.dot-subgrafo { background: var(--node-subgrafo); }
+.dot-texto { background: var(--node-texto); }
 
 /* ── Edge mode banner ────────────────────────────── */
 .edge-mode-banner{
@@ -1461,4 +1468,117 @@ body.zen-mode .zen-exit-pill {
 }
 .btn-link:hover {
   color: var(--text-primary);
+}
+
+/* ── Edge Appearance Range Sliders ───────────────── */
+.field-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  background: var(--bg-hover);
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  outline: none;
+  cursor: pointer;
+  margin: 6px 0;
+}
+.field-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--bg-surface);
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+  transition: transform var(--t-fast);
+}
+.field-range::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+.field-range::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--bg-surface);
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+}
+.range-val {
+  font-size: var(--text-xs);
+  font-weight: 500;
+  font-family: monospace;
+  color: var(--text-secondary);
+}
+
+/* ── On-Edge Interactive Inflection & Turn Handle ── */
+.edge-guide-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 38;
+}
+
+.edge-handle {
+  position: absolute;
+  z-index: 39;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  user-select: none;
+  pointer-events: auto;
+}
+
+.edge-handle-grip {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--bg-surface);
+  border: 2px solid var(--accent);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.55), 0 0 8px var(--accent-glow);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  transition: transform var(--t-fast), background var(--t-fast), border-color var(--t-fast), box-shadow var(--t-fast);
+}
+
+.edge-handle-grip:hover {
+  transform: scale(1.18);
+  background: var(--accent);
+  color: var(--bg-base);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.65), 0 0 14px var(--accent-glow);
+}
+
+.edge-handle.dragging .edge-handle-grip {
+  cursor: grabbing;
+  transform: scale(1.24);
+  background: var(--accent);
+  color: var(--bg-base);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.7), 0 0 18px var(--accent-glow);
+}
+
+.edge-handle-tooltip {
+  position: absolute;
+  bottom: calc(100% + 7px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-base);
+  border: 1px solid var(--accent-dim);
+  border-radius: var(--r-sm);
+  padding: 2px 7px;
+  font-size: 11px;
+  font-family: monospace;
+  color: var(--text-primary);
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: var(--shadow-sm);
 }

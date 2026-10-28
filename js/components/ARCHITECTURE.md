@@ -228,12 +228,12 @@ Gerencia o painel lateral de propriedades e edição detalhada de nós e arestas
 
 #### `populate(node)`
 - **Assinatura:** `populate(node: Node): void`
-- **Descrição:** Preenche os campos do formulário lateral com título, descrição, tipo, prioridade, tags, contêiner pai (`#sb-container-select`) e URL externa (`#sb-url` com botão de acesso direto `↗`). Exibe contagem de usos em bases/grafos caso o dado pertença a mais de um grafo. Redefine o modo de descrição para `'edit'`. Para nós do tipo `subgrafo`, exibe campos de navegação para a aba associada.
+- **Descrição:** Preenche os campos do formulário lateral com seletor interativo de tipo (`#sb-type-select`), badge de cor do tipo, título, descrição, prioridade, tags, contêiner pai (`#sb-container-select`), seletor de aba vinculada para subgrafo (`#sb-subgraph-select`) e URL externa (`#sb-url` com botão de acesso direto `↗`). Exibe contagem de usos em bases/grafos caso o dado pertença a mais de um grafo. Redefine o modo de descrição para `'edit'`. Para nós do tipo `subgrafo`, exibe campos de navegação e seleção da aba associada.
 - **Retorno:** `undefined`.
 
 #### `populateEdge(edge)`
 - **Assinatura:** `populateEdge(edge: Edge): void`
-- **Descrição:** Preenche os campos do formulário lateral da aresta (`#sb-edge-fields`) com tipo, rótulo e endpoints.
+- **Descrição:** Preenche os campos do formulário lateral da aresta (`#sb-edge-fields`) com seletor interativo de tipo de conexão (`#sb-edge-type-select`), badge de cor da aresta, rótulo, endpoints e controles de estilização geométrica: seletor de formato da curva (`#sb-edge-curve-style`), controles contextuais para curva de 90° taxi (orientação `#sb-edge-taxi-dir` e posição da dobra `#sb-edge-taxi-turn`), controles contextuais de inflexão (slider de distância/curvatura `#sb-edge-cp-distance` com botão de zerar e slider de peso `#sb-edge-cp-weight`), estilo do traço (`#sb-edge-line-pattern`) e direção das setas (`#sb-edge-arrow-dir`).
 - **Retorno:** `undefined`.
 
 #### `renderTags(tags)`
@@ -253,25 +253,25 @@ Gerencia o painel lateral de propriedades e edição detalhada de nós e arestas
 
 #### `bind()`
 - **Assinatura:** `bind(): void`
-- **Descrição:** Inicializa os listeners de debounce nos inputs, alternância de preview de descrição e seletor de prioridade.
+- **Descrição:** Inicializa os listeners de debounce nos inputs, alternância de preview de descrição, seletor de prioridade, seletores de tipos de vértice e aresta, além de todos os controles visuais de arestas (formato de curva, ângulo taxi, sliders interativos de inflexão e curvatura com pré-visualização contínua a 60fps no Cytoscape via evento `input` e persistência no histórico atômico via `change`, traço e setas).
 - **Retorno:** `undefined`.
 
 ---
 
 ## 6. `contextMenu.js` (`ContextMenu`)
 
-Gerencia menus contextuais acionados com botão direito no canvas, vértices e arestas, oferecendo criação rápida, agrupamento, cópia/cola, diagnóstico e inserção de dados a partir do banco de dados global.
+Gerencia menus contextuais acionados com botão direito no canvas, vértices e arestas, oferecendo criação rápida, modificação direta de tipo (com indicação visual do tipo ativo), ajuste do formato visual da curva da aresta, agrupamento, cópia/cola, diagnóstico e inserção de dados a partir do banco de dados global.
 
 ### Funções Internas e Métodos Públicos
 
 #### `showNodeMenu(id, cx, cy)`
 - **Assinatura:** `showNodeMenu(id: string, cx: number, cy: number): void`
-- **Descrição:** Abre o menu de contexto de nó em `(cx, cy)` oferecendo ações rápidas (criar filho conectado, arestas, agrupamento em contêiner, copiar, remoção do grafo atual e exclusão permanente global).
+- **Descrição:** Abre o menu de contexto de nó em `(cx, cy)` oferecendo ações rápidas (criar filho conectado, arestas, modificação direta do tipo do nó entre todos os 6 tipos disponíveis com indicador visual e marcação ativa, agrupamento em contêiner, copiar, remoção do grafo atual e exclusão permanente global).
 - **Retorno:** `undefined`.
 
 #### `showEdgeMenu(id, cx, cy)`
 - **Assinatura:** `showEdgeMenu(id: string, cx: number, cy: number): void`
-- **Descrição:** Abre o menu de contexto de aresta em `(cx, cy)` permitindo edição de propriedades e exclusão.
+- **Descrição:** Abre o menu de contexto de aresta em `(cx, cy)` permitindo modificação direta do formato da curva (Bézier suave, reta, ortogonal 90°, inflexão unbundled ou segmentada), alteração do tipo da conexão (dependência, resolve, relaciona e neutra com indicador visual e marcação ativa), edição de propriedades e exclusão.
 - **Retorno:** `undefined`.
 
 #### `showCoreMenu(gx, gy, cx, cy)`
@@ -286,5 +286,5 @@ Gerencia menus contextuais acionados com botão direito no canvas, vértices e a
 
 #### `bind()`
 - **Assinatura:** `bind(): void`
-- **Descrição:** Conecta a captura de cliques nos botões do menu e fecha o menu ao clicar fora.
+- **Descrição:** Conecta a captura de cliques nos botões do menu (incluindo alteração atômica de tipos de nó e aresta em lote para seleções múltiplas) e fecha o menu ao clicar fora.
 - **Retorno:** `undefined`.

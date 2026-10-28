@@ -8,6 +8,30 @@ const ContextMenu = (() => {
   let targetId = null;
   let targetPos = null;
 
+  const NODE_TYPE_INFO = {
+    problema:  { label: 'Problema', dot: 'dd-dot--problema' },
+    solucao:   { label: 'Solução', dot: 'dd-dot--solucao' },
+    agrupador: { label: 'Contêiner / Agrupador', dot: 'dd-dot--agrupador' },
+    neutro:    { label: 'Neutro', dot: 'dd-dot--neutro' },
+    subgrafo:  { label: 'Subgrafo', dot: 'dd-dot--subgrafo' },
+    texto:     { label: 'Texto', dot: 'dd-dot--texto' },
+  };
+
+  const EDGE_TYPE_INFO = {
+    dependencia: { label: 'Dependência', dot: 'dd-dot--edge-dependencia' },
+    resolve:     { label: 'Resolve', dot: 'dd-dot--edge-resolve' },
+    relaciona:   { label: 'Relaciona', dot: 'dd-dot--edge-relaciona' },
+    neutra:      { label: 'Neutra', dot: 'dd-dot--edge-neutra' },
+  };
+
+  const EDGE_CURVE_INFO = {
+    bezier:             { label: 'Curva Suave (Bézier)', icon: '〰' },
+    straight:           { label: 'Linha Reta', icon: '─' },
+    taxi:               { label: 'Curva 90° (Ortogonal)', icon: '⮑' },
+    'unbundled-bezier': { label: 'Curva com Inflexão', icon: '∿' },
+    segments:           { label: 'Linha Segmentada', icon: '⮍' },
+  };
+
   function esc(s){ return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
   function hide(){
@@ -46,6 +70,14 @@ const ContextMenu = (() => {
       compoundActions += `<button class="cm-item" data-action="group">Agrupar em Contêiner</button>`;
     }
 
+    const nodeTypesHtml = Object.entries(NODE_TYPE_INFO).map(([type, info]) => {
+      const isCurrent = type === node?.type;
+      const check = isCurrent ? '<span style="margin-left:auto;color:var(--accent);font-weight:bold">✓</span>' : '';
+      return `<button class="cm-item" data-action="change-node-type" data-type="${type}" style="${isCurrent ? 'font-weight:600' : ''}">
+        <span class="dd-dot ${info.dot}"></span>${info.label}${check}
+      </button>`;
+    }).join('');
+
     el.innerHTML = `
       <div class="cm-item" style="font-size:10px;text-transform:uppercase;color:var(--text-muted);pointer-events:none">Ações Rápidas</div>
       <button class="cm-item" data-action="quick-child">⚡ Criar Filho Conectado <span style="margin-left:auto;font-size:11px;color:var(--text-muted)">Tab</span></button>
@@ -55,6 +87,9 @@ const ContextMenu = (() => {
       <button class="cm-item" data-action="edge" data-edge="resolve">Resolve</button>
       <button class="cm-item" data-action="edge" data-edge="relaciona">Relaciona</button>
       <button class="cm-item" data-action="edge" data-edge="neutra">Neutra</button>
+      <div class="cm-divider"></div>
+      <div class="cm-item" style="font-size:10px;text-transform:uppercase;color:var(--text-muted);pointer-events:none">Modificar Tipo</div>
+      ${nodeTypesHtml}
       <div class="cm-divider"></div>
       ${compoundActions}
       <button class="cm-item" data-action="copy">Copiar Vértice <span style="margin-left:auto;font-size:11px;color:var(--text-muted)">Ctrl+C</span></button>
@@ -70,9 +105,33 @@ const ContextMenu = (() => {
     if(!el) return;
     const edge = Store.getEdge(id);
     const label = edge ? (edge.label || edge.edgeType) : 'Aresta';
+
+    const currentCurve = edge?.curveStyle || 'bezier';
+    const edgeCurvesHtml = Object.entries(EDGE_CURVE_INFO).map(([curve, info]) => {
+      const isCurrent = curve === currentCurve;
+      const check = isCurrent ? '<span style="margin-left:auto;color:var(--accent);font-weight:bold">✓</span>' : '';
+      return `<button class="cm-item" data-action="change-edge-curve" data-curve="${curve}" style="${isCurrent ? 'font-weight:600' : ''}">
+        <span style="display:inline-block;width:14px;text-align:center;font-size:12px;margin-right:4px;">${info.icon}</span>${info.label}${check}
+      </button>`;
+    }).join('');
+
+    const edgeTypesHtml = Object.entries(EDGE_TYPE_INFO).map(([type, info]) => {
+      const isCurrent = type === edge?.edgeType;
+      const check = isCurrent ? '<span style="margin-left:auto;color:var(--accent);font-weight:bold">✓</span>' : '';
+      return `<button class="cm-item" data-action="change-edge-type" data-type="${type}" style="${isCurrent ? 'font-weight:600' : ''}">
+        <span class="dd-dot ${info.dot}"></span>${info.label}${check}
+      </button>`;
+    }).join('');
+
     el.innerHTML = `
       <div class="cm-item" style="font-size:10px;text-transform:uppercase;color:var(--text-muted);pointer-events:none">Aresta: ${esc(label)}</div>
       <button class="cm-item" data-action="edit-edge">Editar Propriedades</button>
+      <div class="cm-divider"></div>
+      <div class="cm-item" style="font-size:10px;text-transform:uppercase;color:var(--text-muted);pointer-events:none">Formato da Curva</div>
+      ${edgeCurvesHtml}
+      <div class="cm-divider"></div>
+      <div class="cm-item" style="font-size:10px;text-transform:uppercase;color:var(--text-muted);pointer-events:none">Modificar Tipo</div>
+      ${edgeTypesHtml}
       <div class="cm-divider"></div>
       <button class="cm-item" data-action="delete-edge" style="color:var(--node-problema)">Excluir Aresta</button>
     `;
@@ -207,6 +266,85 @@ const ContextMenu = (() => {
       }
       else if(action === 'edge' && currentTargetId){
         Graph.startEdgeModeFromContext(btn.dataset.edge, currentTargetId);
+      }
+      else if(action === 'change-node-type' && currentTargetId){
+        const newType = btn.dataset.type;
+        const cy = (typeof Graph !== 'undefined' && Graph.getInstance) ? Graph.getInstance() : null;
+        const selectedIds = cy ? cy.$('node:selected').map(n => n.id()) : [];
+        const targetIds = (selectedIds.length > 1 && selectedIds.includes(currentTargetId))
+          ? selectedIds
+          : [currentTargetId];
+
+        try {
+          Store.batch(() => {
+            targetIds.forEach(nid => {
+              Store.updateNode(nid, { type: newType });
+            });
+          });
+          if(typeof App !== 'undefined' && App.toast){
+            App.toast(targetIds.length > 1
+              ? `${targetIds.length} vértices alterados para "${newType}"`
+              : `Tipo alterado para "${newType}"`
+            );
+          }
+        } catch(err){
+          if(typeof App !== 'undefined' && App.toast) App.toast(err.message);
+        }
+      }
+      else if(action === 'change-edge-type' && currentTargetId){
+        const newType = btn.dataset.type;
+        const cy = (typeof Graph !== 'undefined' && Graph.getInstance) ? Graph.getInstance() : null;
+        const selectedEdgeIds = cy ? cy.$('edge:selected').map(e => e.id()) : [];
+        const targetEdgeIds = (selectedEdgeIds.length > 1 && selectedEdgeIds.includes(currentTargetId))
+          ? selectedEdgeIds
+          : [currentTargetId];
+
+        try {
+          Store.batch(() => {
+            targetEdgeIds.forEach(eid => {
+              Store.updateEdge(eid, { edgeType: newType });
+            });
+          });
+          if(typeof App !== 'undefined' && App.toast){
+            App.toast(targetEdgeIds.length > 1
+              ? `${targetEdgeIds.length} arestas alteradas para "${newType}"`
+              : `Tipo alterado para "${newType}"`
+            );
+          }
+        } catch(err){
+          if(typeof App !== 'undefined' && App.toast) App.toast(err.message);
+        }
+      }
+      else if(action === 'change-edge-curve' && currentTargetId){
+        const newCurve = btn.dataset.curve;
+        const cy = (typeof Graph !== 'undefined' && Graph.getInstance) ? Graph.getInstance() : null;
+        const selectedEdgeIds = cy ? cy.$('edge:selected').map(e => e.id()) : [];
+        const targetEdgeIds = (selectedEdgeIds.length > 1 && selectedEdgeIds.includes(currentTargetId))
+          ? selectedEdgeIds
+          : [currentTargetId];
+
+        const changes = { curveStyle: newCurve };
+        const edge = Store.getEdge(currentTargetId);
+        if((newCurve === 'unbundled-bezier' || newCurve === 'segments') && edge && !edge.controlPointDistance){
+          changes.controlPointDistance = 40;
+          changes.segmentDistance = 40;
+        }
+
+        try {
+          Store.batch(() => {
+            targetEdgeIds.forEach(eid => {
+              Store.updateEdge(eid, changes);
+            });
+          });
+          if(typeof App !== 'undefined' && App.toast){
+            App.toast(targetEdgeIds.length > 1
+              ? `${targetEdgeIds.length} arestas alteradas para "${newCurve}"`
+              : `Formato alterado para "${EDGE_CURVE_INFO[newCurve]?.label || newCurve}"`
+            );
+          }
+        } catch(err){
+          if(typeof App !== 'undefined' && App.toast) App.toast(err.message);
+        }
       }
       else if(action === 'copy'){
         if(currentTargetId){

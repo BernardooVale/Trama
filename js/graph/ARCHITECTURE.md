@@ -11,6 +11,7 @@ Este documento detalha o propósito, as responsabilidades e a especificação co
 | `styles.js` | Folha de estilos do Cytoscape, tokens visuais, paleta de cores e sincronização de temas (`dark`/`light`). |
 | `focus.js` | Modo de foco dinâmico com temporização de repouso (hover prolongado) e inversão de sentido com tecla Shift. |
 | `edgeMode.js` | Fluxo interativo de criação de arestas na interface (banner, seleção origem/destino, cancelamento). |
+| `edgeHandle.js` | Alça interativa on-canvas para manipulação direta de pontos de inflexão, curvatura Bézier e dobra de 90° em arestas. |
 
 ---
 
@@ -125,3 +126,52 @@ Gerencia o modo interativo de criação de arestas entre vértices no canvas.
 - **Assinatura:** `startFromContext(cy: cytoscape.Core, type: string, sourceId: string): void`
 - **Descrição:** Inicia o modo de aresta já com o nó de origem pré-selecionado a partir de uma opção do menu de contexto.
 - **Retorno:** `undefined`.
+
+---
+
+## 5. `edgeHandle.js` (`GraphEdgeHandle`)
+
+Gerencia a alça interativa on-canvas para manipulação direta de pontos de inflexão, curvatura Bézier e posições de dobra de 90° em arestas selecionadas.
+
+### Funções Internas e Métodos Públicos
+
+#### `init(cyInstance)`
+- **Assinatura:** `init(cyInstance: cytoscape.Core): void`
+- **Descrição:** Armazena a referência para a instância do Cytoscape, obtém referências dos elementos DOM da alça (`#edge-handle`, `#edge-handle-grip`, `#edge-handle-tooltip`, `#edge-guide-svg`, `#edge-guide-line`) e vincula o listener de início de arraste (`mousedown`).
+- **Retorno:** `undefined`.
+
+#### `isDragging()`
+- **Assinatura:** `isDragging(): boolean`
+- **Descrição:** Informa se o usuário está atualmente arrastando a alça do ponto de inflexão/curva no canvas.
+- **Retorno:** `true` se em processo de arraste; `false` caso contrário.
+
+#### `hide()`
+- **Assinatura:** `hide(): void`
+- **Descrição:** Oculta a alça e a linha guia SVG, redefinindo o identificador da aresta ativa (ignora se estiver no meio de um arraste).
+- **Retorno:** `undefined`.
+
+#### `update(cy)`
+- **Assinatura:** `update(cy?: cytoscape.Core): void`
+- **Descrição:** Recalcula a posição renderizada em coordenadas de tela da alça com base na aresta selecionada no `Store`, aplicando as projeções de geometria da curva (`unbundled-bezier`, `segments`, `taxi` ou reta/bézier padrão) e sincronizando o ícone e tooltip da alça.
+- **Retorno:** `undefined`.
+
+#### `getContainerRect()`
+- **Assinatura:** `getContainerRect(): DOMRect | { left: number, top: number, width: number, height: number }`
+- **Descrição:** Função utilitária interna que retorna os limites retangulares da viewport do contêiner Cytoscape (`#cy`).
+- **Retorno:** Retângulo delimitador do contêiner.
+
+#### `onMouseDown(e)`
+- **Assinatura:** `onMouseDown(e: MouseEvent): void`
+- **Descrição:** Trata o clique inicial na alça da aresta. Desativa pan e box-selection temporariamente no Cytoscape, promove arestas retas/bézier simples para `unbundled-bezier` se necessário, captura posições iniciais dos nós e registra listeners globais de movimentação e liberação do mouse.
+- **Retorno:** `undefined`.
+
+#### `onMouseMove(e)`
+- **Assinatura:** `onMouseMove(e: MouseEvent): void`
+- **Descrição:** Trata o movimento do mouse durante o arraste da alça. Projeta a coordenada do mouse no espaço do modelo do grafo, calcula a distância ortogonal $d$ e peso tangencial $w$ (para curvas) ou a porcentagem $t$ da dobra ortogonal (para curvas taxi de 90°), atualiza a geometria da aresta em tempo real a 60 FPS, posiciona a alça e guia SVG e reflete os valores nos inputs da barra lateral.
+- **Retorno:** `undefined`.
+
+#### `onMouseUp(e)`
+- **Assinatura:** `onMouseUp(e: MouseEvent): void`
+- **Descrição:** Finaliza a operação de arraste da alça. Remove os listeners globais de mouse, reabilita pan do Cytoscape, oculta guias e persiste atomicamente as alterações no `Store` via `Store.updateEdge()` com registro no histórico de desfazer/refazer.
+- **Retorno:** `undefined`.
+

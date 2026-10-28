@@ -297,6 +297,22 @@
       <!-- Quick Connect Handle -->
       <div class="quick-handle" id="quick-handle" hidden></div>
 
+      <!-- SVG Guide for Edge Inflection -->
+      <svg class="edge-guide-svg" id="edge-guide-svg" hidden>
+        <line id="edge-guide-line" x1="0" y1="0" x2="0" y2="0" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="3,3" opacity="0.75"/>
+      </svg>
+
+      <!-- On-Edge Inflection & Turn Handle -->
+      <div class="edge-handle" id="edge-handle" hidden>
+        <div class="edge-handle-grip" id="edge-handle-grip" title="Clique e arraste para modificar o ponto de inflexão">
+          <svg id="edge-handle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="13" height="13">
+            <path d="M4 12c4-8 12-8 16 0"/>
+            <circle cx="12" cy="8" r="2.2" fill="currentColor"/>
+          </svg>
+        </div>
+        <div class="edge-handle-tooltip" id="edge-handle-tooltip" hidden>+40px</div>
+      </div>
+
       <!-- Zen mode exit pill -->
       <button class="zen-exit-pill" id="btn-zen-exit" title="Sair do Modo Zen">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
@@ -337,8 +353,18 @@
         <!-- Campos de Vértice -->
         <div id="sb-node-fields" class="sidebar-section">
           <div class="field-row">
-            <label class="field-label">Tipo</label>
-            <span class="type-badge" id="sb-type-badge">—</span>
+            <div class="field-label-row">
+              <label class="field-label" for="sb-type-select">Tipo</label>
+              <span class="type-badge" id="sb-type-badge">—</span>
+            </div>
+            <select class="field-select" id="sb-type-select">
+              <option value="problema">Problema</option>
+              <option value="solucao">Solução</option>
+              <option value="agrupador">Contêiner / Agrupador</option>
+              <option value="neutro">Neutro</option>
+              <option value="subgrafo">Subgrafo</option>
+              <option value="texto">Texto</option>
+            </select>
           </div>
 
           <div class="field-row">
@@ -400,7 +426,10 @@
 
           <!-- Ação especial para Subgrafo -->
           <div class="field-row" id="sb-subgraph-fields" hidden>
-            <label class="field-label">Aba do Subgrafo</label>
+            <label class="field-label" for="sb-subgraph-select">Aba Vinculada (Subgrafo)</label>
+            <select class="field-select" id="sb-subgraph-select" style="margin-bottom:8px">
+              <option value="">Nenhuma (Selecione uma aba...)</option>
+            </select>
             <button class="btn-jump-tab" id="btn-jump-tab">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
                 <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
@@ -416,8 +445,16 @@
         <!-- Campos de Aresta -->
         <div id="sb-edge-fields" class="sidebar-section" hidden>
           <div class="field-row">
-            <label class="field-label">Tipo de Conexão</label>
-            <span class="type-badge" id="sb-edge-type-badge">—</span>
+            <div class="field-label-row">
+              <label class="field-label" for="sb-edge-type-select">Tipo de Conexão</label>
+              <span class="type-badge" id="sb-edge-type-badge">—</span>
+            </div>
+            <select class="field-select" id="sb-edge-type-select">
+              <option value="dependencia">Dependência</option>
+              <option value="resolve">Resolve</option>
+              <option value="relaciona">Relaciona</option>
+              <option value="neutra">Neutra</option>
+            </select>
           </div>
 
           <div class="field-row">
@@ -428,6 +465,86 @@
           <div class="field-row">
             <label class="field-label">Conexão</label>
             <div class="meta-info" id="sb-edge-endpoints">—</div>
+          </div>
+
+          <!-- Estilo Visual da Aresta -->
+          <div style="margin: 16px 0 10px; border-top: 1px solid var(--border);"></div>
+          <div class="field-row" style="margin-bottom: 6px;">
+            <span style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px;">Aparência Visual</span>
+          </div>
+
+          <!-- Formato da Curva -->
+          <div class="field-row">
+            <label class="field-label" for="sb-edge-curve-style">Formato da Curva</label>
+            <select class="field-select" id="sb-edge-curve-style">
+              <option value="bezier">〰 Curva Suave (Bézier)</option>
+              <option value="straight">─ Linha Reta</option>
+              <option value="taxi">⮑ Curva 90° (Ortogonal)</option>
+              <option value="unbundled-bezier">∿ Curva com Inflexão</option>
+              <option value="segments">⮍ Linha Segmentada</option>
+            </select>
+          </div>
+
+          <!-- Controles de Curva 90° (Taxi) -->
+          <div id="sb-edge-taxi-controls" hidden>
+            <div class="field-row">
+              <label class="field-label" for="sb-edge-taxi-dir">Orientação do Ângulo de 90°</label>
+              <select class="field-select" id="sb-edge-taxi-dir">
+                <option value="auto">Automático</option>
+                <option value="vertical">Vertical primeiro (↕)</option>
+                <option value="horizontal">Horizontal primeiro (↔)</option>
+              </select>
+            </div>
+            <div class="field-row">
+              <div class="field-label-row">
+                <label class="field-label" for="sb-edge-taxi-turn">Posição da Dobra de 90°</label>
+                <span class="range-val" id="sb-edge-taxi-turn-val">50%</span>
+              </div>
+              <input type="range" class="field-range" id="sb-edge-taxi-turn" min="20" max="80" step="5" value="50" />
+            </div>
+          </div>
+
+          <!-- Controles de Inflexão (Unbundled-Bezier e Segments) -->
+          <div id="sb-edge-inflection-controls" hidden>
+            <div class="field-row">
+              <div class="field-label-row">
+                <label class="field-label" for="sb-edge-cp-distance">Curvatura / Distância do Ponto</label>
+                <span class="range-val" id="sb-edge-cp-distance-val">+40px</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <input type="range" class="field-range" id="sb-edge-cp-distance" min="-160" max="160" step="5" value="40" style="flex: 1;" />
+                <button type="button" id="btn-reset-cp-dist" title="Zerar curvatura" style="font-size: 11px; padding: 2px 7px; border-radius: var(--r-sm); background: var(--bg-hover); border: 1px solid var(--border); color: var(--text-secondary); cursor: pointer;">0</button>
+              </div>
+            </div>
+
+            <div class="field-row">
+              <div class="field-label-row">
+                <label class="field-label" for="sb-edge-cp-weight">Posição do Ponto de Inflexão</label>
+                <span class="range-val" id="sb-edge-cp-weight-val">50%</span>
+              </div>
+              <input type="range" class="field-range" id="sb-edge-cp-weight" min="15" max="85" step="5" value="50" />
+            </div>
+          </div>
+
+          <!-- Padrão do Traço -->
+          <div class="field-row">
+            <label class="field-label" for="sb-edge-line-pattern">Estilo do Traço</label>
+            <select class="field-select" id="sb-edge-line-pattern">
+              <option value="default">Padrão do Tipo</option>
+              <option value="solid">Sólida (──────)</option>
+              <option value="dashed">Tracejada (– – – –)</option>
+              <option value="dotted">Pontilhada (········)</option>
+            </select>
+          </div>
+
+          <!-- Direção das Setas -->
+          <div class="field-row">
+            <label class="field-label" for="sb-edge-arrow-dir">Direção das Setas</label>
+            <select class="field-select" id="sb-edge-arrow-dir">
+              <option value="target">Unidirecional (Origem → Destino)</option>
+              <option value="both">Bidirecional (Origem ↔ Destino)</option>
+              <option value="none">Sem Setas (Linha Simples)</option>
+            </select>
           </div>
         </div>
 
@@ -459,26 +576,27 @@
   </div>
 
   <!-- Store modules -->
-  <script src="js/store/history.js?v=5"></script>
-  <script src="js/store/tabsManager.js?v=5"></script>
-  <script src="js/store/explorerManager.js?v=5"></script>
-  <script src="js/store/storage.js?v=5"></script>
-  <script src="store.js?v=5"></script>
+  <script src="js/store/history.js?v=6"></script>
+  <script src="js/store/tabsManager.js?v=6"></script>
+  <script src="js/store/explorerManager.js?v=6"></script>
+  <script src="js/store/storage.js?v=6"></script>
+  <script src="store.js?v=6"></script>
 
   <!-- Graph modules -->
-  <script src="js/graph/styles.js?v=5"></script>
-  <script src="js/graph/focus.js?v=5"></script>
-  <script src="js/graph/edgeMode.js?v=5"></script>
-  <script src="graph.js?v=5"></script>
+  <script src="js/graph/styles.js?v=6"></script>
+  <script src="js/graph/focus.js?v=6"></script>
+  <script src="js/graph/edgeMode.js?v=6"></script>
+  <script src="js/graph/edgeHandle.js?v=6"></script>
+  <script src="graph.js?v=6"></script>
 
   <!-- UI Components -->
-  <script src="js/components/search.js?v=5"></script>
-  <script src="js/components/tabs.js?v=5"></script>
-  <script src="js/components/explorer.js?v=5"></script>
-  <script src="js/components/sidebar.js?v=5"></script>
-  <script src="js/components/contextMenu.js?v=5"></script>
+  <script src="js/components/search.js?v=6"></script>
+  <script src="js/components/tabs.js?v=6"></script>
+  <script src="js/components/explorer.js?v=6"></script>
+  <script src="js/components/sidebar.js?v=6"></script>
+  <script src="js/components/contextMenu.js?v=6"></script>
 
   <!-- App Controller -->
-  <script src="main.js?v=5"></script>
+  <script src="main.js?v=6"></script>
 </body>
 </html>

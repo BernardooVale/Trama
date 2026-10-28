@@ -122,8 +122,15 @@ const Sidebar = (() => {
 
   function populate(node){
     const badge = getEl('sb-type-badge');
-    badge.textContent = node.type;
-    badge.dataset.type = node.type;
+    if(badge){
+      badge.textContent = node.type;
+      badge.dataset.type = node.type;
+    }
+
+    const typeSelect = getEl('sb-type-select');
+    if(typeSelect){
+      typeSelect.value = node.type;
+    }
 
     if(document.activeElement !== getEl('sb-title')){
       getEl('sb-title').value = node.title ?? '';
@@ -167,8 +174,20 @@ const Sidebar = (() => {
     getEl('sb-priority-row').hidden = isTexto;
     getEl('sb-tags-row').hidden = isTexto;
 
-    if(node.type === 'subgrafo' && node.subgraphTabId){
+    if(node.type === 'subgrafo'){
       getEl('sb-subgraph-fields').hidden = false;
+      const sgSelect = getEl('sb-subgraph-select');
+      if(sgSelect){
+        const importable = (typeof Store.getImportableTabs === 'function') ? Store.getImportableTabs() : [];
+        sgSelect.innerHTML = '<option value="">Nenhuma (Selecione uma aba...)</option>' +
+          importable.map(t => `<option value="${esc(t.id)}">${esc(t.name)}</option>`).join('');
+        sgSelect.value = node.subgraphTabId || '';
+      }
+      const jumpBtn = getEl('btn-jump-tab');
+      if(jumpBtn){
+        jumpBtn.disabled = !node.subgraphTabId;
+        jumpBtn.style.opacity = node.subgraphTabId ? '1' : '0.5';
+      }
     } else {
       getEl('sb-subgraph-fields').hidden = true;
     }
@@ -186,8 +205,14 @@ const Sidebar = (() => {
 
   function populateEdge(edge){
     const badge = getEl('sb-edge-type-badge');
-    badge.textContent = edge.edgeType;
-    badge.dataset.type = edge.edgeType;
+    if(badge){
+      badge.textContent = edge.edgeType;
+      badge.dataset.type = edge.edgeType;
+    }
+    const edgeTypeSelect = getEl('sb-edge-type-select');
+    if(edgeTypeSelect){
+      edgeTypeSelect.value = edge.edgeType;
+    }
     if(document.activeElement !== getEl('sb-edge-label')){
       getEl('sb-edge-label').value = edge.label ?? '';
     }
@@ -195,6 +220,45 @@ const Sidebar = (() => {
     const tgt = Store.getNode(edge.target)?.title ?? edge.target;
     getEl('sb-edge-endpoints').textContent = `${src} → ${tgt}`;
     getEl('sb-meta').textContent = `ID: ${edge.id}`;
+
+    // Estilo Visual da Curva
+    const curveStyle = edge.curveStyle || 'bezier';
+    const curveSelect = getEl('sb-edge-curve-style');
+    if(curveSelect) curveSelect.value = curveStyle;
+
+    const taxiBox = getEl('sb-edge-taxi-controls');
+    const inflectBox = getEl('sb-edge-inflection-controls');
+    if(taxiBox) taxiBox.hidden = curveStyle !== 'taxi';
+    if(inflectBox) inflectBox.hidden = (curveStyle !== 'unbundled-bezier' && curveStyle !== 'segments');
+
+    // Taxi controls
+    const taxiDir = getEl('sb-edge-taxi-dir');
+    if(taxiDir) taxiDir.value = edge.taxiDirection || 'auto';
+    const taxiTurn = parseInt(edge.taxiTurn || '50', 10) || 50;
+    const taxiTurnEl = getEl('sb-edge-taxi-turn');
+    if(taxiTurnEl) taxiTurnEl.value = taxiTurn;
+    const taxiTurnVal = getEl('sb-edge-taxi-turn-val');
+    if(taxiTurnVal) taxiTurnVal.textContent = `${taxiTurn}%`;
+
+    // Inflection controls
+    const cpDist = Number(edge.controlPointDistance ?? 40);
+    const cpDistEl = getEl('sb-edge-cp-distance');
+    if(cpDistEl) cpDistEl.value = cpDist;
+    const cpDistVal = getEl('sb-edge-cp-distance-val');
+    if(cpDistVal) cpDistVal.textContent = `${cpDist >= 0 ? '+' : ''}${cpDist}px`;
+
+    const cpWeight = Math.round((edge.controlPointWeight ?? 0.5) * 100);
+    const cpWeightEl = getEl('sb-edge-cp-weight');
+    if(cpWeightEl) cpWeightEl.value = cpWeight;
+    const cpWeightVal = getEl('sb-edge-cp-weight-val');
+    if(cpWeightVal) cpWeightVal.textContent = `${cpWeight}%`;
+
+    // Padrão do Traço e Direção de Setas
+    const linePatSelect = getEl('sb-edge-line-pattern');
+    if(linePatSelect) linePatSelect.value = edge.linePattern || 'default';
+
+    const arrowDirSelect = getEl('sb-edge-arrow-dir');
+    if(arrowDirSelect) arrowDirSelect.value = edge.arrowDirection || (edge.directed === false ? 'none' : 'target');
   }
 
   function renderTags(tags){
@@ -307,6 +371,213 @@ const Sidebar = (() => {
 
     getEl('btn-desc-edit')?.addEventListener('click', () => setDescMode('edit'));
     getEl('btn-desc-preview')?.addEventListener('click', () => setDescMode('preview'));
+
+    getEl('sb-type-select')?.addEventListener('change', e => {
+      const n = Store.getSelectedNode();
+      if(!n) return;
+      const newType = e.target.value;
+      if(newType === n.type) return;
+      try {
+        const cy = (typeof Graph !== 'undefined' && Graph.getInstance) ? Graph.getInstance() : null;
+        const selectedNodes = cy ? cy.$('node:selected').map(el => el.id()) : [];
+        const targetIds = (selectedNodes.length > 1 && selectedNodes.includes(n.id))
+          ? selectedNodes
+          : [n.id];
+
+        Store.batch(() => {
+          targetIds.forEach(id => Store.updateNode(id, { type: newType }));
+        });
+
+        if(typeof App !== 'undefined' && App.toast){
+          App.toast(targetIds.length > 1
+            ? `${targetIds.length} vértices alterados para "${newType}"`
+            : `Tipo alterado para "${newType}"`
+          );
+        }
+      } catch(err){
+        if(typeof App !== 'undefined' && App.toast) App.toast(err.message);
+        e.target.value = n.type;
+      }
+    });
+
+    getEl('sb-edge-type-select')?.addEventListener('change', e => {
+      const ed = Store.getSelectedEdge();
+      if(!ed) return;
+      const newType = e.target.value;
+      if(newType === ed.edgeType) return;
+      try {
+        const cy = (typeof Graph !== 'undefined' && Graph.getInstance) ? Graph.getInstance() : null;
+        const selectedEdges = cy ? cy.$('edge:selected').map(el => el.id()) : [];
+        const targetIds = (selectedEdges.length > 1 && selectedEdges.includes(ed.id))
+          ? selectedEdges
+          : [ed.id];
+
+        Store.batch(() => {
+          targetIds.forEach(id => Store.updateEdge(id, { edgeType: newType }));
+        });
+
+        if(typeof App !== 'undefined' && App.toast){
+          App.toast(targetIds.length > 1
+            ? `${targetIds.length} arestas alteradas para "${newType}"`
+            : `Tipo alterado para "${newType}"`
+          );
+        }
+      } catch(err){
+        if(typeof App !== 'undefined' && App.toast) App.toast(err.message);
+        e.target.value = ed.edgeType;
+      }
+    });
+
+    // Formato de Curva
+    getEl('sb-edge-curve-style')?.addEventListener('change', e => {
+      const ed = Store.getSelectedEdge();
+      if(!ed) return;
+      const newCurve = e.target.value;
+      const changes = { curveStyle: newCurve };
+      if((newCurve === 'unbundled-bezier' || newCurve === 'segments') && !ed.controlPointDistance){
+        changes.controlPointDistance = 40;
+        changes.segmentDistance = 40;
+      }
+      try {
+        const cy = (typeof Graph !== 'undefined' && Graph.getInstance) ? Graph.getInstance() : null;
+        const selectedEdges = cy ? cy.$('edge:selected').map(el => el.id()) : [];
+        const targetIds = (selectedEdges.length > 1 && selectedEdges.includes(ed.id))
+          ? selectedEdges
+          : [ed.id];
+
+        Store.batch(() => {
+          targetIds.forEach(id => Store.updateEdge(id, changes));
+        });
+
+        const taxiBox = getEl('sb-edge-taxi-controls');
+        const inflectBox = getEl('sb-edge-inflection-controls');
+        if(taxiBox) taxiBox.hidden = newCurve !== 'taxi';
+        if(inflectBox) inflectBox.hidden = (newCurve !== 'unbundled-bezier' && newCurve !== 'segments');
+      } catch(err){
+        if(typeof App !== 'undefined' && App.toast) App.toast(err.message);
+      }
+    });
+
+    // Taxi Direção
+    getEl('sb-edge-taxi-dir')?.addEventListener('change', e => {
+      const ed = Store.getSelectedEdge();
+      if(!ed) return;
+      Store.updateEdge(ed.id, { taxiDirection: e.target.value });
+    });
+
+    // Taxi Giro / Dobra
+    getEl('sb-edge-taxi-turn')?.addEventListener('input', e => {
+      const val = `${e.target.value}%`;
+      const valEl = getEl('sb-edge-taxi-turn-val');
+      if(valEl) valEl.textContent = val;
+      const cy = (typeof Graph !== 'undefined' && Graph.getInstance) ? Graph.getInstance() : null;
+      const ed = Store.getSelectedEdge();
+      if(cy && ed){
+        const ce = cy.getElementById(ed.id);
+        if(ce && ce.length) ce.data('taxiTurn', val);
+        if(typeof GraphEdgeHandle !== 'undefined') GraphEdgeHandle.update(cy);
+      }
+    });
+    getEl('sb-edge-taxi-turn')?.addEventListener('change', e => {
+      const ed = Store.getSelectedEdge();
+      if(!ed) return;
+      Store.updateEdge(ed.id, { taxiTurn: `${e.target.value}%` });
+    });
+
+    // Inflexão Curvatura / Distância
+    getEl('sb-edge-cp-distance')?.addEventListener('input', e => {
+      const num = Number(e.target.value);
+      const valEl = getEl('sb-edge-cp-distance-val');
+      if(valEl) valEl.textContent = `${num >= 0 ? '+' : ''}${num}px`;
+      const cy = (typeof Graph !== 'undefined' && Graph.getInstance) ? Graph.getInstance() : null;
+      const ed = Store.getSelectedEdge();
+      if(cy && ed){
+        const ce = cy.getElementById(ed.id);
+        if(ce && ce.length){
+          ce.data('controlPointDistance', num);
+          ce.data('segmentDistance', num);
+        }
+        if(typeof GraphEdgeHandle !== 'undefined') GraphEdgeHandle.update(cy);
+      }
+    });
+    getEl('sb-edge-cp-distance')?.addEventListener('change', e => {
+      const ed = Store.getSelectedEdge();
+      if(!ed) return;
+      const num = Number(e.target.value);
+      Store.updateEdge(ed.id, { controlPointDistance: num, segmentDistance: num });
+    });
+
+    // Resetar Inflexão para zero
+    getEl('btn-reset-cp-dist')?.addEventListener('click', () => {
+      const ed = Store.getSelectedEdge();
+      if(!ed) return;
+      const rangeEl = getEl('sb-edge-cp-distance');
+      if(rangeEl) rangeEl.value = 0;
+      const valEl = getEl('sb-edge-cp-distance-val');
+      if(valEl) valEl.textContent = '0px';
+      Store.updateEdge(ed.id, { controlPointDistance: 0, segmentDistance: 0 });
+    });
+
+    // Inflexão Posição / Peso
+    getEl('sb-edge-cp-weight')?.addEventListener('input', e => {
+      const num = Number(e.target.value);
+      const valEl = getEl('sb-edge-cp-weight-val');
+      if(valEl) valEl.textContent = `${num}%`;
+      const cy = (typeof Graph !== 'undefined' && Graph.getInstance) ? Graph.getInstance() : null;
+      const ed = Store.getSelectedEdge();
+      if(cy && ed){
+        const ce = cy.getElementById(ed.id);
+        if(ce && ce.length){
+          ce.data('controlPointWeight', num / 100);
+          ce.data('segmentWeight', num / 100);
+        }
+        if(typeof GraphEdgeHandle !== 'undefined') GraphEdgeHandle.update(cy);
+      }
+    });
+    getEl('sb-edge-cp-weight')?.addEventListener('change', e => {
+      const ed = Store.getSelectedEdge();
+      if(!ed) return;
+      const weight = Number(e.target.value) / 100;
+      Store.updateEdge(ed.id, { controlPointWeight: weight, segmentWeight: weight });
+    });
+
+    // Padrão do Traço
+    getEl('sb-edge-line-pattern')?.addEventListener('change', e => {
+      const ed = Store.getSelectedEdge();
+      if(!ed) return;
+      Store.updateEdge(ed.id, { linePattern: e.target.value });
+    });
+
+    // Direção das Setas
+    getEl('sb-edge-arrow-dir')?.addEventListener('change', e => {
+      const ed = Store.getSelectedEdge();
+      if(!ed) return;
+      Store.updateEdge(ed.id, { arrowDirection: e.target.value, directed: e.target.value !== 'none' });
+    });
+
+    getEl('sb-subgraph-select')?.addEventListener('change', e => {
+      const n = Store.getSelectedNode();
+      if(!n) return;
+      const targetTabId = e.target.value || null;
+      try {
+        Store.updateNode(n.id, { subgraphTabId: targetTabId });
+        if(targetTabId && (!n.title || n.title === 'Novo vértice' || n.title === 'Subgrafo')){
+          const targetTab = Store.getTabs().find(t => t.id === targetTabId);
+          if(targetTab){
+            Store.updateNode(n.id, { title: targetTab.name });
+          }
+        }
+        const jumpBtn = getEl('btn-jump-tab');
+        if(jumpBtn){
+          jumpBtn.disabled = !targetTabId;
+          jumpBtn.style.opacity = targetTabId ? '1' : '0.5';
+        }
+        if(typeof App !== 'undefined' && App.toast) App.toast('Subgrafo vinculado com sucesso');
+      } catch(err){
+        if(typeof App !== 'undefined' && App.toast) App.toast(err.message);
+        e.target.value = n.subgraphTabId || '';
+      }
+    });
 
     getEl('sb-container-select')?.addEventListener('change', e => {
       const n = Store.getSelectedNode();

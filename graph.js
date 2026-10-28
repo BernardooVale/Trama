@@ -33,12 +33,29 @@ const Graph = (() => {
   function edgeToEl(e){
     return {
       group: 'edges',
-      data: { id: e.id, source: e.source, target: e.target, edgeType: e.edgeType, label: e.label ?? '', bidirectional: !e.directed },
+      data: {
+        id: e.id,
+        source: e.source,
+        target: e.target,
+        edgeType: e.edgeType,
+        label: e.label ?? '',
+        bidirectional: !e.directed,
+        curveStyle: e.curveStyle || 'bezier',
+        controlPointDistance: Number(e.controlPointDistance ?? 40),
+        controlPointWeight: Number(e.controlPointWeight ?? 0.5),
+        segmentDistance: Number(e.segmentDistance ?? (e.controlPointDistance ?? 40)),
+        segmentWeight: Number(e.segmentWeight ?? (e.controlPointWeight ?? 0.5)),
+        taxiDirection: e.taxiDirection || 'auto',
+        taxiTurn: e.taxiTurn ? String(e.taxiTurn) : '50%',
+        linePattern: e.linePattern || 'default',
+        arrowDirection: e.arrowDirection || (e.directed === false ? 'none' : 'target'),
+      },
     };
   }
 
   function buildLabel(n){
     const title = n.title ?? '';
+    if(n.type === 'texto') return title;
     if(!Store.getShowNodeMeta()) return title;
     const pi = { alta: '↑', media: '·', baixa: '↓' }[n.priority] ?? '';
     return pi ? (title ? `${pi} ${title}` : pi) : title;
@@ -72,6 +89,7 @@ const Graph = (() => {
     _bindStoreEvents();
     _bindUIEvents();
     _initQuickHandle();
+    if(typeof GraphEdgeHandle !== 'undefined') GraphEdgeHandle.init(cy);
     cy.ready(() => cy.fit(undefined, 60));
   }
 
@@ -151,6 +169,7 @@ const Graph = (() => {
       cy.elements().unselect();
       Store.clearSelection();
       _updateQuickHandle();
+      if(typeof GraphEdgeHandle !== 'undefined') GraphEdgeHandle.hide();
     });
 
     let _nodeGrabPos = null;
@@ -178,10 +197,16 @@ const Graph = (() => {
         Store.updateNodePosition(node.id(), p.x, p.y);
       }
       _updateQuickHandle();
+      if(typeof GraphEdgeHandle !== 'undefined') GraphEdgeHandle.update(cy);
     });
 
     cy.on('pan zoom', () => {
       _updateQuickHandle();
+      if(typeof GraphEdgeHandle !== 'undefined') GraphEdgeHandle.update(cy);
+    });
+
+    cy.on('position', 'node', () => {
+      if(typeof GraphEdgeHandle !== 'undefined') GraphEdgeHandle.update(cy);
     });
 
     cy.on('cxttap', 'node', evt => {
@@ -324,6 +349,9 @@ const Graph = (() => {
         case 'node:update':{
           const n = cy.getElementById(payload.id);
           if(n.length){
+            if(n.isParent() && payload.type !== 'agrupador'){
+              n.children().move({ parent: null });
+            }
             n.data({
               type: payload.type,
               priority: payload.priority,
@@ -364,13 +392,29 @@ const Graph = (() => {
 
         case 'edge:update':{
           const e = cy.getElementById(payload.id);
-          if(e.length) e.data({ edgeType: payload.edgeType, label: payload.label ?? '' });
+          if(e.length){
+            e.data({
+              edgeType: payload.edgeType,
+              label: payload.label ?? '',
+              curveStyle: payload.curveStyle || 'bezier',
+              controlPointDistance: Number(payload.controlPointDistance ?? 40),
+              controlPointWeight: Number(payload.controlPointWeight ?? 0.5),
+              segmentDistance: Number(payload.segmentDistance ?? (payload.controlPointDistance ?? 40)),
+              segmentWeight: Number(payload.segmentWeight ?? (payload.controlPointWeight ?? 0.5)),
+              taxiDirection: payload.taxiDirection || 'auto',
+              taxiTurn: payload.taxiTurn ? String(payload.taxiTurn) : '50%',
+              linePattern: payload.linePattern || 'default',
+              arrowDirection: payload.arrowDirection || (payload.directed === false ? 'none' : 'target'),
+            });
+          }
+          if(typeof GraphEdgeHandle !== 'undefined') GraphEdgeHandle.update(cy);
           break;
         }
 
         case 'edge:delete':{
           const ce = cy.getElementById(payload.id);
           if(ce && ce.length) ce.remove();
+          if(typeof GraphEdgeHandle !== 'undefined') GraphEdgeHandle.hide();
           break;
         }
 
@@ -378,12 +422,14 @@ const Graph = (() => {
           cy.nodes().unselect();
           if(payload){ const n = cy.getElementById(payload); if(n.length) n.select(); }
           _updateQuickHandle();
+          if(typeof GraphEdgeHandle !== 'undefined') GraphEdgeHandle.hide();
           break;
 
         case 'selection:edgeChange':
           cy.edges().unselect();
           if(payload){ const e = cy.getElementById(payload); if(e.length) e.select(); }
           _updateQuickHandle();
+          if(typeof GraphEdgeHandle !== 'undefined') GraphEdgeHandle.update(cy);
           break;
 
         case 'filter:change':
@@ -419,6 +465,7 @@ const Graph = (() => {
           cy.add(elementsFromSnapshot(snap));
           applyFilter();
           _updateQuickHandle();
+          if(typeof GraphEdgeHandle !== 'undefined') GraphEdgeHandle.hide();
           if(snap.nodes.length > 0) cy.fit(undefined, 60);
           break;
         }
@@ -743,7 +790,10 @@ const Graph = (() => {
   }
 
   function resize(){
-    if(cy) cy.resize();
+    if(cy){
+      cy.resize();
+      if(typeof GraphEdgeHandle !== 'undefined') GraphEdgeHandle.update(cy);
+    }
   }
 
   return {

@@ -225,19 +225,19 @@ const GraphStyles = (() => {
       /* Focus arestas */
       {
         selector: 'edge.focus-highlight[edgeType="dependencia"]',
-        style: { 'opacity':1,'width':2.5,'line-color':C.edge.dependencia,'target-arrow-color':C.edge.dependencia },
+        style: { 'opacity':1,'width':2.5,'line-color':C.edge.dependencia,'target-arrow-color':C.edge.dependencia,'source-arrow-color':C.edge.dependencia },
       },
       {
         selector: 'edge.focus-highlight[edgeType="resolve"]',
-        style: { 'opacity':1,'width':2.5,'line-color':C.edge.resolve,'target-arrow-color':C.edge.resolve },
+        style: { 'opacity':1,'width':2.5,'line-color':C.edge.resolve,'target-arrow-color':C.edge.resolve,'source-arrow-color':C.edge.resolve },
       },
       {
         selector: 'edge.focus-highlight[edgeType="relaciona"]',
-        style: { 'opacity':1,'width':2.5,'line-color':C.edge.relaciona,'target-arrow-color':C.edge.relaciona },
+        style: { 'opacity':1,'width':2.5,'line-color':C.edge.relaciona,'target-arrow-color':C.edge.relaciona,'source-arrow-color':C.edge.relaciona },
       },
       {
         selector: 'edge.focus-highlight[edgeType="neutra"]',
-        style: { 'opacity':1,'width':2.5,'line-color':C.edge.neutra,'target-arrow-color':C.edge.neutra },
+        style: { 'opacity':1,'width':2.5,'line-color':C.edge.neutra,'target-arrow-color':C.edge.neutra,'source-arrow-color':C.edge.neutra },
       },
       {
         selector: 'edge.focus-dim',
@@ -266,14 +266,14 @@ const GraphStyles = (() => {
       {
         selector: 'edge[edgeType="dependencia"]',
         style: {
-          'line-color':C.edge.dependencia,'target-arrow-color':C.edge.dependencia,
+          'line-color':C.edge.dependencia,'target-arrow-color':C.edge.dependencia,'source-arrow-color':C.edge.dependencia,
           'line-style':'dashed','color':C.edge.dependencia,
         },
       },
       {
         selector: 'edge[edgeType="resolve"]',
         style: {
-          'line-color':C.edge.resolve,'target-arrow-color':C.edge.resolve,
+          'line-color':C.edge.resolve,'target-arrow-color':C.edge.resolve,'source-arrow-color':C.edge.resolve,
           'color':C.edge.resolve,
         },
       },
@@ -282,6 +282,7 @@ const GraphStyles = (() => {
         style: {
           'line-color':C.edge.relaciona,
           'target-arrow-color':C.edge.relaciona,
+          'source-arrow-color':C.edge.relaciona,
           'color':C.edge.relaciona,
         },
       },
@@ -290,9 +291,56 @@ const GraphStyles = (() => {
         style: {
           'line-color':C.edge.neutra,
           'target-arrow-color':C.edge.neutra,
+          'source-arrow-color':C.edge.neutra,
           'color':C.edge.neutra,
         },
       },
+      /* Formatos de Curva e Traçado */
+      {
+        selector: 'edge[curveStyle="straight"]',
+        style: {
+          'curve-style': 'straight',
+        },
+      },
+      {
+        selector: 'edge[curveStyle="bezier"]',
+        style: {
+          'curve-style': 'bezier',
+        },
+      },
+      {
+        selector: 'edge[curveStyle="taxi"]',
+        style: {
+          'curve-style': 'taxi',
+          'taxi-direction': 'data(taxiDirection)',
+          'taxi-turn': 'data(taxiTurn)',
+          'taxi-turn-min-distance': 10,
+        },
+      },
+      {
+        selector: 'edge[curveStyle="unbundled-bezier"]',
+        style: {
+          'curve-style': 'unbundled-bezier',
+          'control-point-distances': 'data(controlPointDistance)',
+          'control-point-weights': 'data(controlPointWeight)',
+        },
+      },
+      {
+        selector: 'edge[curveStyle="segments"]',
+        style: {
+          'curve-style': 'segments',
+          'segment-distances': 'data(segmentDistance)',
+          'segment-weights': 'data(segmentWeight)',
+        },
+      },
+      /* Padrão do Traço (Line Pattern) */
+      { selector: 'edge[linePattern="solid"]', style: { 'line-style': 'solid' } },
+      { selector: 'edge[linePattern="dashed"]', style: { 'line-style': 'dashed' } },
+      { selector: 'edge[linePattern="dotted"]', style: { 'line-style': 'dotted' } },
+      /* Direção das Setas (Arrow Direction) */
+      { selector: 'edge[arrowDirection="none"]', style: { 'target-arrow-shape': 'none', 'source-arrow-shape': 'none' } },
+      { selector: 'edge[arrowDirection="target"]', style: { 'target-arrow-shape': 'triangle', 'source-arrow-shape': 'none' } },
+      { selector: 'edge[arrowDirection="both"]', style: { 'target-arrow-shape': 'triangle', 'source-arrow-shape': 'triangle' } },
       {
         selector: 'edge:selected',
         style:{'width':3,'overlay-color':C.accent,'overlay-padding':4,'overlay-opacity':0.12},

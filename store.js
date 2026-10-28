@@ -8,6 +8,10 @@ const Store = (() => {
   const NODE_TYPES = ['problema', 'solucao', 'agrupador', 'neutro', 'subgrafo', 'texto'];
   const EDGE_TYPES = ['dependencia', 'resolve', 'relaciona', 'neutra'];
   const PRIORITIES = ['alta', 'media', 'baixa'];
+  const CURVE_STYLES = ['bezier', 'straight', 'taxi', 'unbundled-bezier', 'segments'];
+  const LINE_PATTERNS = ['default', 'solid', 'dashed', 'dotted'];
+  const ARROW_DIRECTIONS = ['target', 'both', 'none'];
+  const TAXI_DIRECTIONS = ['auto', 'vertical', 'horizontal'];
 
   let state = {
     version: 3,
@@ -568,12 +572,21 @@ const Store = (() => {
 
   function edgeDefaults(p = {}){
     return {
-      id:       p.id       ?? edgeUid(),
-      source:   p.source,
-      target:   p.target,
-      edgeType: p.edgeType ?? 'neutra',
-      label:    p.label !== undefined ? p.label : '',
-      directed: p.directed ?? true,
+      id:                   p.id                   ?? edgeUid(),
+      source:               p.source,
+      target:               p.target,
+      edgeType:             p.edgeType             ?? 'neutra',
+      label:                p.label !== undefined ? p.label : '',
+      directed:             p.directed             ?? true,
+      curveStyle:           p.curveStyle           ?? 'bezier',
+      controlPointDistance: p.controlPointDistance !== undefined ? Number(p.controlPointDistance) : 40,
+      controlPointWeight:   p.controlPointWeight   !== undefined ? Number(p.controlPointWeight) : 0.5,
+      segmentDistance:      p.segmentDistance      !== undefined ? Number(p.segmentDistance) : 40,
+      segmentWeight:        p.segmentWeight        !== undefined ? Number(p.segmentWeight) : 0.5,
+      taxiDirection:        p.taxiDirection        ?? 'auto',
+      taxiTurn:             p.taxiTurn             ?? '50%',
+      linePattern:          p.linePattern          ?? 'default',
+      arrowDirection:       p.arrowDirection       ?? (p.directed === false ? 'none' : 'target'),
     };
   }
 
@@ -623,6 +636,25 @@ const Store = (() => {
     if(changes.tags !== undefined && !Array.isArray(changes.tags)) delete changes.tags;
     if(changes.url !== undefined) changes.url = String(changes.url).trim();
     if(changes.parentId !== undefined) changes.parentId = changes.parentId || null;
+
+    // Se alterou de agrupador para outro tipo, desvincula os filhos
+    if(changes.type && changes.type !== 'agrupador' && tab.nodes[idx].type === 'agrupador'){
+      tab.nodes.forEach(n => {
+        if(n.parentId === id) n.parentId = null;
+      });
+    }
+
+    // Agrupador não pode ser filho de outro contêiner
+    if(changes.type === 'agrupador'){
+      changes.parentId = null;
+    }
+
+    // Validação de subgrafo
+    if(changes.subgraphTabId){
+      if(!canImportTab(tab.id, changes.subgraphTabId)){
+        throw new Error('Importação circular não permitida.');
+      }
+    }
 
     // Atualiza o dado no pool central único deste projeto
     if(state.entities[id]){
@@ -769,8 +801,26 @@ const Store = (() => {
     if(idx === -1) throw new Error(`Aresta não encontrada: ${id}`);
     if(!options.skipHistory) recordHistory();
     if(changes.edgeType && !EDGE_TYPES.includes(changes.edgeType)) delete changes.edgeType;
+    if(changes.curveStyle && !CURVE_STYLES.includes(changes.curveStyle)) delete changes.curveStyle;
+    if(changes.linePattern && !LINE_PATTERNS.includes(changes.linePattern)) delete changes.linePattern;
+    if(changes.arrowDirection && !ARROW_DIRECTIONS.includes(changes.arrowDirection)) delete changes.arrowDirection;
+    if(changes.taxiDirection && !TAXI_DIRECTIONS.includes(changes.taxiDirection)) delete changes.taxiDirection;
+    if(changes.controlPointDistance !== undefined) changes.controlPointDistance = Number(changes.controlPointDistance);
+    if(changes.controlPointWeight !== undefined) changes.controlPointWeight = Math.max(0.05, Math.min(0.95, Number(changes.controlPointWeight)));
+    if(changes.segmentDistance !== undefined) changes.segmentDistance = Number(changes.segmentDistance);
+    if(changes.segmentWeight !== undefined) changes.segmentWeight = Math.max(0.05, Math.min(0.95, Number(changes.segmentWeight)));
+    if(changes.arrowDirection !== undefined){
+      changes.directed = changes.arrowDirection !== 'none';
+    }
     if(changes.label !== undefined){
       changes.label = String(changes.label);
+    }
+    if(changes.edgeType && changes.edgeType !== tab.edges[idx].edgeType){
+      const current = tab.edges[idx];
+      const dup = tab.edges.some(e => e.id !== id && e.source === current.source && e.target === current.target && e.edgeType === changes.edgeType);
+      if(dup){
+        throw new Error(`Já existe uma conexão "${changes.edgeType}" entre estes mesmos vértices.`);
+      }
     }
     tab.edges[idx] = { ...tab.edges[idx], ...changes };
     save();
@@ -1148,5 +1198,6 @@ const Store = (() => {
     undo, canUndo, redo, canRedo, recordHistory, batch,
     getDiagnostics,
     NODE_TYPES, EDGE_TYPES, PRIORITIES,
+    CURVE_STYLES, LINE_PATTERNS, ARROW_DIRECTIONS, TAXI_DIRECTIONS,
   };
 })();

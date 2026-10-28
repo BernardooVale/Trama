@@ -15,7 +15,7 @@ Este documento serve como mapa de engenharia do repositório **Trama**, detalhan
 | `main.js` | **Camada de UI & Aplicação (App Controller)**: módulo Singleton `App`. Orquestrador enxuto que integra o explorador lateral, alternância de temas, atalhos de teclado (ex: `Ctrl+B`), clipboard e sincronização com `Store` e `Graph`. |
 | `js/` | Diretório contendo todos os submódulos desacoplados do sistema. Possui seu próprio documento detalhado de arquitetura em [`js/ARCHITECTURE.md`](file:///c:/Users/Bernardo/Documents/GitHub/Trama/js/ARCHITECTURE.md). |
 | `js/store/` | Submódulos da camada de dados: histórico atômico (`history.js`), DAG e abas (`tabsManager.js`), hierarquia de pastas e pool de entidades (`explorerManager.js`) e persistência (`storage.js`). |
-| `js/graph/` | Submódulos de renderização visual: folha de estilos Cytoscape (`styles.js`), modo foco dinâmico (`focus.js`) e modo interativo de arestas (`edgeMode.js`). |
+| `js/graph/` | Submódulos de renderização visual: folha de estilos Cytoscape (`styles.js`), modo foco dinâmico (`focus.js`), modo interativo de arestas (`edgeMode.js`) e alça de manipulação de ponto de inflexão/curva (`edgeHandle.js`). |
 | `js/components/` | Componentes de interface desacoplados: explorador estilo VS Code (`explorer.js`), abas (`tabs.js`), busca (`search.js`), sidebar (`sidebar.js`) e menus de contexto (`contextMenu.js`). |
 
 ---
@@ -29,6 +29,10 @@ Gerencia os dados da aplicação e notifica os ouvintes sobre qualquer alteraç�
 - `NODE_TYPES`: Tipos de nós permitidos (`['problema', 'solucao', 'agrupador', 'neutro', 'subgrafo', 'texto']`).
 - `EDGE_TYPES`: Tipos de arestas permitidas (`['dependencia', 'resolve', 'relaciona', 'neutra']`).
 - `PRIORITIES`: Prioridades válidas (`['alta', 'media', 'baixa']`).
+- `CURVE_STYLES`: Formatos visuais de curva da aresta (`['bezier', 'straight', 'taxi', 'unbundled-bezier', 'segments']`).
+- `LINE_PATTERNS`: Padrões de traço da linha (`['default', 'solid', 'dashed', 'dotted']`).
+- `ARROW_DIRECTIONS`: Direcionamento e terminação das setas (`['target', 'both', 'none']`).
+- `TAXI_DIRECTIONS`: Orientações angulares da curva de 90° (`['auto', 'vertical', 'horizontal']`).
 - `state`: Objeto de estado contendo `version` (3), `projectName` ('Nobiu'), `activeTabId`, `openTabIds` (Array<string> com as abas abertas no topo), `folders` (Array<{ id, name, parentId, isExpanded, createdAt }>), `entities` (Record<string, Entity> representando o pool único do projeto), `tabs` (Array<{ id, name, folderId, nodes, edges }>), `selectedId`, `selectedEdgeId`, `showNodeMeta` e `filter`.
 
 ### Funções Internas e Métodos Públicos
@@ -235,7 +239,7 @@ Gerencia os dados da aplicação e notifica os ouvintes sobre qualquer alteraç�
 
 #### `edgeDefaults(p = {})`
 - **Assinatura:** `edgeDefaults(p?: Partial<Edge>): Edge`
-- **Descrição:** Mescla valores parciais com os padrões exigidos para uma aresta (id, source, target, edgeType, label, directed).
+- **Descrição:** Mescla valores parciais com os padrões exigidos para uma aresta, incluindo metadados estruturais (`id`, `source`, `target`, `edgeType`, `label`, `directed`) e estilização visual geométrica (`curveStyle`, `controlPointDistance`, `controlPointWeight`, `segmentDistance`, `segmentWeight`, `taxiDirection`, `taxiTurn`, `linePattern`, `arrowDirection`).
 - **Retorno:** Objeto de aresta normalizado.
 
 #### `addNode(partial = {})`
@@ -245,7 +249,7 @@ Gerencia os dados da aplicação e notifica os ouvintes sobre qualquer alteraç�
 
 #### `updateNode(id, changes = {})`
 - **Assinatura:** `updateNode(id: string, changes?: Partial<Node>): Node`
-- **Descrição:** Aplica modificações a um nó existente (validando tipo e prioridade, preservando strings de título inclusive vazias), persiste e dispara `node:update`.
+- **Descrição:** Aplica modificações a um nó existente (validando tipo e prioridade, preservando strings de título inclusive vazias). Ao alterar o tipo a partir de um agrupador (`agrupador` para outro tipo), desassocia automaticamente todos os nós filhos (`parentId = null`). Ao alterar o tipo para `agrupador`, assegura que o nó não seja filho de outro contêiner (`parentId = null`). Ao alterar `subgraphTabId`, valida a integridade acíclica via detecção de ciclos (DAG). Persiste e dispara `node:update`.
 - **Retorno:** Objeto `Node` atualizado. Lança erro se o nó não existir.
 
 #### `deleteNode(id)`
@@ -290,7 +294,7 @@ Gerencia os dados da aplicação e notifica os ouvintes sobre qualquer alteraç�
 
 #### `updateEdge(id, changes = {})`
 - **Assinatura:** `updateEdge(id: string, changes?: Partial<Edge>): Edge`
-- **Descrição:** Atualiza propriedades da aresta (ex: tipo, label/rótulo), salva e dispara `edge:update`.
+- **Descrição:** Atualiza propriedades estruturais e visuais da aresta (ex: tipo, label/rótulo, formato de curva `curveStyle`, distância/peso do ponto de inflexão, orientação e giro de 90° taxi, padrão de traçado e direção das setas). Ao alterar o tipo de conexão (`edgeType`), valida se já não existe outra aresta com o mesmo tipo entre os mesmos vértices de origem e destino, prevenindo arestas duplicadas. Salva e dispara `edge:update`.
 - **Retorno:** Objeto `Edge` atualizado.
 
 #### `deleteEdge(id)`
