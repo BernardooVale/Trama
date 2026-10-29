@@ -231,12 +231,22 @@ Gerencia o painel lateral de propriedades e edição detalhada de nós e arestas
 
 #### `populate(node)`
 - **Assinatura:** `populate(node: Node): void`
-- **Descrição:** Preenche os campos do formulário lateral com seletor interativo de tipo (`#sb-type-select`), badge de cor do tipo, título, descrição, prioridade, tags, contêiner pai (`#sb-container-select`), seletor de aba vinculada para subgrafo (`#sb-subgraph-select`) e URL externa (`#sb-url` com botão de acesso direto `↗`). Exibe contagem de usos em bases/grafos caso o dado pertença a mais de um grafo. Redefine o modo de descrição para `'edit'`. Para nós do tipo `subgrafo`, exibe campos de navegação e seleção da aba associada.
+- **Descrição:** Preenche os campos do formulário lateral com seletor interativo de tipo (`#sb-type-select`), badge de cor do tipo, título, descrição, prioridade, tags, contêiner pai (`#sb-container-select`), seletor de aba vinculada para subgrafo (`#sb-subgraph-select`), URL externa (`#sb-url` com botão de acesso direto `↗`), e controles de Dimensões & Tipografia (slider de tamanho da fonte `#sb-node-font-size`, campos de largura `#sb-node-width`, altura `#sb-node-height` e botão `#btn-node-size-auto` para alternar dimensionamento automático). Exibe contagem de usos em bases/grafos caso o dado pertença a mais de um grafo. Redefine o modo de descrição para `'edit'`. Para nós do tipo `subgrafo`, exibe campos de navegação e seleção da aba associada.
+- **Retorno:** `undefined`.
+
+#### `updateEdgeRotationUI(rot)`
+- **Assinatura:** `updateEdgeRotationUI(rot: string): void`
+- **Descrição:** Atualiza a interface dos botões de preset (`btn-edge-rot-autorotate`, `btn-edge-rot-horizontal`, `btn-edge-rot-vertical`), o indicador numérico/textual (`#sb-edge-rot-val`) e o slider de rotação livre (`#sb-edge-rot-slider`).
+- **Retorno:** `undefined`.
+
+#### `setEdgeRotation(rot)`
+- **Assinatura:** `setEdgeRotation(rot: string): void`
+- **Descrição:** Define a rotação/angulação do rótulo da aresta selecionada no `Store` via `updateEdge`, sincronizando a visualização do Cytoscape e a barra lateral.
 - **Retorno:** `undefined`.
 
 #### `populateEdge(edge)`
 - **Assinatura:** `populateEdge(edge: Edge): void`
-- **Descrição:** Preenche os campos do formulário lateral da aresta (`#sb-edge-fields`) com seletor interativo de tipo de conexão (`#sb-edge-type-select`), badge de cor da aresta, rótulo, endpoints e controles de estilização geométrica: seletor de formato da curva (`#sb-edge-curve-style`), controles contextuais para curva de 90° taxi (orientação `#sb-edge-taxi-dir` e posição da dobra `#sb-edge-taxi-turn`), controles contextuais de inflexão (slider de distância/curvatura `#sb-edge-cp-distance` com botão de zerar e slider de peso `#sb-edge-cp-weight`), estilo do traço (`#sb-edge-line-pattern`) e direção das setas (`#sb-edge-arrow-dir`).
+- **Descrição:** Preenche os campos do formulário lateral da aresta (`#sb-edge-fields`) com seletor interativo de tipo de conexão (`#sb-edge-type-select`), badge de cor da aresta, rótulo, controles de tipografia e angulação do rótulo (presets de rotação `#btn-edge-rot-autorotate`, `#btn-edge-rot-horizontal`, `#btn-edge-rot-vertical`, slider fino de ângulo `#sb-edge-rot-slider` e slider de tamanho da fonte `#sb-edge-font-size`), endpoints e controles de estilização geométrica: seletor de formato da curva (`#sb-edge-curve-style`), controles contextuais para curva de 90° taxi (orientação `#sb-edge-taxi-dir` e posição da dobra `#sb-edge-taxi-turn`), controles contextuais de inflexão (slider de distância/curvatura `#sb-edge-cp-distance` com botão de zerar e slider de peso `#sb-edge-cp-weight`), estilo do traço (`#sb-edge-line-pattern`) e direção das setas (`#sb-edge-arrow-dir`).
 - **Retorno:** `undefined`.
 
 #### `renderTags(tags)`

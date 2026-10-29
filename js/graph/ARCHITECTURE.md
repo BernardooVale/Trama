@@ -28,7 +28,7 @@ Centraliza os tokens visuais, paleta de cores e a geração da folha de estilos 
 
 #### `buildStyle()`
 - **Assinatura:** `buildStyle(): Array<cytoscape.Stylesheet>`
-- **Descrição:** Constrói o array com todas as regras de estilo de nós (problema, solução, agrupador, neutro, subgrafo, texto), compound nodes (`:parent` e `:parent:selected`), arestas, seleções e estados de foco, pulso de diagnóstico e esmaecimento.
+- **Descrição:** Constrói o array com todas as regras de estilo de nós (problema, solução, agrupador, neutro, subgrafo, texto), compound nodes (`:parent` e `:parent:selected`), dimensionamento dinâmico (`width`, `height`, `text-max-width`, `min-width`, `min-height` via `customWidth`/`customHeight`), tipografia configurável (`font-size` em nós e arestas), rotação e angulação customizadas de rótulos de aresta (`text-rotation` mapeando 'autorotate', 'none'/0° ou ângulo livre em graus), arestas, seleções e estados de foco, pulso de diagnóstico e esmaecimento.
 - **Retorno:** Array de regras de estilo Cytoscape.
 
 ---
@@ -152,7 +152,7 @@ Gerencia a alça interativa on-canvas para manipulação direta de pontos de inf
 
 #### `update(cy)`
 - **Assinatura:** `update(cy?: cytoscape.Core): void`
-- **Descrição:** Recalcula a posição renderizada em coordenadas de tela da alça com base na aresta selecionada no `Store`, aplicando as projeções de geometria da curva (`unbundled-bezier`, `segments`, `taxi` ou reta/bézier padrão) e sincronizando o ícone e tooltip da alça.
+- **Descrição:** Recalcula a posição renderizada em coordenadas de tela da alça com base na aresta selecionada no `Store`, aplicando as projeções de geometria da curva (`unbundled-bezier`, `segments`, `taxi` ou reta/bézier padrão) e sincronizando o ícone e tooltip da alça. É acionada de forma síncrona e imediata na seleção de arestas (`selection:edgeChange`), sem necessitar de movimentação do cursor.
 - **Retorno:** `undefined`.
 
 #### `getContainerRect()`

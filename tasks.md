@@ -59,7 +59,7 @@ Legenda: [ ] aberta | [~] aguardando verificação | [x] verificada | [!] falhou
 - Notas do verificador:
 
 ## T5 — Atualização da Documentação Técnica de Arquitetura (`ARCHITECTURE.md`)
-- [ ] Status
+- [~] Status
 - Arquivos: `ARCHITECTURE.md`, `js/ARCHITECTURE.md`, `js/components/ARCHITECTURE.md`
 - Descrição: Atualizar a documentação arquitetural em todos os níveis registrando os novos campos do modelo de dados (`customWidth`, `customHeight`, `fontSize`, `labelRotation`), os novos seletores dinâmicos de estilo no Cytoscape e os novos controles da sidebar.
 - Check rápido: `python -c "import pathlib; a=pathlib.Path('ARCHITECTURE.md').read_text('utf-8'); c=pathlib.Path('js/components/ARCHITECTURE.md').read_text('utf-8'); assert 'labelRotation' in a and 'customWidth' in a and 'sb-node-width' in c"`
@@ -67,5 +67,5 @@ Legenda: [ ] aberta | [~] aguardando verificação | [x] verificada | [!] falhou
   - `ARCHITECTURE.md` e `js/ARCHITECTURE.md` detalham a estrutura atualizada dos objetos de nó e aresta no `Store` e a lógica de renderização dinâmica em `js/graph/styles.js`.
   - `js/components/ARCHITECTURE.md` documenta os novos métodos de manipulação de dimensão e rotação em `sidebar.js`.
   - Documentação do ciclo de vida da alça `GraphEdgeHandle` esclarece a exibição imediata na seleção de arestas.
-- Notas do executor:
+- Notas do executor: Documentados os novos campos (customWidth, customHeight, fontSize, labelRotation) e métodos auxiliares em ARCHITECTURE.md, js/graph/ARCHITECTURE.md e js/components/ARCHITECTURE.md.
 - Notas do verificador:

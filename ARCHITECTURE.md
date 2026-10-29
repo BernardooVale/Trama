@@ -249,7 +249,7 @@ Gerencia os dados da aplicação e notifica os ouvintes sobre qualquer alteraç�
 
 #### `updateNode(id, changes = {})`
 - **Assinatura:** `updateNode(id: string, changes?: Partial<Node>): Node`
-- **Descrição:** Aplica modificações a um nó existente (validando tipo e prioridade, preservando strings de título inclusive vazias). Ao alterar o tipo a partir de um agrupador (`agrupador` para outro tipo), desassocia automaticamente todos os nós filhos (`parentId = null`). Ao alterar o tipo para `agrupador`, assegura que o nó não seja filho de outro contêiner (`parentId = null`). Ao alterar `subgraphTabId`, valida a integridade acíclica via detecção de ciclos (DAG). Persiste e dispara `node:update`.
+- **Descrição:** Aplica modificações a um nó existente (validando tipo, prioridade, dimensões manuais `customWidth`, `customHeight` e tamanho de fonte `fontSize`, preservando strings de título inclusive vazias). Ao alterar o tipo a partir de um agrupador (`agrupador` para outro tipo), desassocia automaticamente todos os nós filhos (`parentId = null`). Ao alterar o tipo para `agrupador`, assegura que o nó não seja filho de outro contêiner (`parentId = null`). Ao alterar `subgraphTabId`, valida a integridade acíclica via detecção de ciclos (DAG). Persiste e dispara `node:update`.
 - **Retorno:** Objeto `Node` atualizado. Lança erro se o nó não existir.
 
 #### `deleteNode(id)`
@@ -294,7 +294,7 @@ Gerencia os dados da aplicação e notifica os ouvintes sobre qualquer alteraç�
 
 #### `updateEdge(id, changes = {})`
 - **Assinatura:** `updateEdge(id: string, changes?: Partial<Edge>): Edge`
-- **Descrição:** Atualiza propriedades estruturais e visuais da aresta (ex: tipo, label/rótulo, formato de curva `curveStyle`, distância/peso do ponto de inflexão, orientação e giro de 90° taxi, padrão de traçado e direção das setas). Ao alterar o tipo de conexão (`edgeType`), valida se já não existe outra aresta com o mesmo tipo entre os mesmos vértices de origem e destino, prevenindo arestas duplicadas. Salva e dispara `edge:update`.
+- **Descrição:** Atualiza propriedades estruturais e visuais da aresta (ex: tipo, label/rótulo, angulação/rotação do rótulo `labelRotation`, tamanho da fonte `fontSize`, formato de curva `curveStyle`, distância/peso do ponto de inflexão, orientação e giro de 90° taxi, padrão de traçado e direção das setas). Ao alterar o tipo de conexão (`edgeType`), valida se já não existe outra aresta com o mesmo tipo entre os mesmos vértices de origem e destino, prevenindo arestas duplicadas. Salva e dispara `edge:update`.
 - **Retorno:** Objeto `Edge` atualizado.
 
 #### `deleteEdge(id)`
@@ -319,7 +319,7 @@ Gerencia os dados da aplicação e notifica os ouvintes sobre qualquer alteraç�
 
 #### `selectEdge(id)`
 - **Assinatura:** `selectEdge(id: string): void`
-- **Descrição:** Define a aresta selecionada (`state.selectedEdgeId`), desmarcando qualquer nó selecionado, e notifica `selection:edgeChange`.
+- **Descrição:** Define a aresta selecionada (`state.selectedEdgeId`), desmarcando qualquer nó selecionado emitindo `selection:change(null)` e em seguida notifica `selection:edgeChange(id)`, garantindo a exibição imediata e reativa da alça de curvatura `GraphEdgeHandle`.
 - **Retorno:** `undefined`.
 
 #### `clearSelection()`
