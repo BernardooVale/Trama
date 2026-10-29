@@ -192,6 +192,21 @@ const Sidebar = (() => {
       getEl('sb-subgraph-fields').hidden = true;
     }
 
+    // Dimensões & Tipografia do Vértice
+    const fsSlider = getEl('sb-node-font-size');
+    const fsVal = getEl('sb-node-font-size-val');
+    const curFs = node.fontSize || 13;
+    if(fsSlider) fsSlider.value = curFs;
+    if(fsVal) fsVal.textContent = `${curFs}px`;
+
+    const wInput = getEl('sb-node-width');
+    const hInput = getEl('sb-node-height');
+    if(wInput) wInput.value = node.customWidth ?? '';
+    if(hInput) hInput.value = node.customHeight ?? '';
+
+    const autoBtn = getEl('btn-node-size-auto');
+    if(autoBtn) autoBtn.classList.toggle('active', !node.customWidth && !node.customHeight);
+
     const d = new Date(node.createdAt).toLocaleDateString('pt-BR');
     let usageStr = '';
     if(typeof Store.getTabs === 'function' && typeof ExplorerManager !== 'undefined'){
@@ -621,6 +636,56 @@ const Sidebar = (() => {
       Store.updateNode(n.id, { priority: btn.dataset.priority });
       getEl('sb-priority-selector').querySelectorAll('.priority-btn')
         .forEach(b => b.classList.toggle('active', b === btn));
+    });
+
+    // Font size do nó
+    getEl('sb-node-font-size')?.addEventListener('input', e => {
+      const val = parseInt(e.target.value, 10);
+      const valEl = getEl('sb-node-font-size-val');
+      if(valEl) valEl.textContent = `${val}px`;
+      const n = Store.getSelectedNode(); if(!n) return;
+      Store.updateNode(n.id, { fontSize: val }, { skipHistory: true });
+    });
+
+    getEl('sb-node-font-size')?.addEventListener('change', e => {
+      const val = parseInt(e.target.value, 10);
+      const n = Store.getSelectedNode(); if(!n) return;
+      Store.updateNode(n.id, { fontSize: val });
+    });
+
+    getEl('btn-node-font-size-reset')?.addEventListener('click', () => {
+      const slider = getEl('sb-node-font-size');
+      const valEl = getEl('sb-node-font-size-val');
+      if(slider) slider.value = 13;
+      if(valEl) valEl.textContent = '13px';
+      const n = Store.getSelectedNode(); if(!n) return;
+      Store.updateNode(n.id, { fontSize: null });
+    });
+
+    // Dimensões do nó
+    const applyNodeDimensions = (recordHist = true) => {
+      const n = Store.getSelectedNode(); if(!n) return;
+      const wVal = getEl('sb-node-width')?.value.trim();
+      const hVal = getEl('sb-node-height')?.value.trim();
+      const w = wVal ? Math.max(40, parseInt(wVal, 10) || 0) : null;
+      const h = hVal ? Math.max(30, parseInt(hVal, 10) || 0) : null;
+      const autoBtn = getEl('btn-node-size-auto');
+      if(autoBtn) autoBtn.classList.toggle('active', !w && !h);
+      Store.updateNode(n.id, { customWidth: w, customHeight: h }, { skipHistory: !recordHist });
+    };
+
+    getEl('sb-node-width')?.addEventListener('change', () => applyNodeDimensions(true));
+    getEl('sb-node-height')?.addEventListener('change', () => applyNodeDimensions(true));
+
+    getEl('btn-node-size-auto')?.addEventListener('click', () => {
+      const wInput = getEl('sb-node-width');
+      const hInput = getEl('sb-node-height');
+      if(wInput) wInput.value = '';
+      if(hInput) hInput.value = '';
+      const autoBtn = getEl('btn-node-size-auto');
+      if(autoBtn) autoBtn.classList.add('active');
+      const n = Store.getSelectedNode(); if(!n) return;
+      Store.updateNode(n.id, { customWidth: null, customHeight: null });
     });
 
     getEl('sb-tags')?.addEventListener('keydown', e => {

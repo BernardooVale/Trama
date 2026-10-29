@@ -31,7 +31,7 @@ Legenda: [ ] aberta | [~] aguardando verificação | [x] verificada | [!] falhou
 - Notas do verificador:
 
 ## T3 — Controles de Dimensões e Tipografia de Vértices na Barra Lateral (`index.html`, `style.css`, `js/components/sidebar.js`)
-- [ ] Status
+- [~] Status
 - Arquivos: `index.html`, `style.css`, `js/components/sidebar.js`
 - Descrição: Criar campos na sidebar de nós para alterar largura, altura (em px) e tamanho da fonte, com botão para alternar e resetar as dimensões para o modo automático.
 - Check rápido: `python -c "import pathlib; h=pathlib.Path('index.html').read_text('utf-8'); js=pathlib.Path('js/components/sidebar.js').read_text('utf-8'); assert 'sb-node-width' in h and 'sb-node-height' in h and 'sb-node-font-size' in h and 'sb-node-width' in js"`
@@ -41,7 +41,7 @@ Legenda: [ ] aberta | [~] aguardando verificação | [x] verificada | [!] falhou
   - `js/components/sidebar.js` vincula a abertura da sidebar populando os inputs com as dimensões do nó selecionado (ou indicando modo "Auto" e desabilitando ou limpando campos quando nulos).
   - Alterações nos inputs disparam `Store.updateNode()` com histórico atômico, aplicando redimensionamento e tamanho de fonte imediatamente no nó sem quebrar o layout interno de texto.
   - Clicar em `#btn-node-size-auto` reseta `customWidth` e `customHeight` para `null`, restaurando a largura e altura automáticas do vértice.
-- Notas do executor:
+- Notas do executor: Adicionada seção de Dimensões & Tipografia em index.html e style.css com inputs de largura, altura e tamanho da fonte; implementada lógica reativa no sidebar.js com alternância automática e reset.
 - Notas do verificador:
 
 ## T4 — Controles de Angulação e Tipografia do Texto da Aresta na Barra Lateral (`index.html`, `style.css`, `js/components/sidebar.js`)

@@ -2453,3 +2453,64 @@ body.zen-mode .terminal-panel {
   padding: 4px 0;
 }
 
+
+/* ── Node Dimension & Typography Controls ── */
+.btn-sm-reset {
+  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: var(--r-sm);
+  background: var(--bg-hover);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--t-fast);
+}
+
+.btn-sm-reset:hover {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border-color: var(--accent);
+}
+
+.btn-auto-toggle {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--r-sm);
+  background: var(--bg-hover);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--t-fast);
+}
+
+.btn-auto-toggle.active {
+  background: rgba(99, 102, 241, 0.15);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.dimension-inputs-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.dimension-input-group {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.dimension-prefix {
+  position: absolute;
+  left: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.dimension-input {
+  padding-left: 24px !important;
+}

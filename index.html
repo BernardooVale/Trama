@@ -494,6 +494,42 @@
             </div>
           </div>
 
+          <!-- Dimensões e Tipografia do Vértice -->
+          <div style="margin: 16px 0 10px; border-top: 1px solid var(--border);"></div>
+          <div class="field-row" style="margin-bottom: 6px;">
+            <span style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px;">Dimensões & Tipografia</span>
+          </div>
+
+          <!-- Tamanho da Fonte -->
+          <div class="field-row" id="sb-node-font-size-row">
+            <div class="field-label-row">
+              <label class="field-label" for="sb-node-font-size">Tamanho da Fonte</label>
+              <span class="range-val" id="sb-node-font-size-val">13px</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <input type="range" class="field-range" id="sb-node-font-size" min="10" max="28" step="1" value="13" style="flex: 1;" />
+              <button type="button" id="btn-node-font-size-reset" title="Restaurar tamanho padrão (13px)" class="btn-sm-reset">13px</button>
+            </div>
+          </div>
+
+          <!-- Dimensões (Largura e Altura) -->
+          <div class="field-row" id="sb-node-dimensions-row">
+            <div class="field-label-row">
+              <label class="field-label">Largura × Altura (px)</label>
+              <button type="button" id="btn-node-size-auto" class="btn-auto-toggle active" title="Alternar entre dimensões automáticas ou manuais">Auto</button>
+            </div>
+            <div class="dimension-inputs-grid">
+              <div class="dimension-input-group">
+                <span class="dimension-prefix">L</span>
+                <input class="field-input dimension-input" id="sb-node-width" type="number" min="40" max="800" step="10" placeholder="Auto" />
+              </div>
+              <div class="dimension-input-group">
+                <span class="dimension-prefix">A</span>
+                <input class="field-input dimension-input" id="sb-node-height" type="number" min="30" max="600" step="5" placeholder="Auto" />
+              </div>
+            </div>
+          </div>
+
           <!-- Ação especial para Subgrafo -->
           <div class="field-row" id="sb-subgraph-fields" hidden>
             <label class="field-label" for="sb-subgraph-select">Aba Vinculada (Subgrafo)</label>
