@@ -420,16 +420,26 @@ const Graph = (() => {
 
         case 'selection:change':
           cy.nodes().unselect();
-          if(payload){ const n = cy.getElementById(payload); if(n.length) n.select(); }
+          if(payload){
+            const n = cy.getElementById(payload);
+            if(n.length) n.select();
+            if(typeof GraphEdgeHandle !== 'undefined') GraphEdgeHandle.hide();
+          } else if(!Store.getSelectedEdge()){
+            if(typeof GraphEdgeHandle !== 'undefined') GraphEdgeHandle.hide();
+          }
           _updateQuickHandle();
-          if(typeof GraphEdgeHandle !== 'undefined') GraphEdgeHandle.hide();
           break;
 
         case 'selection:edgeChange':
           cy.edges().unselect();
-          if(payload){ const e = cy.getElementById(payload); if(e.length) e.select(); }
+          if(payload){
+            const e = cy.getElementById(payload);
+            if(e.length) e.select();
+            if(typeof GraphEdgeHandle !== 'undefined') GraphEdgeHandle.update(cy);
+          } else {
+            if(typeof GraphEdgeHandle !== 'undefined') GraphEdgeHandle.hide();
+          }
           _updateQuickHandle();
-          if(typeof GraphEdgeHandle !== 'undefined') GraphEdgeHandle.update(cy);
           break;
 
         case 'filter:change':

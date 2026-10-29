@@ -6,7 +6,7 @@ Branch: tasks/customizacao-visual
 Legenda: [ ] aberta | [~] aguardando verificação | [x] verificada | [!] falhou
 
 ## T1 — Correção da Exibição Imediata da Alça de Curvatura (`store.js`, `graph.js`)
-- [ ] Status
+- [~] Status
 - Arquivos: `store.js`, `graph.js`
 - Descrição: Corrigir o problema em que a alça de controle de curvatura da aresta só aparecia após começar a mexer o mouse, sincronizando a ordem de eventos em `Store.selectEdge` e impedindo que `selection:change` oculte indevidamente a alça.
 - Check rápido: `python -c "import pathlib; s=pathlib.Path('store.js').read_text('utf-8'); g=pathlib.Path('graph.js').read_text('utf-8'); assert 'notify(\'selection:change\', null);\n    notify(\'selection:edgeChange\', id);' in s or 'notify(\"selection:change\", null)' in s"`
@@ -14,7 +14,7 @@ Legenda: [ ] aberta | [~] aguardando verificação | [x] verificada | [!] falhou
   - Em `store.js`, o método `selectEdge(id)` notifica a desmarcação de nós (`selection:change, null`) antes de notificar a seleção da aresta (`selection:edgeChange, id`), assegurando que a alça seja acionada por último.
   - Em `graph.js`, o tratador de `selection:change` somente executa `GraphEdgeHandle.hide()` se um nó foi efetivamente selecionado (`payload` não nulo) ou se nenhuma aresta estiver selecionada no `Store`.
   - Ao selecionar uma aresta pelo evento `tap` no Cytoscape ou pela API do `Store`, `GraphEdgeHandle.update(cy)` é invocado de forma síncrona, exibindo o elemento `#edge-handle` imediatamente sobre a aresta selecionada.
-- Notas do executor:
+- Notas do executor: Invertida ordem de notificação em Store.selectEdge para desmarcar nó antes de selecionar aresta; ajustado tratador de selection:change em graph.js para não ocultar GraphEdgeHandle quando payload for nulo e houver aresta selecionada.
 - Notas do verificador:
 
 ## T2 — Suporte a Dimensões, Tipografia e Angulação no Store e Cytoscape (`store.js`, `graph.js`, `js/graph/styles.js`)

@@ -862,8 +862,8 @@ const Store = (() => {
   function selectEdge(id){
     state.selectedEdgeId = id;
     state.selectedId = null;
-    notify('selection:edgeChange', id);
     notify('selection:change', null);
+    notify('selection:edgeChange', id);
   }
 
   function clearSelection(){
