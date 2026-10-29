@@ -2514,3 +2514,31 @@ body.zen-mode .terminal-panel {
 .dimension-input {
   padding-left: 24px !important;
 }
+
+/* ── Edge Label Rotation & Typography ── */
+.rot-preset-btn {
+  flex: 1;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 4px 6px;
+  border-radius: var(--r-sm);
+  background: var(--bg-hover);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  cursor: pointer;
+  text-align: center;
+  transition: all var(--t-fast);
+}
+
+.rot-preset-btn:hover {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border-color: var(--accent);
+}
+
+.rot-preset-btn.active {
+  background: rgba(99, 102, 241, 0.15);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}

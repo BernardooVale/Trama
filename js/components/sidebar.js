@@ -218,6 +218,38 @@ const Sidebar = (() => {
     getEl('sb-meta').textContent = `ID: ${node.id} · ${d}${usageStr}`;
   }
 
+  function updateEdgeRotationUI(rot){
+    const slider = getEl('sb-edge-rot-slider');
+    const valEl = getEl('sb-edge-rot-val');
+    const btnAuto = getEl('btn-edge-rot-autorotate');
+    const btnHoriz = getEl('btn-edge-rot-horizontal');
+    const btnVert = getEl('btn-edge-rot-vertical');
+
+    const isAuto = rot === 'autorotate' || !rot;
+    const isHoriz = rot === '0' || rot === 'horizontal' || rot === 'none' || rot === 0;
+    const isVert = rot === '90' || rot === 'vertical' || rot === 90;
+
+    btnAuto?.classList.toggle('active', isAuto);
+    btnHoriz?.classList.toggle('active', isHoriz);
+    btnVert?.classList.toggle('active', isVert);
+
+    if(isAuto){
+      if(valEl) valEl.textContent = 'Auto';
+    } else {
+      const num = parseInt(rot, 10);
+      const valStr = `${isNaN(num) ? 0 : num}°`;
+      if(valEl) valEl.textContent = valStr;
+      if(slider && !isNaN(num)) slider.value = num;
+    }
+  }
+
+  function setEdgeRotation(rot){
+    const ed = Store.getSelectedEdge();
+    if(!ed) return;
+    updateEdgeRotationUI(rot);
+    Store.updateEdge(ed.id, { labelRotation: rot });
+  }
+
   function populateEdge(edge){
     const badge = getEl('sb-edge-type-badge');
     if(badge){
@@ -235,6 +267,15 @@ const Sidebar = (() => {
     const tgt = Store.getNode(edge.target)?.title ?? edge.target;
     getEl('sb-edge-endpoints').textContent = `${src} → ${tgt}`;
     getEl('sb-meta').textContent = `ID: ${edge.id}`;
+
+    // Tipografia e Angulação do Rótulo
+    updateEdgeRotationUI(edge.labelRotation || 'autorotate');
+
+    const edgeFs = edge.fontSize || 11;
+    const edgeFsSlider = getEl('sb-edge-font-size');
+    const edgeFsVal = getEl('sb-edge-font-size-val');
+    if(edgeFsSlider) edgeFsSlider.value = edgeFs;
+    if(edgeFsVal) edgeFsVal.textContent = `${edgeFs}px`;
 
     // Estilo Visual da Curva
     const curveStyle = edge.curveStyle || 'bezier';
@@ -444,6 +485,49 @@ const Sidebar = (() => {
     });
 
     // Formato de Curva
+    // Rotação do rótulo da aresta
+    getEl('btn-edge-rot-autorotate')?.addEventListener('click', () => setEdgeRotation('autorotate'));
+    getEl('btn-edge-rot-horizontal')?.addEventListener('click', () => setEdgeRotation('0'));
+    getEl('btn-edge-rot-vertical')?.addEventListener('click', () => setEdgeRotation('90'));
+    getEl('btn-edge-rot-reset')?.addEventListener('click', () => setEdgeRotation('autorotate'));
+
+    getEl('sb-edge-rot-slider')?.addEventListener('input', e => {
+      const val = parseInt(e.target.value, 10);
+      const ed = Store.getSelectedEdge(); if(!ed) return;
+      updateEdgeRotationUI(String(val));
+      Store.updateEdge(ed.id, { labelRotation: String(val) }, { skipHistory: true });
+    });
+
+    getEl('sb-edge-rot-slider')?.addEventListener('change', e => {
+      const val = parseInt(e.target.value, 10);
+      const ed = Store.getSelectedEdge(); if(!ed) return;
+      Store.updateEdge(ed.id, { labelRotation: String(val) });
+    });
+
+    // Tamanho da fonte do rótulo da aresta
+    getEl('sb-edge-font-size')?.addEventListener('input', e => {
+      const val = parseInt(e.target.value, 10);
+      const valEl = getEl('sb-edge-font-size-val');
+      if(valEl) valEl.textContent = `${val}px`;
+      const ed = Store.getSelectedEdge(); if(!ed) return;
+      Store.updateEdge(ed.id, { fontSize: val }, { skipHistory: true });
+    });
+
+    getEl('sb-edge-font-size')?.addEventListener('change', e => {
+      const val = parseInt(e.target.value, 10);
+      const ed = Store.getSelectedEdge(); if(!ed) return;
+      Store.updateEdge(ed.id, { fontSize: val });
+    });
+
+    getEl('btn-edge-font-size-reset')?.addEventListener('click', () => {
+      const slider = getEl('sb-edge-font-size');
+      const valEl = getEl('sb-edge-font-size-val');
+      if(slider) slider.value = 11;
+      if(valEl) valEl.textContent = '11px';
+      const ed = Store.getSelectedEdge(); if(!ed) return;
+      Store.updateEdge(ed.id, { fontSize: null });
+    });
+
     getEl('sb-edge-curve-style')?.addEventListener('change', e => {
       const ed = Store.getSelectedEdge();
       if(!ed) return;

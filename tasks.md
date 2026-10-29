@@ -45,7 +45,7 @@ Legenda: [ ] aberta | [~] aguardando verificação | [x] verificada | [!] falhou
 - Notas do verificador:
 
 ## T4 — Controles de Angulação e Tipografia do Texto da Aresta na Barra Lateral (`index.html`, `style.css`, `js/components/sidebar.js`)
-- [ ] Status
+- [~] Status
 - Arquivos: `index.html`, `style.css`, `js/components/sidebar.js`
 - Descrição: Criar controles na sidebar de arestas com botões de atalho (Seguir aresta, Horizontal 0°, Vertical 90°), slider para ajuste fino de ângulo (-90° a +90°) e ajuste de tamanho de fonte do rótulo.
 - Check rápido: `python -c "import pathlib; h=pathlib.Path('index.html').read_text('utf-8'); js=pathlib.Path('js/components/sidebar.js').read_text('utf-8'); assert 'sb-edge-rot-slider' in h and 'sb-edge-font-size' in h and 'sb-edge-rot-slider' in js"`
@@ -55,7 +55,7 @@ Legenda: [ ] aberta | [~] aguardando verificação | [x] verificada | [!] falhou
   - `js/components/sidebar.js` popula os controles ao selecionar uma aresta: se `labelRotation === 'autorotate'`, ativa o botão correspondente; se for ângulo fixo (ex.: `0` ou `90`), ativa o botão correspondente e atualiza o slider.
   - Interagir com os botões de preset ou arrastar o slider de ângulo atualiza a aresta via `Store.updateEdge()` com a nova propriedade `labelRotation` em tempo real.
   - Alterar `#sb-edge-font-size` atualiza o tamanho da fonte do rótulo da aresta de forma reativa no Cytoscape.
-- Notas do executor:
+- Notas do executor: Adicionados botões de preset de rotação de texto (Seguir Aresta, Horizontal, 90°), slider fino de ângulo (-90° a 90°) e slider de fonte em index.html, style.css e sidebar.js com sincronização em tempo real.
 - Notas do verificador:
 
 ## T5 — Atualização da Documentação Técnica de Arquitetura (`ARCHITECTURE.md`)

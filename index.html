@@ -568,6 +568,34 @@
             <input class="field-input" id="sb-edge-label" type="text" placeholder="Rótulo no meio da aresta…" />
           </div>
 
+          <!-- Tipografia & Rotação do Rótulo da Aresta -->
+          <div class="field-row" id="sb-edge-text-controls">
+            <div class="field-label-row">
+              <label class="field-label">Angulação do Rótulo</label>
+              <span class="range-val" id="sb-edge-rot-val">Auto</span>
+            </div>
+            <div class="edge-rot-presets" style="display: flex; gap: 6px; margin-bottom: 8px;">
+              <button type="button" class="rot-preset-btn active" id="btn-edge-rot-autorotate" title="Seguir a curvatura/direção da aresta">Seguir Aresta</button>
+              <button type="button" class="rot-preset-btn" id="btn-edge-rot-horizontal" title="Texto na horizontal (0°)">Horizontal</button>
+              <button type="button" class="rot-preset-btn" id="btn-edge-rot-vertical" title="Texto perpendicular (90°)">90°</button>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <input type="range" class="field-range" id="sb-edge-rot-slider" min="-90" max="90" step="5" value="0" style="flex: 1;" />
+              <button type="button" id="btn-edge-rot-reset" title="Restaurar rotação alinhada à aresta" class="btn-sm-reset">Auto</button>
+            </div>
+          </div>
+
+          <div class="field-row" id="sb-edge-font-size-row">
+            <div class="field-label-row">
+              <label class="field-label" for="sb-edge-font-size">Tamanho da Fonte</label>
+              <span class="range-val" id="sb-edge-font-size-val">11px</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <input type="range" class="field-range" id="sb-edge-font-size" min="9" max="22" step="1" value="11" style="flex: 1;" />
+              <button type="button" id="btn-edge-font-size-reset" title="Restaurar tamanho padrão (11px)" class="btn-sm-reset">11px</button>
+            </div>
+          </div>
+
           <div class="field-row">
             <label class="field-label">Conexão</label>
             <div class="meta-info" id="sb-edge-endpoints">—</div>
