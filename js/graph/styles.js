@@ -109,17 +109,40 @@ const GraphStyles = (() => {
         selector: 'node',
         style: {
           'shape':            'round-rectangle',
-          'width':            'label', 'height':'label', 'padding':'15px 20px',
+          'width':            ele => {
+            const w = ele.data('customWidth');
+            return (w && Number(w) > 0) ? Number(w) : 'label';
+          },
+          'height':           ele => {
+            const h = ele.data('customHeight');
+            return (h && Number(h) > 0) ? Number(h) : 'label';
+          },
+          'padding':          '15px 20px',
           'background-color': C.bg.elevated,
           'background-opacity': 1,
           'border-width':     2, 'border-color': C.border,
           'color':            C.text.primary,
           'font-family':      'Inter,system-ui,sans-serif',
-          'font-size':        '13px', 'font-weight': '600',
+          'font-size':        ele => {
+            const fs = ele.data('fontSize');
+            return (fs && Number(fs) > 0) ? `${Number(fs)}px` : '13px';
+          },
+          'font-weight':      '600',
           'label':            'data(label)',
           'text-valign':      'center', 'text-halign':'center',
-          'text-wrap':        'wrap', 'text-max-width':'135px',
-          'min-width':        '100px', 'min-height':'46px',
+          'text-wrap':        'wrap',
+          'text-max-width':   ele => {
+            const w = ele.data('customWidth');
+            return (w && Number(w) > 50) ? `${Number(w) - 30}px` : '135px';
+          },
+          'min-width':        ele => {
+            const w = ele.data('customWidth');
+            return (w && Number(w) > 0) ? `${Number(w)}px` : '100px';
+          },
+          'min-height':       ele => {
+            const h = ele.data('customHeight');
+            return (h && Number(h) > 0) ? `${Number(h)}px` : '46px';
+          },
           'transition-property': 'background-color,border-color,border-width,opacity',
           'transition-duration': '140ms',
         },
@@ -211,7 +234,10 @@ const GraphStyles = (() => {
           'border-color': 'transparent',
           'border-style': 'dashed',
           'color': C.text.primary,
-          'font-size': '13px',
+          'font-size': ele => {
+            const fs = ele.data('fontSize');
+            return (fs && Number(fs) > 0) ? `${Number(fs)}px` : '13px';
+          },
           'font-weight': '600',
         },
       },
@@ -359,7 +385,10 @@ const GraphStyles = (() => {
           'arrow-scale': 1.15,
           'curve-style': 'bezier',
           'label': 'data(label)',
-          'font-size': '11px',
+          'font-size': ele => {
+            const fs = ele.data('fontSize');
+            return (fs && Number(fs) > 0) ? `${Number(fs)}px` : '11px';
+          },
           'font-weight': '500',
           'font-family': 'Inter,system-ui,sans-serif',
           'color': C.text.primary,
@@ -370,7 +399,15 @@ const GraphStyles = (() => {
           'text-border-width': 1,
           'text-border-color': C.border,
           'text-border-style': 'solid',
-          'text-rotation': 'autorotate',
+          'text-rotation': ele => {
+            const rot = ele.data('labelRotation');
+            if(!rot || rot === 'autorotate') return 'autorotate';
+            if(rot === 'none' || rot === 'horizontal' || rot === '0' || rot === 0) return 'none';
+            if(rot === 'vertical' || rot === '90') return '90deg';
+            const num = Number(rot);
+            if(!isNaN(num)) return `${num}deg`;
+            return rot;
+          },
           'transition-property': 'opacity,width',
           'transition-duration': '140ms',
         },

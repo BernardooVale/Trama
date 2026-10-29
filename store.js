@@ -567,6 +567,9 @@ const Store = (() => {
       y:             p.y             ?? Math.round(200 + Math.random()*300),
       createdAt:     p.createdAt     ?? (existingEnt?.createdAt ?? Date.now()),
       subgraphTabId: p.subgraphTabId ?? (existingEnt?.subgraphTabId ?? null),
+      customWidth:   p.customWidth !== undefined ? (p.customWidth !== null ? Number(p.customWidth) : null) : (existingEnt?.customWidth ?? null),
+      customHeight:  p.customHeight !== undefined ? (p.customHeight !== null ? Number(p.customHeight) : null) : (existingEnt?.customHeight ?? null),
+      fontSize:      p.fontSize !== undefined ? (p.fontSize !== null ? Number(p.fontSize) : null) : (existingEnt?.fontSize ?? null),
     };
   }
 
@@ -587,6 +590,8 @@ const Store = (() => {
       taxiTurn:             p.taxiTurn             ?? '50%',
       linePattern:          p.linePattern          ?? 'default',
       arrowDirection:       p.arrowDirection       ?? (p.directed === false ? 'none' : 'target'),
+      labelRotation:        p.labelRotation        ?? 'autorotate',
+      fontSize:             p.fontSize !== undefined ? (p.fontSize !== null ? Number(p.fontSize) : null) : null,
     };
   }
 
@@ -613,6 +618,9 @@ const Store = (() => {
       url: node.url,
       createdAt: node.createdAt,
       subgraphTabId: node.subgraphTabId,
+      customWidth: node.customWidth,
+      customHeight: node.customHeight,
+      fontSize: node.fontSize,
     });
 
     tab.nodes.push(node);
@@ -636,6 +644,9 @@ const Store = (() => {
     if(changes.tags !== undefined && !Array.isArray(changes.tags)) delete changes.tags;
     if(changes.url !== undefined) changes.url = String(changes.url).trim();
     if(changes.parentId !== undefined) changes.parentId = changes.parentId || null;
+    if(changes.customWidth !== undefined) changes.customWidth = changes.customWidth !== null ? Number(changes.customWidth) : null;
+    if(changes.customHeight !== undefined) changes.customHeight = changes.customHeight !== null ? Number(changes.customHeight) : null;
+    if(changes.fontSize !== undefined) changes.fontSize = changes.fontSize !== null ? Number(changes.fontSize) : null;
 
     // Se alterou de agrupador para outro tipo, desvincula os filhos
     if(changes.type && changes.type !== 'agrupador' && tab.nodes[idx].type === 'agrupador'){
@@ -666,6 +677,9 @@ const Store = (() => {
       if(changes.tags) ent.tags = [...changes.tags];
       if(changes.url !== undefined) ent.url = changes.url;
       if(changes.subgraphTabId !== undefined) ent.subgraphTabId = changes.subgraphTabId;
+      if(changes.customWidth !== undefined) ent.customWidth = changes.customWidth;
+      if(changes.customHeight !== undefined) ent.customHeight = changes.customHeight;
+      if(changes.fontSize !== undefined) ent.fontSize = changes.fontSize;
     }
 
     // Sincroniza em todas as telas onde essa entidade aparece no projeto
@@ -679,6 +693,9 @@ const Store = (() => {
         if(changes.tags) nodeInTab.tags = [...changes.tags];
         if(changes.url !== undefined) nodeInTab.url = changes.url;
         if(changes.subgraphTabId !== undefined) nodeInTab.subgraphTabId = changes.subgraphTabId;
+        if(changes.customWidth !== undefined) nodeInTab.customWidth = changes.customWidth;
+        if(changes.customHeight !== undefined) nodeInTab.customHeight = changes.customHeight;
+        if(changes.fontSize !== undefined) nodeInTab.fontSize = changes.fontSize;
       }
     });
 
@@ -814,6 +831,12 @@ const Store = (() => {
     }
     if(changes.label !== undefined){
       changes.label = String(changes.label);
+    }
+    if(changes.labelRotation !== undefined){
+      changes.labelRotation = String(changes.labelRotation);
+    }
+    if(changes.fontSize !== undefined){
+      changes.fontSize = changes.fontSize !== null ? Number(changes.fontSize) : null;
     }
     if(changes.edgeType && changes.edgeType !== tab.edges[idx].edgeType){
       const current = tab.edges[idx];

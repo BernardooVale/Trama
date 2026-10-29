@@ -21,6 +21,9 @@ const Graph = (() => {
         label: buildLabel(n),
         title: n.title,
         url: n.url || '',
+        customWidth: n.customWidth !== undefined ? n.customWidth : null,
+        customHeight: n.customHeight !== undefined ? n.customHeight : null,
+        fontSize: n.fontSize !== undefined ? n.fontSize : null,
       },
       position: { x: n.x, y: n.y },
     };
@@ -49,6 +52,8 @@ const Graph = (() => {
         taxiTurn: e.taxiTurn ? String(e.taxiTurn) : '50%',
         linePattern: e.linePattern || 'default',
         arrowDirection: e.arrowDirection || (e.directed === false ? 'none' : 'target'),
+        labelRotation: e.labelRotation || 'autorotate',
+        fontSize: e.fontSize !== undefined ? e.fontSize : null,
       },
     };
   }
@@ -357,7 +362,10 @@ const Graph = (() => {
               priority: payload.priority,
               label: buildLabel(payload),
               title: payload.title,
-              url: payload.url || ''
+              url: payload.url || '',
+              customWidth: payload.customWidth !== undefined ? payload.customWidth : null,
+              customHeight: payload.customHeight !== undefined ? payload.customHeight : null,
+              fontSize: payload.fontSize !== undefined ? payload.fontSize : null,
             });
             const currentParent = n.data('parent') || null;
             const targetParent = payload.parentId || null;
@@ -405,6 +413,8 @@ const Graph = (() => {
               taxiTurn: payload.taxiTurn ? String(payload.taxiTurn) : '50%',
               linePattern: payload.linePattern || 'default',
               arrowDirection: payload.arrowDirection || (payload.directed === false ? 'none' : 'target'),
+              labelRotation: payload.labelRotation || 'autorotate',
+              fontSize: payload.fontSize !== undefined ? payload.fontSize : null,
             });
           }
           if(typeof GraphEdgeHandle !== 'undefined') GraphEdgeHandle.update(cy);

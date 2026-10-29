@@ -18,7 +18,7 @@ Legenda: [ ] aberta | [~] aguardando verificação | [x] verificada | [!] falhou
 - Notas do verificador:
 
 ## T2 — Suporte a Dimensões, Tipografia e Angulação no Store e Cytoscape (`store.js`, `graph.js`, `js/graph/styles.js`)
-- [ ] Status
+- [~] Status
 - Arquivos: `store.js`, `graph.js`, `js/graph/styles.js`
 - Descrição: Expandir as definições padrão de nós e arestas e mapear estilos no Cytoscape para suportar largura e altura customizadas de nós, tamanhos de fonte configuráveis e rotação livre/presets do texto da aresta.
 - Check rápido: `python -c "import pathlib; s=pathlib.Path('js/graph/styles.js').read_text('utf-8'); st=pathlib.Path('store.js').read_text('utf-8'); assert 'customWidth' in st and 'labelRotation' in st and 'customWidth' in s and 'labelRotation' in s"`
@@ -27,7 +27,7 @@ Legenda: [ ] aberta | [~] aguardando verificação | [x] verificada | [!] falhou
   - `store.js` expande `edgeDefaults` e `updateEdge` com os campos `labelRotation` (string ou número: `'autorotate'`, `'none'`/`'0'` ou ângulo em graus) e `fontSize` (número ou `null`).
   - `graph.js` repassa `customWidth`, `customHeight`, `fontSize` e `labelRotation` nas funções de conversão `nodeToEl`, `edgeToEl` e nos tratadores de evento `node:update` e `edge:update`.
   - `js/graph/styles.js` define mappers dinâmicos de estilo: `'width'` e `'height'` para nós usam o valor numérico de `customWidth`/`customHeight` quando presente ou `'label'` como padrão; `'font-size'` de nós usa `data(fontSize)` ou `13px`; `'text-rotation'` de arestas mapeia `'autorotate'`, `'none'` (0°) ou o ângulo em graus formatado; `'font-size'` de arestas usa `data(fontSize)` ou `11px`.
-- Notas do executor:
+- Notas do executor: Suporte adicionado a customWidth, customHeight, fontSize e labelRotation em Store e repasse em Graph; mappers funcionais criados em js/graph/styles.js com suporte a graus/presets e fallback para rótulo automático.
 - Notas do verificador:
 
 ## T3 — Controles de Dimensões e Tipografia de Vértices na Barra Lateral (`index.html`, `style.css`, `js/components/sidebar.js`)
