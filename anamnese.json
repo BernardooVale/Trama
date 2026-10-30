@@ -2,10 +2,12 @@
   "version": 3,
   "projectId": "proj_nobiu",
   "projectName": "Anamnese",
-  "exportedAt": "2026-10-29T14:28:57.688Z",
-  "activeTabId": "tab_mvrz5t68_vlip",
+  "exportedAt": "2026-10-30T19:08:08.202Z",
+  "activeTabId": "tab_mvs8f77q_cad3",
   "openTabIds": [
-    "tab_mvrz5t68_vlip"
+    "tab_mvrz5t68_vlip",
+    "tab_mvs8f77q_cad3",
+    "tab_mvtkv998_7pp6"
   ],
   "folders": [
     {
@@ -845,7 +847,7 @@
     "n_mvs8fjmn_l835i": {
       "id": "n_mvs8fjmn_l835i",
       "type": "agrupador",
-      "title": "Usuário entrou",
+      "title": "Usuário novo",
       "description": "",
       "priority": "media",
       "tags": [],
@@ -889,7 +891,7 @@
     "n_mvs8fjn4_qexdm": {
       "id": "n_mvs8fjn4_qexdm",
       "type": "neutro",
-      "title": "Seleciona top Y dados mais recorrentes no top K",
+      "title": "Seleciona top 5 dados mais recorrentes no top 10",
       "description": "",
       "priority": "media",
       "tags": [],
@@ -1010,7 +1012,7 @@
     "n_mvs8fjo8_sdwzo": {
       "id": "n_mvs8fjo8_sdwzo",
       "type": "neutro",
-      "title": "dif top K < X%",
+      "title": "dif top 5 < 20%",
       "description": "",
       "priority": "media",
       "tags": [],
@@ -3912,6 +3914,17 @@
       "url": "",
       "createdAt": 1793283279859,
       "subgraphTabId": null
+    },
+    "n_mvuzlrrd_dbr2o": {
+      "id": "n_mvuzlrrd_dbr2o",
+      "type": "neutro",
+      "title": "Pergunta se quer continuar",
+      "description": "",
+      "priority": "media",
+      "tags": [],
+      "url": "",
+      "createdAt": 1793365650121,
+      "subgraphTabId": null
     }
   },
   "tabs": [
@@ -4455,7 +4468,7 @@
           "tags": [],
           "url": "",
           "parentId": null,
-          "x": 1192,
+          "x": 1201,
           "y": 585,
           "createdAt": 1793187476674,
           "subgraphTabId": null,
@@ -4762,7 +4775,7 @@
           "tags": [],
           "url": "",
           "parentId": null,
-          "x": 668,
+          "x": 663,
           "y": 177,
           "createdAt": 1793187574403,
           "subgraphTabId": null,
@@ -6229,7 +6242,7 @@
         {
           "id": "n_mvs8fjmn_l835i",
           "type": "agrupador",
-          "title": "Usuário entrou",
+          "title": "Usuário novo",
           "description": "",
           "priority": "media",
           "tags": [],
@@ -6297,7 +6310,7 @@
         {
           "id": "n_mvs8fjn4_qexdm",
           "type": "neutro",
-          "title": "Seleciona top Y dados mais recorrentes no top K",
+          "title": "Seleciona top 5 dados mais recorrentes no top 10",
           "description": "",
           "priority": "media",
           "tags": [],
@@ -6320,8 +6333,8 @@
           "tags": [],
           "url": "",
           "parentId": null,
-          "x": 1260,
-          "y": 94,
+          "x": 1362,
+          "y": 92,
           "createdAt": 1793199077684,
           "subgraphTabId": null,
           "customWidth": null,
@@ -6388,7 +6401,7 @@
           "tags": [],
           "url": "",
           "parentId": null,
-          "x": 1625,
+          "x": 1702,
           "y": 501,
           "createdAt": 1793199077697,
           "subgraphTabId": null,
@@ -6405,8 +6418,8 @@
           "tags": [],
           "url": "",
           "parentId": null,
-          "x": 311,
-          "y": 368,
+          "x": 189,
+          "y": 373,
           "createdAt": 1793199077703,
           "subgraphTabId": null,
           "customWidth": null,
@@ -6422,8 +6435,8 @@
           "tags": [],
           "url": "",
           "parentId": null,
-          "x": 1494,
-          "y": 273,
+          "x": 1576,
+          "y": 228,
           "createdAt": 1793199077707,
           "subgraphTabId": null,
           "customWidth": null,
@@ -6473,8 +6486,8 @@
           "tags": [],
           "url": "",
           "parentId": null,
-          "x": 966,
-          "y": 369,
+          "x": 955,
+          "y": 366,
           "createdAt": 1793199077717,
           "subgraphTabId": null,
           "customWidth": null,
@@ -6484,7 +6497,7 @@
         {
           "id": "n_mvs8fjo8_sdwzo",
           "type": "neutro",
-          "title": "dif top K < X%",
+          "title": "dif top 5 < 20%",
           "description": "",
           "priority": "media",
           "tags": [],
@@ -6507,8 +6520,8 @@
           "tags": [],
           "url": "",
           "parentId": null,
-          "x": 546,
-          "y": 100,
+          "x": 540,
+          "y": 105,
           "createdAt": 1793199077724,
           "subgraphTabId": null,
           "customWidth": null,
@@ -6524,9 +6537,26 @@
           "tags": [],
           "url": "",
           "parentId": null,
-          "x": 363,
-          "y": 101,
+          "x": 109,
+          "y": 99,
           "createdAt": 1793199077727,
+          "subgraphTabId": null,
+          "customWidth": null,
+          "customHeight": null,
+          "fontSize": null
+        },
+        {
+          "id": "n_mvuzlrrd_dbr2o",
+          "type": "neutro",
+          "title": "Pergunta se quer continuar",
+          "description": "",
+          "priority": "media",
+          "tags": [],
+          "url": "",
+          "parentId": null,
+          "x": 330,
+          "y": 103,
+          "createdAt": 1793365650121,
           "subgraphTabId": null,
           "customWidth": null,
           "customHeight": null,
@@ -6551,7 +6581,7 @@
           "linePattern": "default",
           "arrowDirection": "target",
           "labelRotation": "autorotate",
-          "fontSize": null
+          "fontSize": 18
         },
         {
           "id": "e_mvs8fjol_egbke",
@@ -6570,7 +6600,7 @@
           "linePattern": "default",
           "arrowDirection": "target",
           "labelRotation": "autorotate",
-          "fontSize": null
+          "fontSize": 20
         },
         {
           "id": "e_mvs8fjol_ur6h3",
@@ -6589,7 +6619,7 @@
           "linePattern": "default",
           "arrowDirection": "target",
           "labelRotation": "autorotate",
-          "fontSize": null
+          "fontSize": 19
         },
         {
           "id": "e_mvs8fjom_ajkz4",
@@ -6608,7 +6638,7 @@
           "linePattern": "default",
           "arrowDirection": "target",
           "labelRotation": "autorotate",
-          "fontSize": null
+          "fontSize": 20
         },
         {
           "id": "e_mvs8fjom_x7f0x",
@@ -6626,8 +6656,8 @@
           "taxiTurn": "50%",
           "linePattern": "default",
           "arrowDirection": "target",
-          "labelRotation": "autorotate",
-          "fontSize": null
+          "labelRotation": "0",
+          "fontSize": 19
         },
         {
           "id": "e_mvs8fjom_2jka5",
@@ -6646,7 +6676,7 @@
           "linePattern": "default",
           "arrowDirection": "target",
           "labelRotation": "autorotate",
-          "fontSize": null
+          "fontSize": 22
         },
         {
           "id": "e_mvs8fjon_dvhkd",
@@ -6703,7 +6733,7 @@
           "linePattern": "default",
           "arrowDirection": "target",
           "labelRotation": "autorotate",
-          "fontSize": null
+          "fontSize": 19
         },
         {
           "id": "e_mvs8fjoo_t8r2w",
@@ -6778,8 +6808,8 @@
           "taxiTurn": "50%",
           "linePattern": "default",
           "arrowDirection": "target",
-          "labelRotation": "autorotate",
-          "fontSize": null
+          "labelRotation": "0",
+          "fontSize": 22
         },
         {
           "id": "e_mvs8fjoq_umexc",
@@ -6798,7 +6828,7 @@
           "linePattern": "default",
           "arrowDirection": "target",
           "labelRotation": "autorotate",
-          "fontSize": null
+          "fontSize": 22
         },
         {
           "id": "e_mvs8fjoq_r1611",
@@ -6873,8 +6903,8 @@
           "taxiTurn": "50%",
           "linePattern": "default",
           "arrowDirection": "target",
-          "labelRotation": "autorotate",
-          "fontSize": null
+          "labelRotation": "0",
+          "fontSize": 18
         },
         {
           "id": "e_mvs8fjos_q1p8b",
@@ -6893,7 +6923,7 @@
           "linePattern": "default",
           "arrowDirection": "target",
           "labelRotation": "autorotate",
-          "fontSize": null
+          "fontSize": 21
         },
         {
           "id": "e_mvs8fjot_ngb8t",
@@ -6972,10 +7002,10 @@
           "fontSize": null
         },
         {
-          "id": "e_mvs8fjou_h6yi6",
-          "source": "n_mvs8fjoc_39fhp",
-          "target": "n_mvs8fjof_omrrt",
-          "edgeType": "resolve",
+          "id": "e_mvs8fjou_q5sdb",
+          "source": "n_mvs8fjo1_l9x5h",
+          "target": "n_mvs8fjoc_39fhp",
+          "edgeType": "dependencia",
           "label": "",
           "directed": true,
           "curveStyle": "bezier",
@@ -6991,10 +7021,48 @@
           "fontSize": null
         },
         {
-          "id": "e_mvs8fjou_q5sdb",
-          "source": "n_mvs8fjo1_l9x5h",
-          "target": "n_mvs8fjoc_39fhp",
+          "id": "e_mvuzm14h_x14yn",
+          "source": "n_mvs8fjoc_39fhp",
+          "target": "n_mvuzlrrd_dbr2o",
+          "edgeType": "neutra",
+          "label": "",
+          "directed": true,
+          "curveStyle": "bezier",
+          "controlPointDistance": 40,
+          "controlPointWeight": 0.5,
+          "segmentDistance": 40,
+          "segmentWeight": 0.5,
+          "taxiDirection": "auto",
+          "taxiTurn": "50%",
+          "linePattern": "default",
+          "arrowDirection": "target",
+          "labelRotation": "autorotate",
+          "fontSize": null
+        },
+        {
+          "id": "e_mvuzm2nm_m41b5",
+          "source": "n_mvuzlrrd_dbr2o",
+          "target": "n_mvs8fjof_omrrt",
           "edgeType": "dependencia",
+          "label": "",
+          "directed": true,
+          "curveStyle": "bezier",
+          "controlPointDistance": 40,
+          "controlPointWeight": 0.5,
+          "segmentDistance": 40,
+          "segmentWeight": 0.5,
+          "taxiDirection": "auto",
+          "taxiTurn": "50%",
+          "linePattern": "default",
+          "arrowDirection": "target",
+          "labelRotation": "autorotate",
+          "fontSize": null
+        },
+        {
+          "id": "e_mvuzm4ts_y1vvz",
+          "source": "n_mvuzlrrd_dbr2o",
+          "target": "n_mvs8fjn4_qexdm",
+          "edgeType": "resolve",
           "label": "",
           "directed": true,
           "curveStyle": "bezier",
@@ -7110,8 +7178,8 @@
           "tags": [],
           "url": "",
           "parentId": null,
-          "x": 1422,
-          "y": 469,
+          "x": 1427,
+          "y": 513,
           "createdAt": 1793279957744,
           "subgraphTabId": null,
           "customWidth": null,
